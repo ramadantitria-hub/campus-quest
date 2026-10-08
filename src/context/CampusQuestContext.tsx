@@ -18,6 +18,7 @@ import {
   INITIAL_REVIEWS
 } from '@/lib/mock-data';
 import { soundFX } from '@/lib/audio';
+import { supabase } from '@/lib/supabase';
 
 interface CampusQuestContextType {
   profile: Profile;
@@ -77,7 +78,7 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
   const [activeTab, setActiveTab] = useState<'home' | 'quests' | 'map' | 'wallet' | 'profile'>('home');
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load from localStorage on mount
+  // Load from localStorage on mount & sync with Supabase
   useEffect(() => {
     queueMicrotask(() => {
       try {
@@ -95,6 +96,72 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
       }
       setIsLoaded(true);
     });
+
+    // Supabase Live Sync & Realtime Subscription
+    if (supabase) {
+      const client = supabase;
+
+      // 1. Fetch live quests from Supabase
+      client
+        .from('quests')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .then(({ data, error }) => {
+          if (!error && data && data.length > 0) {
+            setQuests(data as Quest[]);
+          }
+        });
+
+      // 2. Realtime listener for Quests
+      const questChannel = client
+        .channel('campusquest-realtime-quests')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'quests' },
+          (payload) => {
+            if (payload.eventType === 'INSERT') {
+              const newQ = payload.new as Quest;
+              setQuests((prev) => {
+                if (prev.some((q) => q.id === newQ.id)) return prev;
+                return [newQ, ...prev];
+              });
+            } else if (payload.eventType === 'UPDATE') {
+              const updatedQ = payload.new as Quest;
+              setQuests((prev) =>
+                prev.map((q) => (q.id === updatedQ.id ? { ...q, ...updatedQ } : q))
+              );
+            }
+          }
+        )
+        .subscribe();
+
+      // 3. Realtime listener for Chat Messages
+      const chatChannel = client
+        .channel('campusquest-realtime-chats')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'chat_messages' },
+          (payload) => {
+            const newMsg = payload.new as ChatMessage;
+            if (newMsg?.quest_id) {
+              setChats((prev) => {
+                const currentList = prev[newMsg.quest_id] || [];
+                if (currentList.some((m) => m.id === newMsg.id)) return prev;
+                return {
+                  ...prev,
+                  [newMsg.quest_id]: [...currentList, newMsg]
+                };
+              });
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        client.removeChannel(questChannel);
+        client.removeChannel(chatChannel);
+      };
+    }
   }, []);
 
   // Save to localStorage when state updates
@@ -164,6 +231,39 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
 
     setQuests((prev) => [newQuest, ...prev]);
     soundFX.notification();
+
+    if (supabase) {
+      supabase
+        .from('quests')
+        .insert({
+          id: newQuest.id,
+          customer_id: newQuest.customer_id,
+          customer_name: newQuest.customer_name,
+          customer_avatar: newQuest.customer_avatar,
+          category: newQuest.category,
+          title: newQuest.title,
+          description: newQuest.description,
+          quantity: newQuest.quantity,
+          unit: newQuest.unit,
+          origin_address: newQuest.origin_address,
+          destination_address: newQuest.destination_address,
+          landmark_origin: newQuest.landmark_origin,
+          landmark_destination: newQuest.landmark_destination,
+          notes: newQuest.notes,
+          bounty_fee: newQuest.bounty_fee,
+          item_cost: 0,
+          status: 'OPEN',
+          completion_otp: newQuest.completion_otp,
+          payment_method: newQuest.payment_method,
+          payment_status: 'PENDING',
+          created_at: newQuest.created_at,
+          updated_at: newQuest.updated_at
+        })
+        .then(({ error }) => {
+          if (error) console.warn('Supabase insert quest warning:', error.message);
+        });
+    }
+
     return newQuest;
   };
 
@@ -184,6 +284,22 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
         return q;
       })
     );
+
+    if (supabase) {
+      supabase
+        .from('quests')
+        .update({
+          status: 'ACCEPTED',
+          runner_id: profile.id,
+          runner_name: profile.full_name,
+          runner_avatar: profile.avatar_url,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', questId)
+        .then(({ error }) => {
+          if (error) console.warn('Supabase acceptQuest warning:', error.message);
+        });
+    }
   };
 
   const declineQuest = (questId: string) => {
@@ -205,6 +321,19 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
         return q;
       })
     );
+
+    if (supabase) {
+      supabase
+        .from('quests')
+        .update({
+          status,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', questId)
+        .then(({ error }) => {
+          if (error) console.warn('Supabase updateQuestStatus warning:', error.message);
+        });
+    }
   };
 
   const updateItemCost = (questId: string, cost: number, receiptUrl?: string) => {
@@ -222,6 +351,20 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
         return q;
       })
     );
+
+    if (supabase) {
+      supabase
+        .from('quests')
+        .update({
+          item_cost: cost,
+          ...(receiptUrl ? { receipt_image_url: receiptUrl } : {}),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', questId)
+        .then(({ error }) => {
+          if (error) console.warn('Supabase updateItemCost warning:', error.message);
+        });
+    }
   };
 
   const verifyOtpAndComplete = (questId: string, inputOtp: string) => {
@@ -258,6 +401,20 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
       wallet_balance: prev.wallet_balance + earning
     }));
 
+    if (supabase) {
+      supabase
+        .from('quests')
+        .update({
+          status: 'COMPLETED',
+          payment_status: 'PAID',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', questId)
+        .then(({ error }) => {
+          if (error) console.warn('Supabase completeQuest warning:', error.message);
+        });
+    }
+
     return { success: true, message: 'Transaksi Terverifikasi! Quest Berhasil Diselesaikan.' };
   };
 
@@ -277,6 +434,21 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
         return q;
       })
     );
+
+    if (supabase) {
+      supabase
+        .from('quests')
+        .update({
+          payment_proof_url: proofUrl,
+          payment_method: method,
+          payment_status: 'PAID',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', questId)
+        .then(({ error }) => {
+          if (error) console.warn('Supabase submitPaymentProof warning:', error.message);
+        });
+    }
   };
 
   const confirmPaymentReceived = (questId: string) => {
@@ -293,6 +465,19 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
         return q;
       })
     );
+
+    if (supabase) {
+      supabase
+        .from('quests')
+        .update({
+          payment_status: 'PAID',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', questId)
+        .then(({ error }) => {
+          if (error) console.warn('Supabase confirmPayment warning:', error.message);
+        });
+    }
   };
 
   const submitReview = (questId: string, rating: number, comment: string) => {
@@ -308,6 +493,24 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
       created_at: new Date().toISOString()
     };
     setReviews((prev) => [newReview, ...prev]);
+
+    if (supabase) {
+      supabase
+        .from('reviews')
+        .insert({
+          id: newReview.id,
+          quest_id: newReview.quest_id,
+          customer_id: newReview.customer_id,
+          customer_name: newReview.customer_name,
+          runner_id: newReview.runner_id,
+          rating: newReview.rating,
+          comment: newReview.comment,
+          created_at: newReview.created_at
+        })
+        .then(({ error }) => {
+          if (error) console.warn('Supabase submitReview warning:', error.message);
+        });
+    }
   };
 
   const sendChatMessage = (questId: string, content: string, mediaUrl?: string) => {
@@ -327,6 +530,24 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
       ...prev,
       [questId]: [...(prev[questId] || []), newMsg]
     }));
+
+    if (supabase) {
+      supabase
+        .from('chat_messages')
+        .insert({
+          id: newMsg.id,
+          quest_id: newMsg.quest_id,
+          sender_id: newMsg.sender_id,
+          sender_name: newMsg.sender_name,
+          sender_role: newMsg.sender_role,
+          content: newMsg.content,
+          media_url: newMsg.media_url,
+          created_at: newMsg.created_at
+        })
+        .then(({ error }) => {
+          if (error) console.warn('Supabase sendChatMessage warning:', error.message);
+        });
+    }
   };
 
   const updateKtm = (watermarkedKtmUrl: string) => {
