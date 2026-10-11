@@ -1,4 +1,4 @@
-export type UserRole = 'customer' | 'runner';
+export type UserRole = 'customer' | 'runner' | 'admin';
 
 export type ServiceCategory = 'JASTAP' | 'JARVIS';
 
@@ -93,6 +93,8 @@ export interface RegisteredAccount {
   role: UserRole;
   avatar_url?: string;
   ktm_url?: string;
+  is_verified?: boolean;
+  student_status?: 'AKTIF' | 'CUTI' | 'LULUS' | 'SUSPEND';
   created_at: string;
 }
 

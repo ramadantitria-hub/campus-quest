@@ -43,7 +43,7 @@ type LoginTab = 'login' | 'register' | 'ocr_scan';
 type ScanSource = 'upload' | 'camera';
 
 export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
-  const { loginWithCredentials, registerAccount, loginWithKtm, isLoggedIn } = useCampusQuest();
+  const { loginWithCredentials, registerAccount, loginWithKtm, isLoggedIn, loginAsAdmin } = useCampusQuest();
 
   const [activeTab, setActiveTab] = useState<LoginTab>('login');
 
@@ -1058,21 +1058,34 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
           </form>
         )}
 
-        {/* Modal Footer Security Guarantee */}
-        <div className="mt-5 pt-4 border-t border-[#E8DFD1] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-[#6E6265]">
+        {/* Modal Footer Security Guarantee & Admin Access */}
+        <div className="mt-5 pt-4 border-t border-[#E8DFD1] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-[11px] text-[#6E6265]">
           <div className="flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-[#2D8D84]" />
-            <span>Verifikasi KTM menjamin transaksi sesama mahasiswa UPI aman &amp; bebas penipuan</span>
+            <span>Verifikasi KTM resmi civitas akademika UPI</span>
           </div>
 
-          {!isLoggedIn && (
+          <div className="flex items-center gap-2 self-start sm:self-auto">
             <button
-              onClick={onClose}
-              className="text-[#7A1E34] hover:underline transition-colors cursor-pointer self-start sm:self-auto font-semibold"
+              type="button"
+              onClick={() => {
+                loginAsAdmin();
+                onClose();
+              }}
+              className="text-[#2C2224] hover:text-[#7A1E34] font-bold px-2.5 py-1 rounded-xl bg-[#FAF7F2] border border-[#E8DFD1] hover:bg-[#F2EBE0] cursor-pointer transition-colors flex items-center gap-1"
             >
-              Lanjutkan jelajah sebagai Tamu →
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
+              <span>Login Admin BEM</span>
             </button>
-          )}
+            {!isLoggedIn && (
+              <button
+                onClick={onClose}
+                className="text-[#7A1E34] hover:underline transition-colors cursor-pointer font-semibold"
+              >
+                Mode Tamu →
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

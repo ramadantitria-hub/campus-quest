@@ -70,12 +70,12 @@ export default function Navbar({
             </div>
           </div>
 
-          {/* Center: Dynamic Dual-Mode Switcher */}
+          {/* Center: Dynamic Triple-Mode Switcher */}
           <div className="flex items-center">
             <div className="relative p-1 bg-[#F2EBE0] border border-[#E3D7C6] rounded-full flex items-center shadow-inner">
               <button
                 onClick={() => switchRole('customer')}
-                className={`relative z-10 flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ${
+                className={`relative z-10 flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ${
                   activeRole === 'customer'
                     ? 'bg-[#2D8D84] text-white shadow-md shadow-[#2D8D84]/30'
                     : 'text-[#6E6265] hover:text-[#2C2224]'
@@ -86,7 +86,7 @@ export default function Navbar({
               </button>
               <button
                 onClick={() => switchRole('runner')}
-                className={`relative z-10 flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ${
+                className={`relative z-10 flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ${
                   activeRole === 'runner'
                     ? 'bg-[#7A1E34] text-white shadow-md shadow-[#7A1E34]/30'
                     : 'text-[#6E6265] hover:text-[#2C2224]'
@@ -94,6 +94,17 @@ export default function Navbar({
               >
                 <Zap className="w-3.5 h-3.5" />
                 <span>Runner</span>
+              </button>
+              <button
+                onClick={() => switchRole('admin')}
+                className={`relative z-10 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ${
+                  activeRole === 'admin'
+                    ? 'bg-[#2C2224] text-white shadow-md shadow-black/30'
+                    : 'text-[#6E6265] hover:text-[#2C2224]'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                <span>Admin</span>
               </button>
             </div>
           </div>

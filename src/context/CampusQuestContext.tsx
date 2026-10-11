@@ -17,7 +17,8 @@ import {
   INITIAL_QUESTS,
   INITIAL_CHATS,
   INITIAL_REVIEWS,
-  DEMO_STUDENTS
+  DEMO_STUDENTS,
+  ADMIN_PROFILE
 } from '@/lib/mock-data';
 import { soundFX } from '@/lib/audio';
 import { fireCelebrationConfetti } from '@/lib/confetti';
@@ -103,6 +104,16 @@ interface CampusQuestContextType {
   updateProfile: (updated: Partial<Profile>) => void;
   withdrawWallet: (amount: number, method: string) => boolean;
   resetToDefaultData: () => void;
+  // Admin Methods & State
+  adminForceCompleteQuest: (questId: string) => { success: boolean; message: string };
+  adminForceCancelQuest: (questId: string, reason?: string) => { success: boolean; message: string };
+  adminResetQuest: (questId: string) => { success: boolean; message: string };
+  adminVerifyUser: (nim: string, isVerified: boolean) => void;
+  adminToggleUserStatus: (nim: string, status: 'AKTIF' | 'CUTI' | 'LULUS') => void;
+  adminDeleteQuest: (questId: string) => { success: boolean; message: string };
+  loginAsAdmin: () => void;
+  registeredAccounts: RegisteredAccount[];
+  totalPlatformFee: number;
 }
 
 const CampusQuestContext = createContext<CampusQuestContextType | null>(null);
@@ -127,6 +138,22 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
   const [selectedQuestId, setSelectedQuestId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'home' | 'quests' | 'map' | 'wallet' | 'profile'>('home');
   const [isLoaded, setIsLoaded] = useState(false);
+  const [registeredAccounts, setRegisteredAccounts] = useState<RegisteredAccount[]>(() => {
+    return DEMO_STUDENTS.map((s) => ({
+      id: s.id,
+      nim: s.nim,
+      password: 'upi123',
+      full_name: s.full_name,
+      major: s.major || 'Pendidikan Teknik Mesin (S1)',
+      faculty: s.faculty || 'FPTK UPI',
+      university: s.university || 'Universitas Pendidikan Indonesia (UPI)',
+      phone: s.phone,
+      role: s.active_mode,
+      avatar_url: s.avatar_url,
+      ktm_url: s.ktm_url,
+      created_at: s.created_at
+    }));
+  });
 
   // Load from localStorage on mount & sync with Supabase
   useEffect(() => {
@@ -141,11 +168,20 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
         const savedQuests = localStorage.getItem(STORAGE_KEYS.QUESTS);
         const savedChats = localStorage.getItem(STORAGE_KEYS.CHATS);
         const savedReviews = localStorage.getItem(STORAGE_KEYS.REVIEWS);
+        const savedAccounts = localStorage.getItem(STORAGE_KEYS.REGISTERED_ACCOUNTS);
 
         if (savedProfile) setProfile(JSON.parse(savedProfile));
         if (savedQuests) setQuests(JSON.parse(savedQuests));
         if (savedChats) setChats(JSON.parse(savedChats));
         if (savedReviews) setReviews(JSON.parse(savedReviews));
+        if (savedAccounts) {
+          try {
+            const parsed = JSON.parse(savedAccounts);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setRegisteredAccounts(parsed);
+            }
+          } catch {}
+        }
 
         // WAJIB: Setiap kali membuka / masuk ke aplikasi, selalu mulai dalam status belum login
         // sehingga pengguna langsung disajikan Halaman Menu Login (KtmLoginScreen)
@@ -1157,6 +1193,181 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     localStorage.removeItem('cq_is_logged_in');
   };
 
+  // =========================================================================
+  // ADMIN PLATFORM METHODS & METRICS
+  // =========================================================================
+  const totalPlatformFee = quests
+    .filter((q) => q.status === 'COMPLETED')
+    .reduce((sum, q) => sum + Math.round(q.bounty_fee * 0.1), 0);
+
+  const loginAsAdmin = () => {
+    soundFX.success();
+    fireCelebrationConfetti();
+    setProfile(ADMIN_PROFILE);
+    setIsLoggedIn(true);
+    setIsGuestMode(false);
+    setIsLoginModalOpen(false);
+    setActiveTab('home');
+    syncProfileToSupabase(ADMIN_PROFILE);
+  };
+
+  const adminForceCompleteQuest = (questId: string) => {
+    soundFX.success();
+    setQuests((prev) =>
+      prev.map((q) => {
+        if (q.id === questId) {
+          return {
+            ...q,
+            status: 'COMPLETED',
+            payment_status: 'PAID',
+            updated_at: new Date().toISOString()
+          };
+        }
+        return q;
+      })
+    );
+
+    if (supabase) {
+      supabase
+        .from('quests')
+        .update({
+          status: 'COMPLETED',
+          payment_status: 'PAID',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', questId)
+        .then(({ error }) => {
+          if (error) console.warn('Supabase adminForceCompleteQuest warning:', error.message);
+        });
+    }
+
+    return {
+      success: true,
+      message: 'Quest berhasil diselesaikan paksa oleh Administrator UPI.'
+    };
+  };
+
+  const adminForceCancelQuest = (questId: string, reason?: string) => {
+    soundFX.pop();
+    setQuests((prev) =>
+      prev.map((q) => {
+        if (q.id === questId) {
+          return {
+            ...q,
+            status: 'CANCELLED',
+            notes: reason ? `${q.notes || ''} [Dibatalkan Admin: ${reason}]` : q.notes,
+            updated_at: new Date().toISOString()
+          };
+        }
+        return q;
+      })
+    );
+
+    if (supabase) {
+      supabase
+        .from('quests')
+        .update({
+          status: 'CANCELLED',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', questId)
+        .then(({ error }) => {
+          if (error) console.warn('Supabase adminForceCancelQuest warning:', error.message);
+        });
+    }
+
+    return {
+      success: true,
+      message: 'Quest berhasil dibatalkan oleh Administrator.'
+    };
+  };
+
+  const adminResetQuest = (questId: string) => {
+    soundFX.pop();
+    setQuests((prev) =>
+      prev.map((q) => {
+        if (q.id === questId) {
+          return {
+            ...q,
+            status: 'OPEN',
+            runner_id: undefined,
+            runner_name: undefined,
+            runner_avatar: undefined,
+            runner_phone: undefined,
+            item_cost: 0,
+            receipt_image_url: undefined,
+            updated_at: new Date().toISOString()
+          };
+        }
+        return q;
+      })
+    );
+
+    if (supabase) {
+      supabase
+        .from('quests')
+        .update({
+          status: 'OPEN',
+          runner_id: null,
+          runner_name: null,
+          runner_avatar: null,
+          runner_phone: null,
+          item_cost: 0,
+          receipt_image_url: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', questId)
+        .then(({ error }) => {
+          if (error) console.warn('Supabase adminResetQuest warning:', error.message);
+        });
+    }
+
+    return {
+      success: true,
+      message: 'Quest berhasil di-reset kembali ke status OPEN (antrean publik).'
+    };
+  };
+
+  const adminDeleteQuest = (questId: string) => {
+    soundFX.pop();
+    setQuests((prev) => prev.filter((q) => q.id !== questId));
+
+    if (supabase) {
+      supabase
+        .from('quests')
+        .delete()
+        .eq('id', questId)
+        .then(({ error }) => {
+          if (error) console.warn('Supabase adminDeleteQuest warning:', error.message);
+        });
+    }
+
+    return {
+      success: true,
+      message: 'Quest berhasil dihapus permanen dari sistem.'
+    };
+  };
+
+  const adminVerifyUser = (nim: string, isVerified: boolean) => {
+    soundFX.notification();
+    setRegisteredAccounts((prev) => {
+      const updated = prev.map((a) => (a.nim === nim ? { ...a, is_verified: isVerified } : a));
+      localStorage.setItem(STORAGE_KEYS.REGISTERED_ACCOUNTS, JSON.stringify(updated));
+      return updated;
+    });
+
+    if (profile.nim === nim) {
+      setProfile((prev) => ({ ...prev, is_verified: isVerified }));
+    }
+  };
+
+  const adminToggleUserStatus = (nim: string, status: 'AKTIF' | 'CUTI' | 'LULUS') => {
+    soundFX.notification();
+    if (profile.nim === nim) {
+      setProfile((prev) => ({ ...prev, student_status: status }));
+    }
+  };
+
   const resetToDefaultData = () => {
     setProfile(INITIAL_PROFILE);
     setIsLoggedIn(false);
@@ -1214,7 +1425,17 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
         increaseBounty,
         updateProfile,
         withdrawWallet,
-        resetToDefaultData
+        resetToDefaultData,
+        // Admin
+        adminForceCompleteQuest,
+        adminForceCancelQuest,
+        adminResetQuest,
+        adminVerifyUser,
+        adminToggleUserStatus,
+        adminDeleteQuest,
+        loginAsAdmin,
+        registeredAccounts,
+        totalPlatformFee
       }}
     >
       {children}

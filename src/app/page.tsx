@@ -14,6 +14,7 @@ import KtmLoginModal from '@/components/KtmLoginModal';
 import KtmLoginScreen from '@/components/KtmLoginScreen';
 import WalletModal from '@/components/WalletModal';
 import CampusMap from '@/components/CampusMap';
+import AdminDashboard from '@/components/AdminDashboard';
 import PwaInstallBanner from '@/components/PwaInstallBanner';
 import { ServiceCategory } from '@/types/campus-quest';
 import {
@@ -166,7 +167,7 @@ function CampusQuestApp() {
                   : 'text-[#6E6265] hover:text-[#2C2224] hover:bg-[#F2EBE0]'
               }`}
             >
-              Beranda ({activeRole === 'customer' ? 'Customer' : 'Runner'})
+              Beranda ({activeRole === 'admin' ? 'Admin' : activeRole === 'customer' ? 'Customer' : 'Runner'})
             </button>
             <button
               onClick={() => setActiveTab('quests')}
@@ -178,6 +179,8 @@ function CampusQuestApp() {
             >
               {activeRole === 'customer'
                 ? `Pesanan Saya (${myQuestsCount})`
+                : activeRole === 'admin'
+                ? `Semua Quest Kampus (${quests.length})`
                 : `Quest Board (${availableQuestsCount})`}
             </button>
             <button
@@ -241,7 +244,9 @@ function CampusQuestApp() {
         {/* VIEW: HOME */}
         {activeTab === 'home' && (
           <>
-            {activeRole === 'customer' ? (
+            {activeRole === 'admin' ? (
+              <AdminDashboard />
+            ) : activeRole === 'customer' ? (
               <CustomerDashboard
                 onOpenCreateQuest={handleOpenCreateQuest}
                 onOpenQuestDetail={handleOpenQuestDetail}

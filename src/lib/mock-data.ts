@@ -165,6 +165,25 @@ export const DEMO_STUDENTS: Profile[] = [
   }
 ];
 
+export const ADMIN_PROFILE: Profile = {
+  id: 'usr-admin-bem-001',
+  full_name: 'Biro Administrator BEM UPI',
+  nim: '1988012',
+  university: 'Universitas Pendidikan Indonesia (UPI)',
+  faculty: 'Biro Kemahasiswaan & BEM REMA UPI',
+  major: 'Administrasi Ekosistem Kampus',
+  phone: '081122334455',
+  avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+  is_verified: true,
+  active_mode: 'admin',
+  runner_specialty: ['JASTAP', 'JARVIS'],
+  rating: 5.0,
+  total_completed_orders: 120,
+  wallet_balance: 1540000,
+  points: 1540,
+  created_at: new Date(Date.now() - 90 * 86400000).toISOString()
+};
+
 export const INITIAL_PROFILE: Profile = DEMO_STUDENTS[0];
 
 export const SAMPLE_KTM_PRESETS = [

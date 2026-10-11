@@ -40,21 +40,25 @@ export default function BottomNav({
           onClick={() => handleTabClick('home')}
           className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all cursor-pointer ${
             activeTab === 'home'
-              ? activeRole === 'customer'
+              ? activeRole === 'admin'
+                ? 'text-[#2C2224] font-black bg-[#F2EBE0]'
+                : activeRole === 'customer'
                 ? 'text-[#2D8D84] font-extrabold bg-[#E8F6F3]'
                 : 'text-[#7A1E34] font-extrabold bg-[#FBF0F2]'
               : 'text-[#8E7F83] hover:text-[#2C2224]'
           }`}
         >
           <Home className="w-4.5 h-4.5" />
-          <span className="text-[10px]">Beranda</span>
+          <span className="text-[10px]">{activeRole === 'admin' ? 'Admin' : 'Beranda'}</span>
         </button>
 
         <button
           onClick={() => handleTabClick('quests')}
           className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all cursor-pointer ${
             activeTab === 'quests'
-              ? activeRole === 'customer'
+              ? activeRole === 'admin'
+                ? 'text-[#2C2224] font-black bg-[#F2EBE0]'
+                : activeRole === 'customer'
                 ? 'text-[#2D8D84] font-extrabold bg-[#E8F6F3]'
                 : 'text-[#7A1E34] font-extrabold bg-[#FBF0F2]'
               : 'text-[#8E7F83] hover:text-[#2C2224]'
@@ -62,7 +66,7 @@ export default function BottomNav({
         >
           <Compass className="w-4.5 h-4.5" />
           <span className="text-[10px]">
-            {activeRole === 'customer' ? 'Pesanan' : 'Quest Board'}
+            {activeRole === 'customer' ? 'Pesanan' : activeRole === 'admin' ? 'Semua Quest' : 'Quest Board'}
           </span>
         </button>
 

@@ -39,7 +39,7 @@ type LoginTab = 'login' | 'register' | 'ocr_scan';
 type ScanSource = 'upload' | 'camera';
 
 export default function KtmLoginScreen() {
-  const { loginWithCredentials, registerAccount, loginWithKtm, enterGuestMode } = useCampusQuest();
+  const { loginWithCredentials, registerAccount, loginWithKtm, enterGuestMode, loginAsAdmin } = useCampusQuest();
 
   const [activeTab, setActiveTab] = useState<LoginTab>('login');
 
@@ -1181,16 +1181,24 @@ export default function KtmLoginScreen() {
                 </form>
               )}
 
-              {/* Bottom Card Helper: Guest Explorer Mode */}
-              <div className="mt-5 pt-3.5 border-t border-[#E8DFD1] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-[#6E6265]">
-                <span className="text-[11px] sm:text-xs">Ingin melihat dashboard dan quest board dulu?</span>
+              {/* Bottom Card Helper: Guest Explorer Mode & Admin Access */}
+              <div className="mt-5 pt-3.5 border-t border-[#E8DFD1] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 text-xs text-[#6E6265]">
                 <button
                   type="button"
                   onClick={enterGuestMode}
-                  className="font-bold text-[#7A1E34] hover:text-[#6E1C2F] flex items-center gap-1 cursor-pointer transition-colors text-xs shrink-0"
+                  className="font-bold text-[#7A1E34] hover:text-[#6E1C2F] flex items-center gap-1 cursor-pointer transition-colors text-xs"
                 >
                   <span>Jelajahi Mode Tamu</span>
                   <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={loginAsAdmin}
+                  className="font-bold text-[#2C2224] hover:text-[#7A1E34] flex items-center gap-1.5 cursor-pointer transition-colors text-xs px-3 py-1.5 rounded-xl bg-[#FAF7F2] border border-[#E8DFD1] hover:bg-[#F2EBE0] shadow-xs"
+                >
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <span>Portal Administrator BEM UPI</span>
                 </button>
               </div>
             </div>
