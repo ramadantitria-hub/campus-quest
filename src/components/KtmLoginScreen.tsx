@@ -866,16 +866,6 @@ export default function KtmLoginScreen() {
               {/* TAB 2: FORM MASUK (LOGIN) */}
               {activeTab === 'login' && (
                 <form onSubmit={handleLoginSubmit} className="space-y-4">
-                  <div className="p-3.5 rounded-2xl bg-[#FAF7F2] border border-[#E8DFD1] text-xs text-[#2C2224] flex items-start gap-2.5 shadow-sm">
-                    <KeyRound className="w-4 h-4 text-[#7A1E34] shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-[#2C2224]">Masuk Akun Mahasiswa UPI</p>
-                      <p className="text-[11px] text-[#6E6265] mt-0.5">
-                        Masukkan NIM UPI dan password akun Anda. Akun Runner dan Customer terpisah otomatis berdasarkan kredensial pendaftaran.
-                      </p>
-                    </div>
-                  </div>
-
                   {/* Input NIM UPI */}
                   <div>
                     <label className="block text-xs font-medium text-[#2C2224] mb-1 flex items-center justify-between">
