@@ -596,10 +596,15 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
 
   const updateProfile = (updated: Partial<Profile>) => {
     soundFX.pop();
-    setProfile((prev) => ({
-      ...prev,
-      ...updated
-    }));
+    setProfile((prev) => {
+      const merged = { ...prev, ...updated };
+      if (supabase) {
+        supabase.from('profiles').upsert(merged).then(({ error }) => {
+          if (error) console.warn('Supabase updateProfile error:', error.message);
+        });
+      }
+      return merged;
+    });
   };
 
   const withdrawWallet = (amount: number, method: string): boolean => {
@@ -725,6 +730,25 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     setIsLoggedIn(true);
     setIsGuestMode(false);
     setIsLoginModalOpen(false);
+
+    if (supabase) {
+      supabase.from('profiles').upsert({
+        id: created.id,
+        full_name: created.full_name,
+        nim: created.nim,
+        phone: created.phone,
+        avatar_url: created.avatar_url,
+        ktm_url: created.ktm_url,
+        university: created.university,
+        faculty: created.faculty,
+        major: created.major,
+        is_verified: created.is_verified,
+        active_mode: created.active_mode
+      }).then(({ error }) => {
+        if (error) console.warn('Supabase loginWithNim upsert:', error.message);
+      });
+    }
+
     return { success: true, message: `Akun Mahasiswa dengan NIM ${cleanNim} berhasil dibuat dan masuk!` };
   };
 
@@ -735,6 +759,12 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     setIsLoggedIn(true);
     setIsGuestMode(false);
     setIsLoginModalOpen(false);
+
+    if (supabase) {
+      supabase.from('profiles').upsert(student).then(({ error }) => {
+        if (error) console.warn('Supabase loginAsStudent upsert:', error.message);
+      });
+    }
   };
 
   const logout = () => {

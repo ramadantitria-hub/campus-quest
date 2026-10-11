@@ -20,6 +20,10 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   phone TEXT,
   avatar_url TEXT,
   ktm_url TEXT,
+  university TEXT DEFAULT 'Universitas Pendidikan Indonesia (UPI)',
+  faculty TEXT DEFAULT 'Kampus UPI di Purwakarta',
+  major TEXT DEFAULT 'Mekatronika dan Kecerdasan Buatan (S1)',
+  student_status TEXT DEFAULT 'AKTIF' CHECK (student_status IN ('AKTIF', 'CUTI', 'LULUS')),
   is_verified BOOLEAN DEFAULT FALSE,
   active_mode TEXT DEFAULT 'customer' CHECK (active_mode IN ('customer', 'runner')),
   runner_specialty TEXT[] DEFAULT '{}', -- ['JASTAP', 'JARVIS']
@@ -28,6 +32,12 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   wallet_balance NUMERIC(12, 2) DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Idempotent column migrations for existing tables
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS university TEXT DEFAULT 'Universitas Pendidikan Indonesia (UPI)';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS faculty TEXT DEFAULT 'Kampus UPI di Purwakarta';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS major TEXT DEFAULT 'Mekatronika dan Kecerdasan Buatan (S1)';
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS student_status TEXT DEFAULT 'AKTIF';
 
 -- 2. Quests Table
 CREATE TABLE IF NOT EXISTS public.quests (
@@ -203,14 +213,17 @@ END $$;
 -- =========================================================
 -- OPTIONAL SEED DATA (Demo Mahasiswa & Quest Kampus)
 -- =========================================================
-INSERT INTO public.profiles (id, full_name, nim, phone, avatar_url, is_verified, active_mode, runner_specialty, rating, total_completed_orders, wallet_balance)
+INSERT INTO public.profiles (id, full_name, nim, phone, avatar_url, university, faculty, major, student_status, is_verified, active_mode, runner_specialty, rating, total_completed_orders, wallet_balance)
 VALUES 
-  ('usr-current-001', 'Bima Arya Prasetya', '2206123891', '081298765432', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80', true, 'customer', ARRAY['JASTAP', 'JARVIS'], 4.96, 28, 145000),
-  ('usr-runner-002', 'Reza Fachri (The Machinist)', '2106981245', '081377889900', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80', true, 'runner', ARRAY['JARVIS'], 4.98, 42, 380000),
-  ('usr-cust-003', 'Nabila Putri (Ilkom)', '2306771122', '081922334455', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80', true, 'customer', ARRAY['JASTAP'], 5.00, 12, 50000)
+  ('usr-tria-2502895', 'TRIA RAMADANTI', '2502895', '081299887766', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80', 'Universitas Pendidikan Indonesia (UPI)', 'Kampus UPI di Purwakarta', 'Mekatronika dan Kecerdasan Buatan (S1)', 'AKTIF', true, 'customer', ARRAY['JASTAP', 'JARVIS'], 5.00, 0, 50000),
+  ('usr-current-001', 'Bima Arya Prasetya', '2206123891', '081298765432', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80', 'Universitas Pendidikan Indonesia (UPI)', 'FPTK - Fakultas Pendidikan Teknologi dan Kejuruan', 'Pendidikan Teknik Mesin (S1)', 'AKTIF', true, 'customer', ARRAY['JASTAP', 'JARVIS'], 4.96, 28, 145000),
+  ('usr-runner-002', 'Reza Fachri (The Machinist)', '2106981245', '081377889900', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80', 'Universitas Pendidikan Indonesia (UPI)', 'FPTK - Fakultas Pendidikan Teknologi dan Kejuruan', 'Teknik Mesin (S1)', 'AKTIF', true, 'runner', ARRAY['JARVIS'], 4.98, 42, 380000),
+  ('usr-cust-003', 'Nabila Putri (Ilkom)', '2306771122', '081922334455', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80', 'Universitas Pendidikan Indonesia (UPI)', 'FPMIPA - Fakultas Pendidikan Matematika dan Ilmu Pengetahuan Alam', 'Ilmu Komputer (S1)', 'AKTIF', true, 'customer', ARRAY['JASTAP'], 5.00, 12, 50000)
 ON CONFLICT (id) DO UPDATE SET
   full_name = EXCLUDED.full_name,
-  nim = EXCLUDED.nim;
+  nim = EXCLUDED.nim,
+  major = EXCLUDED.major,
+  faculty = EXCLUDED.faculty;
 
 INSERT INTO public.quests (id, customer_id, customer_name, customer_avatar, runner_id, runner_name, runner_avatar, category, title, description, quantity, unit, origin_address, destination_address, landmark_origin, landmark_destination, notes, bounty_fee, item_cost, status, completion_otp, payment_method, payment_status)
 VALUES
