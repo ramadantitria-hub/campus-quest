@@ -2,7 +2,8 @@
 
 export async function addKtmWatermark(
   fileOrBase64: File | string,
-  nim: string = 'MAHASISWA'
+  nim: string = 'MAHASISWA',
+  studentName?: string
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -40,7 +41,8 @@ export async function addKtmWatermark(
       // Add watermark overlay
       ctx.save();
       const text = 'HANYA UNTUK VERIFIKASI AKUN CAMPUS QUEST';
-      const subText = `NIM: ${nim} • ${new Date().toLocaleDateString('id-ID')}`;
+      const studentPart = studentName ? `${studentName} • ` : '';
+      const subText = `NIM: ${nim} • ${studentPart}${new Date().toLocaleDateString('id-ID')}`;
 
       // Calculate angle and spacing
       const angle = -Math.PI / 6; // -30 degrees

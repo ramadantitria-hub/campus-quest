@@ -32,10 +32,18 @@ export default function RunnerDashboard({
   onOpenChat,
   onOpenWallet
 }: RunnerDashboardProps) {
-  const { profile, quests, acceptQuest, declineQuest } = useCampusQuest();
+  const { profile, quests, acceptQuest, declineQuest, isLoggedIn, openLoginModal } = useCampusQuest();
 
   const [categoryFilter, setCategoryFilter] = useState<'ALL' | ServiceCategory>('ALL');
   const [tabView, setTabView] = useState<'board' | 'running'>('board');
+
+  const handleAcceptQuest = (questId: string) => {
+    if (!isLoggedIn) {
+      openLoginModal();
+      return;
+    }
+    acceptQuest(questId);
+  };
 
   // Filter available open quests for the board
   const openQuests = quests.filter((q) => {
@@ -231,7 +239,7 @@ export default function RunnerDashboard({
                         Rincian
                       </button>
                       <button
-                        onClick={() => acceptQuest(quest.id)}
+                        onClick={() => handleAcceptQuest(quest.id)}
                         className="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-md shadow-amber-400/20 transition-all cursor-pointer flex items-center gap-1"
                       >
                         <CheckCircle className="w-3.5 h-3.5" />

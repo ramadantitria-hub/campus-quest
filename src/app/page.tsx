@@ -10,6 +10,7 @@ import CreateQuestModal from '@/components/CreateQuestModal';
 import QuestDetailModal from '@/components/QuestDetailModal';
 import LiveChatDrawer from '@/components/LiveChatDrawer';
 import KtmVerificationModal from '@/components/KtmVerificationModal';
+import KtmLoginModal from '@/components/KtmLoginModal';
 import WalletModal from '@/components/WalletModal';
 import CampusMap from '@/components/CampusMap';
 import PwaInstallBanner from '@/components/PwaInstallBanner';
@@ -24,7 +25,9 @@ import {
   Filter,
   Sparkles,
   Zap,
-  Info
+  Info,
+  GraduationCap,
+  ShieldCheck
 } from 'lucide-react';
 
 function CampusQuestApp() {
@@ -34,7 +37,11 @@ function CampusQuestApp() {
     setActiveTab,
     quests,
     selectedQuestId,
-    setSelectedQuestId
+    setSelectedQuestId,
+    isLoginModalOpen,
+    openLoginModal,
+    closeLoginModal,
+    isLoggedIn
   } = useCampusQuest();
 
   // Modals state
@@ -63,6 +70,10 @@ function CampusQuestApp() {
   }, []);
 
   const handleOpenCreateQuest = (cat: ServiceCategory) => {
+    if (!isLoggedIn) {
+      openLoginModal();
+      return;
+    }
     setCreateCategory(cat);
     setIsCreateModalOpen(true);
   };
@@ -92,6 +103,7 @@ function CampusQuestApp() {
       <Navbar
         onOpenKtmModal={() => setIsKtmModalOpen(true)}
         onOpenWalletModal={() => setIsWalletModalOpen(true)}
+        onOpenLoginModal={openLoginModal}
       />
 
       {/* Desktop Sub Navigation Tabs */}
@@ -146,6 +158,36 @@ function CampusQuestApp() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
+        {/* Banner Guest Mode if not logged in */}
+        {!isLoggedIn && (
+          <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-sky-950 via-slate-900 to-indigo-950 border border-sky-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl animate-in fade-in">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/20 shrink-0">
+                <GraduationCap className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-bold mb-1">
+                  <ShieldCheck className="w-3 h-3" /> Verifikasi Mahasiswa Diperlukan
+                </div>
+                <h3 className="text-sm sm:text-base font-bold text-white">
+                  Masuk Menggunakan KTM untuk Akses Penuh
+                </h3>
+                <p className="text-xs text-slate-300 mt-0.5 max-w-xl">
+                  Pindai KTM Anda secara instan dengan OCR AI, masuk via SSO Kampus, atau coba salah satu akun demo mahasiswa.
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={openLoginModal}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-sky-500/25 transition-all shrink-0 flex items-center gap-2 cursor-pointer self-start sm:self-auto"
+            >
+              <ShieldCheck className="w-4 h-4 text-emerald-300" />
+              <span>Login dengan KTM</span>
+            </button>
+          </div>
+        )}
+
         {/* VIEW: HOME */}
         {activeTab === 'home' && (
           <>
@@ -325,6 +367,7 @@ function CampusQuestApp() {
       <BottomNav
         onOpenKtmModal={() => setIsKtmModalOpen(true)}
         onOpenWalletModal={() => setIsWalletModalOpen(true)}
+        onOpenLoginModal={openLoginModal}
       />
 
       {/* Modals & Drawers */}
@@ -354,6 +397,11 @@ function CampusQuestApp() {
       <KtmVerificationModal
         isOpen={isKtmModalOpen}
         onClose={() => setIsKtmModalOpen(false)}
+      />
+
+      <KtmLoginModal
+        isOpen={isLoginModalOpen}
+        onClose={closeLoginModal}
       />
 
       <WalletModal

@@ -7,10 +7,15 @@ import { Home, Compass, MapPin, Wallet, UserCheck } from 'lucide-react';
 interface BottomNavProps {
   onOpenKtmModal: () => void;
   onOpenWalletModal: () => void;
+  onOpenLoginModal?: () => void;
 }
 
-export default function BottomNav({ onOpenKtmModal, onOpenWalletModal }: BottomNavProps) {
-  const { activeTab, setActiveTab, activeRole } = useCampusQuest();
+export default function BottomNav({
+  onOpenKtmModal,
+  onOpenWalletModal,
+  onOpenLoginModal
+}: BottomNavProps) {
+  const { activeTab, setActiveTab, activeRole, isLoggedIn } = useCampusQuest();
 
   const handleTabClick = (tab: 'home' | 'quests' | 'map' | 'wallet' | 'profile') => {
     if (tab === 'wallet') {
@@ -18,7 +23,11 @@ export default function BottomNav({ onOpenKtmModal, onOpenWalletModal }: BottomN
       return;
     }
     if (tab === 'profile') {
-      onOpenKtmModal();
+      if (!isLoggedIn && onOpenLoginModal) {
+        onOpenLoginModal();
+      } else {
+        onOpenKtmModal();
+      }
       return;
     }
     setActiveTab(tab);
@@ -84,7 +93,7 @@ export default function BottomNav({ onOpenKtmModal, onOpenWalletModal }: BottomN
           className="flex flex-col items-center gap-1 py-1 px-3 rounded-xl text-slate-400 hover:text-slate-200 transition-colors"
         >
           <UserCheck className="w-5 h-5" />
-          <span className="text-[10px]">Profil &amp; KTM</span>
+          <span className="text-[10px]">{isLoggedIn ? 'Profil & KTM' : 'Login KTM'}</span>
         </button>
       </div>
     </nav>

@@ -22,6 +22,9 @@ export interface Profile {
   phone: string;
   avatar_url?: string;
   ktm_url?: string;
+  university?: string;
+  faculty?: string;
+  student_status?: 'AKTIF' | 'CUTI' | 'LULUS';
   is_verified: boolean;
   active_mode: UserRole;
   runner_specialty: ServiceCategory[];
@@ -29,6 +32,16 @@ export interface Profile {
   total_completed_orders: number;
   wallet_balance: number;
   created_at: string;
+}
+
+export interface KtmOcrResult {
+  fullName: string;
+  nim: string;
+  university: string;
+  faculty: string;
+  status: 'AKTIF' | 'CUTI' | 'LULUS';
+  confidenceScore: number;
+  ktmImageUrl: string;
 }
 
 export interface Quest {

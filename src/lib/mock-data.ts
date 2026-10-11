@@ -67,21 +67,133 @@ export const CAMPUS_LANDMARKS: CampusLandmark[] = [
   }
 ];
 
-export const INITIAL_PROFILE: Profile = {
-  id: 'usr-current-001',
-  full_name: 'Bima Arya Prasetya',
-  nim: '2206123891',
-  phone: '081298765432',
-  avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
-  ktm_url: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&auto=format&fit=crop&q=80',
-  is_verified: true,
-  active_mode: 'customer',
-  runner_specialty: ['JASTAP', 'JARVIS'],
-  rating: 4.96,
-  total_completed_orders: 28,
-  wallet_balance: 145000,
-  created_at: new Date(Date.now() - 30 * 86400000).toISOString()
-};
+export const DEMO_STUDENTS: Profile[] = [
+  {
+    id: 'usr-current-001',
+    full_name: 'Bima Arya Prasetya',
+    nim: '2206123891',
+    university: 'Universitas Indonesia',
+    faculty: 'Fakultas Teknik - Teknik Mesin',
+    phone: '081298765432',
+    avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+    ktm_url: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&auto=format&fit=crop&q=80',
+    student_status: 'AKTIF',
+    is_verified: true,
+    active_mode: 'customer',
+    runner_specialty: ['JASTAP', 'JARVIS'],
+    rating: 4.96,
+    total_completed_orders: 28,
+    wallet_balance: 145000,
+    created_at: new Date(Date.now() - 30 * 86400000).toISOString()
+  },
+  {
+    id: 'usr-runner-002',
+    full_name: 'Reza Fachri (The Machinist)',
+    nim: '2106198002',
+    university: 'Universitas Indonesia',
+    faculty: 'Fakultas Ilmu Komputer - Sistem Informasi',
+    phone: '081388776655',
+    avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+    ktm_url: 'https://images.unsplash.com/photo-1589330694653-ded6df03f754?w=500&auto=format&fit=crop&q=80',
+    student_status: 'AKTIF',
+    is_verified: true,
+    active_mode: 'runner',
+    runner_specialty: ['JARVIS', 'JASTAP'],
+    rating: 4.98,
+    total_completed_orders: 54,
+    wallet_balance: 320000,
+    created_at: new Date(Date.now() - 60 * 86400000).toISOString()
+  },
+  {
+    id: 'usr-cust-003',
+    full_name: 'Nabila Putri',
+    nim: '2306145678',
+    university: 'Institut Teknologi Bandung',
+    faculty: 'Sekolah Teknik Elektro & Informatika (STEI)',
+    phone: '081912345678',
+    avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80',
+    ktm_url: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=500&auto=format&fit=crop&q=80',
+    student_status: 'AKTIF',
+    is_verified: true,
+    active_mode: 'customer',
+    runner_specialty: ['JASTAP'],
+    rating: 4.92,
+    total_completed_orders: 14,
+    wallet_balance: 95000,
+    created_at: new Date(Date.now() - 20 * 86400000).toISOString()
+  },
+  {
+    id: 'usr-cust-004',
+    full_name: 'Dimas Kurniawan',
+    nim: '2206187654',
+    university: 'Universitas Indonesia',
+    faculty: 'Fakultas Hukum - Hukum Pidana',
+    phone: '085611223344',
+    avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80',
+    ktm_url: 'https://images.unsplash.com/photo-1589330694653-ded6df03f754?w=500&auto=format&fit=crop&q=80',
+    student_status: 'AKTIF',
+    is_verified: true,
+    active_mode: 'customer',
+    runner_specialty: ['JASTAP'],
+    rating: 4.88,
+    total_completed_orders: 19,
+    wallet_balance: 62000,
+    created_at: new Date(Date.now() - 40 * 86400000).toISOString()
+  },
+  {
+    id: 'usr-cust-005',
+    full_name: 'Sarah Amalia',
+    nim: '2106154321',
+    university: 'Universitas Gadjah Mada',
+    faculty: 'Fakultas Kedokteran & Kesehatan Masyarakat',
+    phone: '087799881122',
+    avatar_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80',
+    ktm_url: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&auto=format&fit=crop&q=80',
+    student_status: 'AKTIF',
+    is_verified: true,
+    active_mode: 'customer',
+    runner_specialty: ['JASTAP', 'JARVIS'],
+    rating: 5.0,
+    total_completed_orders: 31,
+    wallet_balance: 210000,
+    created_at: new Date(Date.now() - 50 * 86400000).toISOString()
+  }
+];
+
+export const INITIAL_PROFILE: Profile = DEMO_STUDENTS[0];
+
+export const SAMPLE_KTM_PRESETS = [
+  {
+    label: 'KTM Universitas Indonesia (Teknik Mesin)',
+    fullName: 'Bima Arya Prasetya',
+    nim: '2206123891',
+    university: 'Universitas Indonesia',
+    faculty: 'Fakultas Teknik - Teknik Mesin',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+    badgeColor: 'from-amber-400 to-yellow-600',
+    univBadge: 'UI'
+  },
+  {
+    label: 'KTM Institut Teknologi Bandung (STEI)',
+    fullName: 'Reza Fachri',
+    nim: '2106198002',
+    university: 'Institut Teknologi Bandung',
+    faculty: 'Sekolah Teknik Elektro & Informatika',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+    badgeColor: 'from-sky-500 to-blue-700',
+    univBadge: 'ITB'
+  },
+  {
+    label: 'KTM Universitas Gadjah Mada (Fasilkom)',
+    fullName: 'Nabila Putri',
+    nim: '2306145678',
+    university: 'Universitas Gadjah Mada',
+    faculty: 'Fakultas MIPA - Ilmu Komputer',
+    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80',
+    badgeColor: 'from-emerald-500 to-teal-700',
+    univBadge: 'UGM'
+  }
+];
 
 export const INITIAL_QUESTS: Quest[] = [
   {

@@ -15,19 +15,37 @@ import {
   INITIAL_PROFILE,
   INITIAL_QUESTS,
   INITIAL_CHATS,
-  INITIAL_REVIEWS
+  INITIAL_REVIEWS,
+  DEMO_STUDENTS
 } from '@/lib/mock-data';
 import { soundFX } from '@/lib/audio';
 import { supabase } from '@/lib/supabase';
 
 interface CampusQuestContextType {
   profile: Profile;
+  isLoggedIn: boolean;
   activeRole: UserRole;
   quests: Quest[];
   chats: Record<string, ChatMessage[]>;
   reviews: Review[];
   selectedQuestId: string | null;
   activeTab: 'home' | 'quests' | 'map' | 'wallet' | 'profile';
+  isLoginModalOpen: boolean;
+  openLoginModal: () => void;
+  closeLoginModal: () => void;
+  loginWithKtm: (data: {
+    fullName: string;
+    nim: string;
+    university?: string;
+    faculty?: string;
+    phone?: string;
+    ktmUrl: string;
+    avatarUrl?: string;
+    role?: UserRole;
+  }) => void;
+  loginWithNim: (nim: string, pin?: string) => { success: boolean; message: string };
+  loginAsStudent: (student: Profile) => void;
+  logout: () => void;
   setActiveTab: (tab: 'home' | 'quests' | 'map' | 'wallet' | 'profile') => void;
   setSelectedQuestId: (id: string | null) => void;
   switchRole: (role: UserRole) => void;
@@ -64,6 +82,7 @@ const CampusQuestContext = createContext<CampusQuestContextType | null>(null);
 
 const STORAGE_KEYS = {
   PROFILE: 'cq_profile_v1',
+  IS_LOGGED_IN: 'cq_is_logged_in_v1',
   QUESTS: 'cq_quests_v1',
   CHATS: 'cq_chats_v1',
   REVIEWS: 'cq_reviews_v1'
@@ -71,6 +90,8 @@ const STORAGE_KEYS = {
 
 export function CampusQuestProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile>(INITIAL_PROFILE);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [quests, setQuests] = useState<Quest[]>(INITIAL_QUESTS);
   const [chats, setChats] = useState<Record<string, ChatMessage[]>>(INITIAL_CHATS);
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
@@ -83,11 +104,13 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     queueMicrotask(() => {
       try {
         const savedProfile = localStorage.getItem(STORAGE_KEYS.PROFILE);
+        const savedLogin = localStorage.getItem(STORAGE_KEYS.IS_LOGGED_IN);
         const savedQuests = localStorage.getItem(STORAGE_KEYS.QUESTS);
         const savedChats = localStorage.getItem(STORAGE_KEYS.CHATS);
         const savedReviews = localStorage.getItem(STORAGE_KEYS.REVIEWS);
 
         if (savedProfile) setProfile(JSON.parse(savedProfile));
+        if (savedLogin !== null) setIsLoggedIn(savedLogin === 'true');
         if (savedQuests) setQuests(JSON.parse(savedQuests));
         if (savedChats) setChats(JSON.parse(savedChats));
         if (savedReviews) setReviews(JSON.parse(savedReviews));
@@ -169,13 +192,14 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     if (!isLoaded) return;
     try {
       localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(profile));
+      localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, String(isLoggedIn));
       localStorage.setItem(STORAGE_KEYS.QUESTS, JSON.stringify(quests));
       localStorage.setItem(STORAGE_KEYS.CHATS, JSON.stringify(chats));
       localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(reviews));
     } catch {
       // quota or private browsing
     }
-  }, [profile, quests, chats, reviews, isLoaded]);
+  }, [profile, isLoggedIn, quests, chats, reviews, isLoaded]);
 
   // Generate 6 digit OTP
   const generateOTP = () => {
@@ -577,12 +601,120 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     return true;
   };
 
+  const openLoginModal = () => {
+    soundFX.pop();
+    setIsLoginModalOpen(true);
+  };
+
+  const closeLoginModal = () => {
+    setIsLoginModalOpen(false);
+  };
+
+  const loginWithKtm = (data: {
+    fullName: string;
+    nim: string;
+    university?: string;
+    faculty?: string;
+    phone?: string;
+    ktmUrl: string;
+    avatarUrl?: string;
+    role?: UserRole;
+  }) => {
+    soundFX.success();
+    const newProfile: Profile = {
+      ...profile,
+      id: `usr-${Date.now().toString(36)}`,
+      full_name: data.fullName,
+      nim: data.nim,
+      university: data.university || 'Universitas Indonesia',
+      faculty: data.faculty || 'Fakultas Teknik',
+      phone: data.phone || profile.phone,
+      avatar_url: data.avatarUrl || profile.avatar_url,
+      ktm_url: data.ktmUrl,
+      is_verified: true,
+      active_mode: data.role || profile.active_mode,
+      student_status: 'AKTIF'
+    };
+    setProfile(newProfile);
+    setIsLoggedIn(true);
+    setIsLoginModalOpen(false);
+
+    if (supabase) {
+      supabase.from('profiles').upsert({
+        id: newProfile.id,
+        full_name: newProfile.full_name,
+        nim: newProfile.nim,
+        phone: newProfile.phone,
+        avatar_url: newProfile.avatar_url,
+        ktm_url: newProfile.ktm_url,
+        is_verified: true,
+        active_mode: newProfile.active_mode
+      }).then(({ error }) => {
+        if (error) console.warn('Supabase profile upsert:', error.message);
+      });
+    }
+  };
+
+  const loginWithNim = (nim: string, _pin?: string): { success: boolean; message: string } => {
+    const cleanNim = nim.trim();
+    if (!cleanNim || cleanNim.length < 5) {
+      return { success: false, message: 'NIM harus terdiri dari minimal 5 digit angka.' };
+    }
+    const found = DEMO_STUDENTS.find((s) => s.nim === cleanNim);
+    if (found) {
+      soundFX.success();
+      setProfile(found);
+      setIsLoggedIn(true);
+      setIsLoginModalOpen(false);
+      return { success: true, message: `Login berhasil! Selamat datang kembali, ${found.full_name}.` };
+    }
+
+    const created: Profile = {
+      id: `usr-nim-${cleanNim}`,
+      full_name: `Mahasiswa (${cleanNim})`,
+      nim: cleanNim,
+      university: 'Universitas Indonesia',
+      faculty: 'Fakultas Teknik',
+      phone: '0812' + Math.floor(10000000 + Math.random() * 90000000),
+      avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+      ktm_url: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&auto=format&fit=crop&q=80',
+      is_verified: true,
+      student_status: 'AKTIF',
+      active_mode: 'customer',
+      runner_specialty: ['JASTAP'],
+      rating: 5.0,
+      total_completed_orders: 0,
+      wallet_balance: 50000,
+      created_at: new Date().toISOString()
+    };
+    soundFX.success();
+    setProfile(created);
+    setIsLoggedIn(true);
+    setIsLoginModalOpen(false);
+    return { success: true, message: `Akun Mahasiswa dengan NIM ${cleanNim} berhasil dibuat dan masuk!` };
+  };
+
+  const loginAsStudent = (student: Profile) => {
+    soundFX.success();
+    setProfile(student);
+    setIsLoggedIn(true);
+    setIsLoginModalOpen(false);
+  };
+
+  const logout = () => {
+    soundFX.pop();
+    setIsLoggedIn(false);
+    localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, 'false');
+  };
+
   const resetToDefaultData = () => {
     setProfile(INITIAL_PROFILE);
+    setIsLoggedIn(true);
     setQuests(INITIAL_QUESTS);
     setChats(INITIAL_CHATS);
     setReviews(INITIAL_REVIEWS);
     localStorage.removeItem(STORAGE_KEYS.PROFILE);
+    localStorage.removeItem(STORAGE_KEYS.IS_LOGGED_IN);
     localStorage.removeItem(STORAGE_KEYS.QUESTS);
     localStorage.removeItem(STORAGE_KEYS.CHATS);
     localStorage.removeItem(STORAGE_KEYS.REVIEWS);
@@ -593,12 +725,20 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     <CampusQuestContext.Provider
       value={{
         profile,
+        isLoggedIn,
         activeRole: profile.active_mode,
         quests,
         chats,
         reviews,
         selectedQuestId,
         activeTab,
+        isLoginModalOpen,
+        openLoginModal,
+        closeLoginModal,
+        loginWithKtm,
+        loginWithNim,
+        loginAsStudent,
+        logout,
         setActiveTab,
         setSelectedQuestId,
         switchRole,
