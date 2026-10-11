@@ -48,6 +48,7 @@ export default function QuestDetailModal({
   onOpenChat
 }: QuestDetailModalProps) {
   const {
+    profile,
     quests,
     activeRole,
     acceptQuest,
@@ -93,6 +94,33 @@ export default function QuestDetailModal({
 
   const quest = quests.find((q) => q.id === questId);
   if (!isOpen || !quest) return null;
+
+  // PRIVASI & KEAMANAN: Customer lain TIDAK BOLEH melihat quest customer lain!
+  const isOwnerCustomer =
+    quest.customer_id === profile.id ||
+    (Boolean(profile.nim) && quest.customer_nim === profile.nim);
+
+  if (activeRole === 'customer' && !isOwnerCustomer) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#2C2224]/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="bg-[#FAF7F2] border border-[#E8DFD1] rounded-3xl p-6 text-[#2C2224] max-w-sm w-full shadow-2xl text-center animate-in zoom-in-95">
+          <div className="w-12 h-12 rounded-2xl bg-[#FBF0F2] text-[#7A1E34] border border-[#F1CCD3] flex items-center justify-center mx-auto mb-3">
+            <Ban className="w-6 h-6" />
+          </div>
+          <h3 className="text-base font-extrabold text-[#2C2224]">Akses Dibatasi</h3>
+          <p className="text-xs text-[#6E6265] mt-1">
+            Pesanan ini milik akun customer lain. Demi privasi mahasiswa UPI, Anda hanya dapat mengakses pesanan Anda sendiri.
+          </p>
+          <button
+            onClick={onClose}
+            className="mt-4 w-full py-2.5 rounded-2xl bg-[#7A1E34] hover:bg-[#6E1C2F] text-white text-xs font-bold shadow-md cursor-pointer transition-colors"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Status timeline steps
   const steps: { key: QuestStatus; label: string; desc: string }[] = [

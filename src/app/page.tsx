@@ -34,6 +34,7 @@ import {
 
 function CampusQuestApp() {
   const {
+    profile,
     activeRole,
     activeTab,
     setActiveTab,
@@ -90,8 +91,16 @@ function CampusQuestApp() {
     setActiveChatQuestId(id);
   };
 
-  // Filtered list for 'quests' tab
+  // Filtered list for 'quests' tab with strict privacy check
   const filteredQuests = quests.filter((q) => {
+    // PRIVASI & KEAMANAN: Customer lain TIDAK BOLEH melihat quest customer lain!
+    if (activeRole === 'customer') {
+      const isMine =
+        q.customer_id === profile.id ||
+        (Boolean(profile.nim) && q.customer_nim === profile.nim);
+      if (!isMine) return false;
+    }
+
     const matchCat = filterCategory === 'ALL' || q.category === filterCategory;
     const matchSearch =
       q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -100,6 +109,16 @@ function CampusQuestApp() {
       q.destination_address.toLowerCase().includes(searchQuery.toLowerCase());
     return matchCat && matchSearch;
   });
+
+  const myQuestsCount = quests.filter(
+    (q) =>
+      q.customer_id === profile.id ||
+      (Boolean(profile.nim) && q.customer_nim === profile.nim)
+  ).length;
+
+  const availableQuestsCount = quests.filter(
+    (q) => q.status === 'OPEN' || q.runner_id === profile.id
+  ).length;
 
   // Hydration state check
   if (!isLoaded) {
@@ -157,7 +176,9 @@ function CampusQuestApp() {
                   : 'text-[#6E6265] hover:text-[#2C2224] hover:bg-[#F2EBE0]'
               }`}
             >
-              Eksplorasi Quest ({quests.length})
+              {activeRole === 'customer'
+                ? `Pesanan Saya (${myQuestsCount})`
+                : `Quest Board (${availableQuestsCount})`}
             </button>
             <button
               onClick={() => setActiveTab('map')}
@@ -253,10 +274,12 @@ function CampusQuestApp() {
                 <div>
                   <h2 className="text-xl font-extrabold text-[#2C2224] flex items-center gap-2">
                     <Compass className="w-5 h-5 text-[#2D8D84]" />
-                    Semua Quest Mahasiswa
+                    {activeRole === 'customer' ? 'Pesanan & Riwayat Saya' : 'Quest Board Mahasiswa'}
                   </h2>
                   <p className="text-xs text-[#6E6265]">
-                    Daftar permintaan JASTAP &amp; JARVIS di lingkungan kampus UPI
+                    {activeRole === 'customer'
+                      ? 'Daftar seluruh pesanan JASTAP & JARVIS milik akun Anda (Privat)'
+                      : 'Daftar permintaan JASTAP & JARVIS yang siap Anda ambil di lingkungan kampus UPI'}
                   </p>
                 </div>
               </div>
@@ -329,62 +352,86 @@ function CampusQuestApp() {
             </div>
 
             {/* Quests Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredQuests.map((quest) => (
-                <div
-                  key={quest.id}
-                  onClick={() => handleOpenQuestDetail(quest.id)}
-                  className="bg-white border border-[#E8DFD1] hover:border-[#2D8D84] rounded-3xl p-4.5 transition-all shadow-sm hover:shadow-md cursor-pointer flex flex-col justify-between group hover:-translate-y-0.5"
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <span
-                        className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                          quest.category === 'JASTAP'
-                            ? 'bg-[#E8F6F3] text-[#1F6F67] border border-[#A5DDD3]'
-                            : 'bg-[#FBF0F2] text-[#7A1E34] border border-[#F1CCD3]'
-                        }`}
-                      >
-                        {quest.category}
-                      </span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#F2EBE0] text-[#6E6265]">
-                        {quest.status}
-                      </span>
-                    </div>
-
-                    <h4 className="text-sm font-bold text-[#2C2224] group-hover:text-[#7A1E34] transition-colors line-clamp-2 break-words">
-                      {quest.title}
-                    </h4>
-                    <p className="text-xs text-[#6E6265] line-clamp-2 break-words mt-1">
-                      {quest.description}
-                    </p>
-
-                    <div className="mt-3 p-2.5 bg-[#FAF7F2] rounded-2xl border border-[#E8DFD1]/70 space-y-1.5 text-[11px] text-[#4A3D41]">
-                      <div className="flex items-start gap-1.5 min-w-0">
-                        <MapPin className="w-3.5 h-3.5 text-[#2D8D84] shrink-0 mt-0.5" />
-                        <span className="break-words line-clamp-1 min-w-0">{quest.origin_address}</span>
-                      </div>
-                      <div className="flex items-start gap-1.5 min-w-0">
-                        <MapPin className="w-3.5 h-3.5 text-[#7A1E34] shrink-0 mt-0.5" />
-                        <span className="break-words line-clamp-1 min-w-0">{quest.destination_address}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 pt-3 border-t border-[#E8DFD1] flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] text-[#8E7F83] block font-semibold">Bounty Jasa</span>
-                      <span className="text-sm font-black text-[#7A1E34] font-mono">
-                        Rp {quest.bounty_fee.toLocaleString('id-ID')}
-                      </span>
-                    </div>
-                    <span className="text-xs font-bold text-[#2D8D84] group-hover:translate-x-1 transition-transform">
-                      Detail →
-                    </span>
-                  </div>
+            {filteredQuests.length === 0 ? (
+              <div className="py-14 text-center bg-white rounded-3xl border border-[#E8DFD1] p-6 shadow-xs">
+                <div className="w-12 h-12 rounded-2xl bg-[#FBF0F2] text-[#7A1E34] flex items-center justify-center mx-auto mb-3 border border-[#F1CCD3]">
+                  <Compass className="w-6 h-6" />
                 </div>
-              ))}
-            </div>
+                <h3 className="text-sm font-extrabold text-[#2C2224]">
+                  {activeRole === 'customer' ? 'Belum Ada Pesanan Anda' : 'Tidak Ada Quest Tersedia'}
+                </h3>
+                <p className="text-xs text-[#6E6265] mt-1 max-w-sm mx-auto">
+                  {activeRole === 'customer'
+                    ? 'Anda belum memiliki pesanan aktif maupun riwayat. Buat quest baru untuk menitip barang atau servis perangkat!'
+                    : 'Belum ada permintaan quest terbuka yang cocok dengan filter pencarian.'}
+                </p>
+                {activeRole === 'customer' && (
+                  <button
+                    onClick={() => handleOpenCreateQuest('JASTAP')}
+                    className="mt-4 px-4.5 py-2 rounded-2xl bg-[#2D8D84] hover:bg-[#247D75] text-white font-extrabold text-xs inline-flex items-center gap-1.5 shadow-sm shadow-[#2D8D84]/25 cursor-pointer transition-all"
+                  >
+                    <PlusCircle className="w-4 h-4" /> Buat Pesanan Baru
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredQuests.map((quest) => (
+                  <div
+                    key={quest.id}
+                    onClick={() => handleOpenQuestDetail(quest.id)}
+                    className="bg-white border border-[#E8DFD1] hover:border-[#2D8D84] rounded-3xl p-4.5 transition-all shadow-sm hover:shadow-md cursor-pointer flex flex-col justify-between group hover:-translate-y-0.5"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <span
+                          className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
+                            quest.category === 'JASTAP'
+                              ? 'bg-[#E8F6F3] text-[#1F6F67] border border-[#A5DDD3]'
+                              : 'bg-[#FBF0F2] text-[#7A1E34] border border-[#F1CCD3]'
+                          }`}
+                        >
+                          {quest.category}
+                        </span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#F2EBE0] text-[#6E6265]">
+                          {quest.status}
+                        </span>
+                      </div>
+
+                      <h4 className="text-sm font-bold text-[#2C2224] group-hover:text-[#7A1E34] transition-colors line-clamp-2 break-words">
+                        {quest.title}
+                      </h4>
+                      <p className="text-xs text-[#6E6265] line-clamp-2 break-words mt-1">
+                        {quest.description}
+                      </p>
+
+                      <div className="mt-3 p-2.5 bg-[#FAF7F2] rounded-2xl border border-[#E8DFD1]/70 space-y-1.5 text-[11px] text-[#4A3D41]">
+                        <div className="flex items-start gap-1.5 min-w-0">
+                          <MapPin className="w-3.5 h-3.5 text-[#2D8D84] shrink-0 mt-0.5" />
+                          <span className="break-words line-clamp-1 min-w-0">{quest.origin_address}</span>
+                        </div>
+                        <div className="flex items-start gap-1.5 min-w-0">
+                          <MapPin className="w-3.5 h-3.5 text-[#7A1E34] shrink-0 mt-0.5" />
+                          <span className="break-words line-clamp-1 min-w-0">{quest.destination_address}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-[#E8DFD1] flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] text-[#8E7F83] block font-semibold">Bounty Jasa</span>
+                        <span className="text-sm font-black text-[#7A1E34] font-mono">
+                          Rp {quest.bounty_fee.toLocaleString('id-ID')}
+                        </span>
+                      </div>
+                      <span className="text-xs font-bold text-[#2D8D84] group-hover:translate-x-1 transition-transform">
+                        Detail →
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -424,8 +471,17 @@ function CampusQuestApp() {
 
             <CampusMap
               activeQuest={
-                quests.find(
-                  (q) => q.status === 'ON_THE_WAY' || q.status === 'DELIVERING' || q.status === 'IN_PROGRESS'
+                (activeRole === 'customer'
+                  ? quests.find(
+                      (q) =>
+                        (q.customer_id === profile.id || (Boolean(profile.nim) && q.customer_nim === profile.nim)) &&
+                        (q.status === 'ON_THE_WAY' || q.status === 'DELIVERING' || q.status === 'IN_PROGRESS')
+                    )
+                  : quests.find(
+                      (q) =>
+                        (q.runner_id === profile.id || !q.runner_id) &&
+                        (q.status === 'ON_THE_WAY' || q.status === 'DELIVERING' || q.status === 'IN_PROGRESS')
+                    )
                 ) || null
               }
             />

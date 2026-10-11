@@ -33,6 +33,11 @@ export default function LiveChatDrawer({ questId, isOpen, onClose }: LiveChatDra
   const quest = quests.find((q) => q.id === questId);
   const questMessages = chats[questId] || [];
 
+  const isOwnerCustomer =
+    quest &&
+    (quest.customer_id === profile.id ||
+      (Boolean(profile.nim) && quest.customer_nim === profile.nim));
+
   useEffect(() => {
     if (isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -40,6 +45,11 @@ export default function LiveChatDrawer({ questId, isOpen, onClose }: LiveChatDra
   }, [isOpen, questMessages.length]);
 
   if (!isOpen || !quest) return null;
+
+  // PRIVASI & KEAMANAN: Customer tidak boleh mengakses chat quest milik customer lain
+  if (activeRole === 'customer' && !isOwnerCustomer) {
+    return null;
+  }
 
   const handleSend = (e?: React.FormEvent) => {
     if (e) e.preventDefault();

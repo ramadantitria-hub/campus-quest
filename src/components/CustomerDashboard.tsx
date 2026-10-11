@@ -44,15 +44,19 @@ export default function CustomerDashboard({
   const [activeNotification, setActiveNotification] = useState<{ id: string; title: string; category: string } | null>(null);
   const notifiedIdsRef = useRef<Set<string>>(new Set());
 
-  // Quests belonging to this customer profile specifically
+  // Quests belonging to this customer profile specifically (Customer lain TIDAK melihat quest customer lain)
+  const isMyQuest = (q: Quest) =>
+    q.customer_id === profile.id ||
+    (Boolean(profile.nim) && q.customer_nim === profile.nim);
+
   const activeQuests = quests.filter(
-    (q) => q.customer_id === profile.id && q.status !== 'COMPLETED' && q.status !== 'CANCELLED'
+    (q) => isMyQuest(q) && q.status !== 'COMPLETED' && q.status !== 'CANCELLED'
   );
   const completedQuests = quests.filter(
-    (q) => q.customer_id === profile.id && q.status === 'COMPLETED'
+    (q) => isMyQuest(q) && q.status === 'COMPLETED'
   );
   const cancelledQuests = quests.filter(
-    (q) => q.customer_id === profile.id && q.status === 'CANCELLED'
+    (q) => isMyQuest(q) && q.status === 'CANCELLED'
   );
 
   // Interval timer for real-time countdown & timeout alert
