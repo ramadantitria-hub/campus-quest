@@ -73,18 +73,18 @@ export default function LiveChatDrawer({ questId, isOpen, onClose }: LiveChatDra
   ];
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex justify-end">
-      <div className="bg-slate-900 border-l border-slate-800 w-full max-w-md h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-end">
+      <div className="bg-[#FAF7F2] border-l border-[#E8DFD1] w-full max-w-md h-full flex flex-col shadow-2xl animate-in slide-from-right duration-300 text-[#2C2224]">
         {/* Chat Header */}
-        <div className="p-4 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between">
+        <div className="p-4 bg-white/95 border-b border-[#E8DFD1] flex items-center justify-between">
           <div className="min-w-0 pr-3">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-              <h4 className="text-sm font-bold text-white truncate">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#2D8D84] animate-pulse" />
+              <h4 className="text-sm font-bold text-[#2C2224] truncate">
                 Live Chat: {quest.title}
               </h4>
             </div>
-            <p className="text-xs text-slate-400 truncate mt-0.5">
+            <p className="text-xs text-[#6E6265] truncate mt-0.5">
               {activeRole === 'customer'
                 ? `Runner: ${quest.runner_name || 'Menunggu Runner...'}`
                 : `Pemesan: ${quest.customer_name}`}
@@ -92,21 +92,21 @@ export default function LiveChatDrawer({ questId, isOpen, onClose }: LiveChatDra
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-1.5 rounded-lg text-[#6E6265] hover:text-[#2C2224] hover:bg-[#F2EBE0] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Messages List */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-slate-950/50">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3.5 bg-[#FAF7F2]">
           {questMessages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-500">
-              <div className="w-12 h-12 rounded-full bg-slate-800/80 flex items-center justify-center mb-2 text-sky-400">
+            <div className="h-full flex flex-col items-center justify-center text-center p-6 text-[#6E6265]">
+              <div className="w-12 h-12 rounded-full bg-white border border-[#E8DFD1] flex items-center justify-center mb-2 text-[#7A1E34] shadow-sm">
                 <Sparkles className="w-6 h-6" />
               </div>
-              <p className="text-xs font-semibold text-slate-300">Belum ada obrolan</p>
-              <p className="text-[11px] text-slate-500 mt-1 max-w-xs">
+              <p className="text-xs font-semibold text-[#2C2224]">Belum ada obrolan</p>
+              <p className="text-[11px] text-[#6E6265] mt-1 max-w-xs">
                 Mulai percakapan untuk koordinasi titik temu, foto kondisi barang, atau bukti nota belanja!
               </p>
             </div>
@@ -118,22 +118,26 @@ export default function LiveChatDrawer({ questId, isOpen, onClose }: LiveChatDra
                   key={msg.id}
                   className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
                 >
-                  <div className="flex items-center gap-1.5 mb-1 px-1 text-[11px] text-slate-400">
-                    <span className="font-semibold text-slate-300">{msg.sender_name}</span>
-                    <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-slate-800 text-sky-300">
+                  <div className="flex items-center gap-1.5 mb-1 px-1 text-[11px] text-[#6E6265]">
+                    <span className="font-semibold text-[#2C2224]">{msg.sender_name}</span>
+                    <span className={`text-[9px] px-1.5 py-0.2 rounded-full border ${
+                      msg.sender_role === 'customer'
+                        ? 'bg-[#FBF0F2] border-[#F1CCD3] text-[#7A1E34]'
+                        : 'bg-[#E8F6F3] border-[#A5DDD3] text-[#2D8D84]'
+                    }`}>
                       {msg.sender_role === 'customer' ? 'Customer' : 'Runner'}
                     </span>
                   </div>
 
                   <div
-                    className={`max-w-[85%] rounded-2xl p-3 shadow-md text-xs leading-relaxed ${
+                    className={`max-w-[85%] rounded-2xl p-3 shadow-sm text-xs leading-relaxed ${
                       isMe
-                        ? 'bg-gradient-to-r from-sky-600 to-blue-600 text-white rounded-br-none'
-                        : 'bg-slate-800 border border-slate-700/80 text-slate-100 rounded-bl-none'
+                        ? 'bg-[#7A1E34] text-white rounded-br-none'
+                        : 'bg-white border border-[#E8DFD1] text-[#2C2224] rounded-bl-none'
                     }`}
                   >
                     {msg.media_url && (
-                      <div className="mb-2 rounded-xl overflow-hidden border border-white/10 bg-black/30">
+                      <div className="mb-2 rounded-xl overflow-hidden border border-black/10 bg-black/5">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={msg.media_url}
@@ -146,7 +150,7 @@ export default function LiveChatDrawer({ questId, isOpen, onClose }: LiveChatDra
                     {msg.content && <p className="whitespace-pre-wrap">{msg.content}</p>}
                     <div
                       className={`text-[9px] mt-1 text-right flex items-center justify-end gap-1 ${
-                        isMe ? 'text-sky-200' : 'text-slate-400'
+                        isMe ? 'text-[#F1CCD3]' : 'text-[#8C7E81]'
                       }`}
                     >
                       <span>
@@ -155,7 +159,7 @@ export default function LiveChatDrawer({ questId, isOpen, onClose }: LiveChatDra
                           minute: '2-digit'
                         })}
                       </span>
-                      {isMe && <CheckCheck className="w-3 h-3 text-sky-300" />}
+                      {isMe && <CheckCheck className="w-3 h-3 text-[#F1CCD3]" />}
                     </div>
                   </div>
                 </div>
@@ -166,13 +170,13 @@ export default function LiveChatDrawer({ questId, isOpen, onClose }: LiveChatDra
         </div>
 
         {/* Quick Response Chips */}
-        <div className="px-3 py-2 bg-slate-900 border-t border-slate-800/80 overflow-x-auto flex gap-1.5 no-scrollbar">
+        <div className="px-3 py-2 bg-white border-t border-[#E8DFD1] overflow-x-auto flex gap-1.5 no-scrollbar">
           {quickTemplates.map((tmpl, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => setMessageText(tmpl)}
-              className="px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 whitespace-nowrap transition-colors shrink-0"
+              className="px-2.5 py-1 rounded-full bg-[#FAF7F2] hover:bg-[#F2EBE0] border border-[#E8DFD1] text-[11px] text-[#2C2224] whitespace-nowrap transition-colors shrink-0 cursor-pointer"
             >
               {tmpl}
             </button>
@@ -181,21 +185,21 @@ export default function LiveChatDrawer({ questId, isOpen, onClose }: LiveChatDra
 
         {/* Image Attachment Preview */}
         {selectedImage && (
-          <div className="px-4 py-2 bg-slate-900 border-t border-slate-800 flex items-center justify-between">
+          <div className="px-4 py-2 bg-[#FAF7F2] border-t border-[#E8DFD1] flex items-center justify-between">
             <div className="flex items-center gap-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={selectedImage}
                 alt="Selected preview"
-                className="w-12 h-12 object-cover rounded-lg border border-slate-700"
+                className="w-12 h-12 object-cover rounded-lg border border-[#E8DFD1]"
               />
-              <span className="text-xs text-emerald-400 font-medium">
+              <span className="text-xs text-[#2D8D84] font-medium">
                 Foto siap dikirim (Auto-Compressed)
               </span>
             </div>
             <button
               onClick={() => setSelectedImage(null)}
-              className="text-slate-400 hover:text-white p-1"
+              className="text-[#6E6265] hover:text-[#2C2224] p-1"
             >
               <X className="w-4 h-4" />
             </button>
@@ -205,7 +209,7 @@ export default function LiveChatDrawer({ questId, isOpen, onClose }: LiveChatDra
         {/* Input Bar */}
         <form
           onSubmit={handleSend}
-          className="p-3 bg-slate-950 border-t border-slate-800 flex items-center gap-2"
+          className="p-3 bg-white border-t border-[#E8DFD1] flex items-center gap-2"
         >
           <input
             ref={fileInputRef}
@@ -219,24 +223,24 @@ export default function LiveChatDrawer({ questId, isOpen, onClose }: LiveChatDra
             type="button"
             disabled={isCompressing}
             onClick={() => fileInputRef.current?.click()}
-            className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 transition-colors cursor-pointer"
+            className="p-2.5 rounded-xl bg-[#FAF7F2] hover:bg-[#F2EBE0] text-[#7A1E34] border border-[#E8DFD1] transition-colors cursor-pointer"
             title="Upload Nota / Foto Barang"
           >
-            <ImageIcon className="w-4 h-4 text-sky-400" />
+            <ImageIcon className="w-4 h-4 text-[#7A1E34]" />
           </button>
 
           <input
             type="text"
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
-            className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-sky-500 transition-colors"
+            className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#FAF7F2] border border-[#E8DFD1] text-xs text-[#2C2224] focus:outline-none focus:border-[#7A1E34] transition-colors placeholder:text-[#8C7E81]"
             placeholder="Ketik pesan atau koordinasi..."
           />
 
           <button
             type="submit"
             disabled={!messageText.trim() && !selectedImage}
-            className="p-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 transition-colors shadow-md shadow-sky-500/20 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="p-2.5 rounded-xl bg-[#2D8D84] hover:bg-[#247D75] text-white transition-colors shadow-md shadow-[#2D8D84]/20 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
             <Send className="w-4 h-4" />
           </button>

@@ -34,33 +34,33 @@ export default function BottomNav({
   };
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/90 px-2 py-2">
+    <nav className="md:hidden fixed bottom-3 left-4 right-4 z-30 bg-white/95 backdrop-blur-xl border border-[#E8DFD1] shadow-[0_10px_25px_-5px_rgba(44,34,36,0.12)] rounded-3xl px-3 py-2">
       <div className="flex items-center justify-around">
         <button
           onClick={() => handleTabClick('home')}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-colors ${
+          className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all cursor-pointer ${
             activeTab === 'home'
               ? activeRole === 'customer'
-                ? 'text-sky-400 font-semibold'
-                : 'text-amber-400 font-semibold'
-              : 'text-slate-400 hover:text-slate-200'
+                ? 'text-[#2D8D84] font-extrabold bg-[#E8F6F3]'
+                : 'text-[#7A1E34] font-extrabold bg-[#FBF0F2]'
+              : 'text-[#8E7F83] hover:text-[#2C2224]'
           }`}
         >
-          <Home className="w-5 h-5" />
+          <Home className="w-4.5 h-4.5" />
           <span className="text-[10px]">Beranda</span>
         </button>
 
         <button
           onClick={() => handleTabClick('quests')}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-colors ${
+          className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all cursor-pointer ${
             activeTab === 'quests'
               ? activeRole === 'customer'
-                ? 'text-sky-400 font-semibold'
-                : 'text-amber-400 font-semibold'
-              : 'text-slate-400 hover:text-slate-200'
+                ? 'text-[#2D8D84] font-extrabold bg-[#E8F6F3]'
+                : 'text-[#7A1E34] font-extrabold bg-[#FBF0F2]'
+              : 'text-[#8E7F83] hover:text-[#2C2224]'
           }`}
         >
-          <Compass className="w-5 h-5" />
+          <Compass className="w-4.5 h-4.5" />
           <span className="text-[10px]">
             {activeRole === 'customer' ? 'Pesanan' : 'Quest Board'}
           </span>
@@ -68,32 +68,32 @@ export default function BottomNav({
 
         <button
           onClick={() => handleTabClick('map')}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-colors ${
+          className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all cursor-pointer ${
             activeTab === 'map'
               ? activeRole === 'customer'
-                ? 'text-sky-400 font-semibold'
-                : 'text-amber-400 font-semibold'
-              : 'text-slate-400 hover:text-slate-200'
+                ? 'text-[#2D8D84] font-extrabold bg-[#E8F6F3]'
+                : 'text-[#7A1E34] font-extrabold bg-[#FBF0F2]'
+              : 'text-[#8E7F83] hover:text-[#2C2224]'
           }`}
         >
-          <MapPin className="w-5 h-5" />
+          <MapPin className="w-4.5 h-4.5" />
           <span className="text-[10px]">Radar Peta</span>
         </button>
 
         <button
           onClick={() => handleTabClick('wallet')}
-          className="flex flex-col items-center gap-1 py-1 px-3 rounded-xl text-slate-400 hover:text-slate-200 transition-colors"
+          className="flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl text-[#8E7F83] hover:text-[#2C2224] transition-all cursor-pointer"
         >
-          <Wallet className="w-5 h-5" />
-          <span className="text-[10px]">Saldo</span>
+          <Wallet className="w-4.5 h-4.5 text-[#2D8D84]" />
+          <span className="text-[10px] font-semibold">Saldo</span>
         </button>
 
         <button
           onClick={() => handleTabClick('profile')}
-          className="flex flex-col items-center gap-1 py-1 px-3 rounded-xl text-slate-400 hover:text-slate-200 transition-colors"
+          className="flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl text-[#8E7F83] hover:text-[#2C2224] transition-all cursor-pointer"
         >
-          <UserCheck className="w-5 h-5" />
-          <span className="text-[10px]">{isLoggedIn ? 'Profil & KTM' : 'Login KTM'}</span>
+          <UserCheck className="w-4.5 h-4.5 text-[#7A1E34]" />
+          <span className="text-[10px] font-semibold">{isLoggedIn ? 'Profil' : 'KTM'}</span>
         </button>
       </div>
     </nav>

@@ -36,7 +36,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#e11d48",
+  themeColor: "#7A1E34",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -51,7 +51,7 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
         <link rel="manifest" href="/manifest.json" />
@@ -59,13 +59,13 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="CampusQuest" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="application-name" content="CampusQuest" />
-        <meta name="theme-color" content="#e11d48" />
+        <meta name="theme-color" content="#7A1E34" />
       </head>
-      <body className="min-h-full flex flex-col bg-slate-950 text-slate-100 selection:bg-sky-500 selection:text-slate-950">
+      <body className="min-h-full flex flex-col bg-[#F7F3EC] text-[#2C2224] selection:bg-[#2D8D84] selection:text-white">
         {children}
       </body>
     </html>

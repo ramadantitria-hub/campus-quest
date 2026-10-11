@@ -1,8 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  --background: #020617;
-  --foreground: #f8fafc;
+  --background: #F7F3EC;
+  --foreground: #2C2224;
+  
+  /* Cream Palette */
+  --cream-bg: #F7F3EC;
+  --cream-card: #FFFFFF;
+  --cream-inset: #F2EBE0;
+  --cream-border: #E8DFD1;
+  --cream-muted: #8E7F83;
+  
+  /* Maroon Palette */
+  --maroon-primary: #7A1E34;
+  --maroon-deep: #4F111F;
+  --maroon-light: #9B2444;
+  --maroon-tint: #FBF0F2;
+  --maroon-border: #F1CCD3;
+  
+  /* Tosca Palette */
+  --tosca-primary: #2D8D84;
+  --tosca-deep: #195C56;
+  --tosca-light: #39A99D;
+  --tosca-tint: #E8F6F3;
+  --tosca-border: #A5DDD3;
 }
 
 body {
@@ -12,23 +33,70 @@ body {
   overflow-x: hidden;
 }
 
-/* Custom Scrollbars */
+/* Tactile Claymorphism Utilities */
+.clay-card {
+  background: #FFFFFF;
+  border: 1px solid #E8DFD1;
+  border-radius: 1.5rem;
+  box-shadow: 0 10px 25px -4px rgba(79, 17, 31, 0.05), 0 4px 10px -2px rgba(36, 125, 117, 0.04);
+}
+
+.clay-card-inset {
+  background: #F4ECE1;
+  border: 1px solid #E3D7C6;
+  border-radius: 1.25rem;
+  box-shadow: inset 0 2px 4px rgba(44, 34, 36, 0.04);
+}
+
+.clay-card-maroon {
+  background: linear-gradient(135deg, #6E1C2F 0%, #8A203C 50%, #7A1E34 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 28px -5px rgba(110, 28, 47, 0.28);
+}
+
+.clay-card-tosca {
+  background: linear-gradient(135deg, #247D75 0%, #2D8D84 50%, #39A99D 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 28px -5px rgba(36, 125, 117, 0.28);
+}
+
+.clay-pill-maroon {
+  background: #FBF0F2;
+  border: 1px solid #F1CCD3;
+  color: #7A1E34;
+}
+
+.clay-pill-tosca {
+  background: #E8F6F3;
+  border: 1px solid #A5DDD3;
+  color: #1F6F67;
+}
+
+.clay-pill-cream {
+  background: #F2EBE0;
+  border: 1px solid #E2D7C7;
+  color: #5C4E52;
+}
+
+/* Custom Scrollbars in Cream / Tosca / Maroon */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: #F2EBE0;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #D5C7B5;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #2D8D84;
 }
 
 /* Hide scrollbar utility */
@@ -39,3 +107,4 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+

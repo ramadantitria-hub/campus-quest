@@ -68,22 +68,22 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
   const completedQuests = quests.filter((q) => q.status === 'COMPLETED');
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-hidden">
-      <div className="bg-slate-900 border-t sm:border border-slate-700 max-w-md w-full rounded-t-3xl sm:rounded-2xl p-4 sm:p-6 text-white shadow-2xl relative max-h-[88vh] sm:max-h-[92vh] flex flex-col overflow-y-auto animate-in slide-in-from-bottom-8 sm:zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-hidden">
+      <div className="bg-[#FAF7F2] border-t sm:border border-[#E8DFD1] max-w-md w-full rounded-t-3xl sm:rounded-3xl p-4 sm:p-6 text-[#2C2224] shadow-2xl relative max-h-[88vh] sm:max-h-[92vh] flex flex-col overflow-y-auto animate-in slide-in-from-bottom-8 sm:zoom-in-95 duration-200">
         {/* Mobile Drag Indicator Pill */}
-        <div className="w-12 h-1 bg-slate-700/80 rounded-full mx-auto mb-2.5 sm:hidden shrink-0" />
+        <div className="w-12 h-1 bg-[#D5C7B5] rounded-full mx-auto mb-2.5 sm:hidden shrink-0" />
 
         {/* Top Navigation & Back Button */}
-        <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+        <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#E8DFD1]">
           <button
             type="button"
             onClick={() => {
               soundFX.pop();
               onClose();
             }}
-            className="inline-flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800/90 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 rounded-xl transition-all cursor-pointer shadow-sm group"
+            className="inline-flex items-center gap-2 text-xs font-bold text-[#4A3D41] hover:text-[#2C2224] bg-white hover:bg-[#F2EBE0] border border-[#E8DFD1] px-3.5 py-1.5 rounded-2xl transition-all cursor-pointer shadow-xs group"
           >
-            <ArrowLeft className="w-4 h-4 text-emerald-400 group-hover:-translate-x-0.5 transition-transform" />
+            <ArrowLeft className="w-4 h-4 text-[#2D8D84] group-hover:-translate-x-0.5 transition-transform" />
             <span className="hidden sm:inline">Kembali ke Halaman Utama</span>
             <span className="sm:hidden">Kembali</span>
           </button>
@@ -94,7 +94,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
               soundFX.pop();
               onClose();
             }}
-            className="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+            className="text-[#8E7F83] hover:text-[#2C2224] p-1.5 rounded-xl hover:bg-[#F2EBE0] transition-colors cursor-pointer"
             title="Tutup"
           >
             <X className="w-5 h-5" />
@@ -103,64 +103,62 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-            <Wallet className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 rounded-2xl bg-[#7A1E34] flex items-center justify-center shadow-md shadow-[#7A1E34]/20 text-white">
+            <Wallet className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white">Dompet CampusQuest</h3>
-            <p className="text-xs text-slate-400">Saldo reward bounty &amp; transaksi kampus</p>
+            <h3 className="text-lg font-black text-[#2C2224]">Dompet CampusQuest</h3>
+            <p className="text-xs text-[#7E7074]">Saldo reward bounty &amp; transaksi kampus UPI</p>
           </div>
         </div>
 
         {/* Saldo & Points Dual Card */}
-        <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 mb-4 shadow-inner relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
-          
+        <div className="bg-white border border-[#E8DFD1] rounded-3xl p-4 sm:p-5 mb-4 shadow-sm relative overflow-hidden">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <div className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">
+              <div className="text-[10px] sm:text-xs text-[#8E7F83] uppercase tracking-wider font-bold mb-1">
                 Saldo Tersedia
               </div>
-              <div className="text-2xl sm:text-3xl font-extrabold text-emerald-400 tracking-tight font-mono">
+              <div className="text-2xl sm:text-3xl font-black text-[#7A1E34] tracking-tight font-mono">
                 Rp {profile.wallet_balance.toLocaleString('id-ID')}
               </div>
             </div>
 
-            <div className="text-right bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-xl">
-              <span className="text-[10px] text-amber-300 font-bold block uppercase tracking-wider">
+            <div className="text-right bg-[#E8F6F3] border border-[#A5DDD3] px-3.5 py-1.5 rounded-2xl">
+              <span className="text-[10px] text-[#1F6F67] font-bold block uppercase tracking-wider">
                 ⭐ Poin Ongkir
               </span>
-              <span className="text-base sm:text-lg font-black text-amber-400 font-mono">
-                {profile.points || 0} <span className="text-xs text-amber-300">CQ Poin</span>
+              <span className="text-base sm:text-lg font-black text-[#2D8D84] font-mono">
+                {profile.points || 0} <span className="text-xs text-[#1F6F67]">CQ Poin</span>
               </span>
             </div>
           </div>
 
           {/* Aturan Pajak & Poin Transparansi */}
-          <div className="mt-3 pt-3 border-t border-slate-800/80 space-y-1.5 text-[11px] text-slate-300">
-            <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-[10px] space-y-1">
-              <div className="font-bold text-sky-300 flex items-center gap-1">
+          <div className="mt-3.5 pt-3 border-t border-[#E8DFD1] space-y-1.5 text-[11px] text-[#4A3D41]">
+            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-[#E8DFD1] text-[10px] space-y-1">
+              <div className="font-extrabold text-[#7A1E34] flex items-center gap-1">
                 <span>💡 Aturan Pembagian Saldo &amp; Pajak Platform:</span>
               </div>
-              <p className="text-slate-400 leading-relaxed">
+              <p className="text-[#4A3D41] leading-relaxed">
                 • <strong>Pajak Platform 10%</strong> hanya dikenakan pada <strong>ongkir / upah jasa (bounty)</strong>, Runner menerima 90% bersih.
               </p>
-              <p className="text-emerald-400 leading-relaxed">
+              <p className="text-[#1F6F67] leading-relaxed font-semibold">
                 • <strong>Talangan Belanja &amp; Servis Tambahan</strong> (harga barang nota) <strong>100% diganti utuh</strong> tanpa potongan sepeser pun.
               </p>
-              <p className="text-amber-300 leading-relaxed">
+              <p className="text-[#7A1E34] leading-relaxed font-semibold">
                 • <strong>Poin Mahasiswa</strong> dihitung murni dari nilai ongkir (<strong>1 Poin per Rp 1.000 ongkir</strong>).
               </p>
             </div>
 
             <div className="flex items-center justify-between text-xs pt-1">
               <div>
-                <span className="text-slate-500 block text-[10px]">Total Quest Selesai</span>
-                <span className="font-semibold text-white">{profile.total_completed_orders} Transaksi</span>
+                <span className="text-[#8E7F83] block text-[10px]">Total Quest Selesai</span>
+                <span className="font-bold text-[#2C2224]">{profile.total_completed_orders} Transaksi</span>
               </div>
               <div className="text-right">
-                <span className="text-slate-500 block text-[10px]">Status Penarikan</span>
-                <span className="font-semibold text-emerald-400">Siap Dicairkan (Instant)</span>
+                <span className="text-[#8E7F83] block text-[10px]">Status Penarikan</span>
+                <span className="font-bold text-[#2D8D84]">Siap Dicairkan (Instant)</span>
               </div>
             </div>
           </div>
@@ -168,21 +166,21 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
         {/* Form Tarik Saldo */}
         <form onSubmit={handleWithdraw} className="space-y-4 mb-5">
-          <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-            <ArrowUpRight className="w-4 h-4 text-emerald-400" />
+          <h4 className="text-xs font-black text-[#2C2224] uppercase tracking-wider flex items-center gap-1.5">
+            <ArrowUpRight className="w-4 h-4 text-[#2D8D84]" />
             Tarik Saldo ke E-Wallet / Bank
           </h4>
 
           {errorMessage && (
-            <div className="p-3 bg-rose-950/50 border border-rose-500/40 rounded-xl text-xs text-rose-300 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+            <div className="p-3 bg-[#FBF0F2] border border-[#F1CCD3] rounded-2xl text-xs text-[#7A1E34] font-semibold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 text-[#7A1E34]" />
               <span>{errorMessage}</span>
             </div>
           )}
 
           {successMessage && (
-            <div className="p-3 bg-emerald-950/50 border border-emerald-500/40 rounded-xl text-xs text-emerald-300 flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 shrink-0 text-emerald-400" />
+            <div className="p-3 bg-[#E8F6F3] border border-[#A5DDD3] rounded-2xl text-xs text-[#1F6F67] font-semibold flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 shrink-0 text-[#2D8D84]" />
               <span>{successMessage}</span>
             </div>
           )}
@@ -200,13 +198,13 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                   type="button"
                   key={method.id}
                   onClick={() => setWithdrawMethod(method.id)}
-                  className={`p-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition-all ${
+                  className={`p-2.5 rounded-2xl text-xs font-bold flex items-center gap-2 border transition-all cursor-pointer ${
                     withdrawMethod === method.id
-                      ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-300 shadow-sm'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                      ? 'bg-[#2D8D84] text-white border-[#2D8D84] shadow-xs'
+                      : 'bg-white border-[#E8DFD1] text-[#4A3D41] hover:border-[#2D8D84]'
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5 text-emerald-400" />
+                  <Icon className={`w-3.5 h-3.5 ${withdrawMethod === method.id ? 'text-white' : 'text-[#2D8D84]'}`} />
                   <span>{method.name}</span>
                 </button>
               );
@@ -214,30 +212,30 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-bold text-[#4A3D41] mb-1">
               Nomor Akun / Rekening {withdrawMethod}
             </label>
             <input
               type="text"
               value={accountNumber}
               onChange={(e) => setAccountNumber(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-emerald-500"
+              className="w-full px-3.5 py-2.5 rounded-2xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] focus:outline-none focus:border-[#7A1E34] shadow-2xs"
               placeholder="081298765432 / Nomor Rekening"
               required
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
+            <label className="block text-xs font-bold text-[#4A3D41] mb-1">
               Nominal Penarikan (Rp)
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-2.5 text-xs text-slate-500 font-semibold">Rp</span>
+              <span className="absolute left-3.5 top-2.5 text-xs text-[#8E7F83] font-bold">Rp</span>
               <input
                 type="number"
                 value={withdrawAmount}
                 onChange={(e) => setWithdrawAmount(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-emerald-500 font-mono"
+                className="w-full pl-10 pr-3 py-2 rounded-2xl bg-white border border-[#E8DFD1] text-sm text-[#7A1E34] font-black focus:outline-none focus:border-[#7A1E34] font-mono shadow-2xs"
                 placeholder="50000"
                 min={10000}
                 step={5000}
@@ -250,7 +248,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                   type="button"
                   key={quick}
                   onClick={() => setWithdrawAmount(quick.toString())}
-                  className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 transition-colors font-mono"
+                  className="px-3 py-1 rounded-xl bg-white hover:bg-[#FAF7F2] text-[11px] text-[#4A3D41] border border-[#E8DFD1] transition-colors font-mono font-bold cursor-pointer shadow-2xs"
                 >
                   +{quick.toLocaleString('id-ID')}
                 </button>
@@ -258,7 +256,7 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
               <button
                 type="button"
                 onClick={() => setWithdrawAmount(profile.wallet_balance.toString())}
-                className="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 text-[11px] font-semibold transition-colors"
+                className="px-3 py-1 rounded-xl bg-[#E8F6F3] text-[#1F6F67] hover:bg-[#D4EFEA] border border-[#A5DDD3] text-[11px] font-extrabold transition-colors cursor-pointer"
               >
                 Semua
               </button>
@@ -273,26 +271,26 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                 soundFX.pop();
                 onClose();
               }}
-              className="flex-1 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs border border-slate-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              className="flex-1 py-2.5 px-3 rounded-2xl bg-[#FAF7F2] hover:bg-[#F2EBE0] text-[#4A3D41] font-bold text-xs border border-[#E8DFD1] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Kembali / Batal</span>
+              <span>Kembali</span>
             </button>
 
             <button
               type="submit"
               disabled={profile.wallet_balance < 10000}
-              className="flex-2 py-2.5 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-colors shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-1.5"
+              className="flex-2 py-2.5 px-3 rounded-2xl bg-[#2D8D84] hover:bg-[#247D75] text-white font-black text-xs transition-colors shadow-md shadow-[#2D8D84]/25 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <span>Konfirmasi Tarik Saldo Sekarang</span>
+              <span>Konfirmasi Tarik Saldo</span>
             </button>
           </div>
         </form>
 
         {/* History */}
-        <div className="pt-3 border-t border-slate-800">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 mb-2">
-            <History className="w-3.5 h-3.5" />
+        <div className="pt-3 border-t border-[#E8DFD1]">
+          <div className="flex items-center gap-1.5 text-xs font-extrabold text-[#2C2224] mb-2">
+            <History className="w-3.5 h-3.5 text-[#2D8D84]" />
             <span>Riwayat Quest Selesai</span>
           </div>
           <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
@@ -307,47 +305,47 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
                 return (
                   <div
                     key={q.id}
-                    className="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 flex items-center justify-between text-xs"
+                    className="p-3 rounded-2xl bg-white border border-[#E8DFD1] flex items-center justify-between text-xs shadow-2xs"
                   >
                     <div className="min-w-0 flex-1 pr-2">
-                      <p className="font-semibold text-slate-200 truncate">{q.title}</p>
-                      <div className="text-[10px] text-slate-400 flex items-center gap-1.5 flex-wrap mt-0.5">
-                        <span>Ongkir Bersih: Rp {net.toLocaleString('id-ID')}</span>
-                        <span className="text-slate-600">•</span>
-                        <span className="text-rose-400/80">Pajak 10%: -Rp {tax.toLocaleString('id-ID')}</span>
+                      <p className="font-bold text-[#2C2224] truncate">{q.title}</p>
+                      <div className="text-[10px] text-[#6E6265] flex items-center gap-1.5 flex-wrap mt-0.5">
+                        <span className="text-[#2D8D84] font-semibold">Bersih: Rp {net.toLocaleString('id-ID')}</span>
+                        <span className="text-[#D5C7B5]">•</span>
+                        <span className="text-[#7A1E34]">Pajak 10%: -Rp {tax.toLocaleString('id-ID')}</span>
                         {item > 0 && (
                           <>
-                            <span className="text-slate-600">•</span>
-                            <span className="text-sky-300">Nota 100%: +Rp {item.toLocaleString('id-ID')}</span>
+                            <span className="text-[#D5C7B5]">•</span>
+                            <span className="text-[#2C2224] font-semibold">Nota 100%: +Rp {item.toLocaleString('id-ID')}</span>
                           </>
                         )}
-                        <span className="text-slate-600">•</span>
-                        <span className="text-amber-400 font-semibold">+{pts} Poin</span>
+                        <span className="text-[#D5C7B5]">•</span>
+                        <span className="text-[#2D8D84] font-bold">+{pts} Poin</span>
                       </div>
                     </div>
-                    <span className="text-emerald-400 font-bold font-mono shrink-0 text-sm">
+                    <span className="text-[#2D8D84] font-black font-mono shrink-0 text-sm">
                       +Rp {total.toLocaleString('id-ID')}
                     </span>
                   </div>
                 );
               })
             ) : (
-              <p className="text-xs text-slate-500 text-center py-2">Belum ada riwayat quest selesai</p>
+              <p className="text-xs text-[#8E7F83] text-center py-2">Belum ada riwayat quest selesai</p>
             )}
           </div>
         </div>
 
         {/* Bottom Back Button */}
-        <div className="mt-4 pt-3 border-t border-slate-800">
+        <div className="mt-4 pt-3 border-t border-[#E8DFD1]">
           <button
             type="button"
             onClick={() => {
               soundFX.pop();
               onClose();
             }}
-            className="w-full py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700/80 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm group"
+            className="w-full py-2.5 rounded-2xl bg-white hover:bg-[#FAF7F2] text-[#4A3D41] hover:text-[#2C2224] text-xs font-bold border border-[#E8DFD1] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs group"
           >
-            <ArrowLeft className="w-4 h-4 text-emerald-400 group-hover:-translate-x-0.5 transition-transform" />
+            <ArrowLeft className="w-4 h-4 text-[#2D8D84] group-hover:-translate-x-0.5 transition-transform" />
             <span>Kembali ke Halaman Utama</span>
           </button>
         </div>

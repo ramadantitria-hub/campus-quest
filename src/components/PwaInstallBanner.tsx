@@ -75,33 +75,33 @@ export default function PwaInstallBanner() {
 
   return (
     <>
-      <div className="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:max-w-md z-40 bg-slate-900/95 backdrop-blur-md border border-rose-500/30 text-white rounded-2xl p-4 shadow-2xl shadow-rose-950/40 transition-all animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <div className="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:max-w-md z-40 bg-[#FAF7F2]/95 backdrop-blur-md border border-[#E8DFD1] text-[#2C2224] rounded-3xl p-4 shadow-xl shadow-[#2C2224]/10 transition-all animate-in fade-in slide-in-from-bottom-4 duration-300">
         <div className="flex items-start gap-3.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/icon-192.png"
             alt="CampusQuest UPI App Icon"
-            className="w-12 h-12 rounded-2xl shadow-lg border border-rose-500/40 shrink-0 object-cover"
+            className="w-12 h-12 rounded-2xl shadow-md border border-[#E8DFD1] shrink-0 object-cover"
           />
           <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+            <h4 className="text-sm font-extrabold text-[#2C2224] flex items-center gap-1.5">
               Install CampusQuest UPI
-              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-500/20 text-rose-300 font-mono font-bold">App</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#FBF0F2] text-[#7A1E34] border border-[#F1CCD3] font-bold">App</span>
             </h4>
-            <p className="text-xs text-slate-300 mt-0.5">
+            <p className="text-xs text-[#6E6265] mt-0.5">
               Pasang ikon di layar utama HP untuk akses instan &amp; pengalaman aplikasi native!
             </p>
             <div className="flex items-center gap-2 mt-2.5">
               <button
                 onClick={handleInstallClick}
-                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-rose-900/30"
+                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#7A1E34] to-[#8E223D] hover:from-[#6E1C2F] hover:to-[#7A1E34] text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-[#7A1E34]/20"
               >
                 <Download className="w-3.5 h-3.5" />
                 Pasang ke Layar Utama
               </button>
               <button
                 onClick={() => setShowBanner(false)}
-                className="px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-slate-400 text-xs transition-colors cursor-pointer"
+                className="px-2.5 py-1.5 rounded-xl hover:bg-[#F2EBE0] text-[#6E6265] text-xs font-semibold transition-colors cursor-pointer"
               >
                 Nanti Saja
               </button>
@@ -109,7 +109,7 @@ export default function PwaInstallBanner() {
           </div>
           <button
             onClick={() => setShowBanner(false)}
-            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+            className="text-[#8C7E83] hover:text-[#2C2224] p-1 rounded-lg hover:bg-[#F2EBE0] transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -118,11 +118,11 @@ export default function PwaInstallBanner() {
 
       {/* iOS Safari Installation Guide Modal */}
       {showIosGuide && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 max-w-sm w-full rounded-2xl p-6 text-white shadow-2xl relative animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-50 bg-[#2C2224]/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#FAF7F2] border border-[#E8DFD1] max-w-sm w-full rounded-3xl p-6 text-[#2C2224] shadow-2xl relative animate-in fade-in zoom-in-95">
             <button
               onClick={() => setShowIosGuide(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer"
+              className="absolute top-4 right-4 text-[#8C7E83] hover:text-[#2C2224] cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -131,35 +131,35 @@ export default function PwaInstallBanner() {
               <img
                 src="/icon-192.png"
                 alt="CampusQuest UPI Icon"
-                className="w-12 h-12 rounded-2xl border border-rose-500/40 shadow-md object-cover"
+                className="w-12 h-12 rounded-2xl border border-[#E8DFD1] shadow-md object-cover"
               />
               <div>
-                <h3 className="text-base font-bold text-white">
+                <h3 className="text-base font-extrabold text-[#2C2224]">
                   Pasang ke Layar Utama (iOS)
                 </h3>
-                <p className="text-[11px] text-slate-400">CampusQuest UPI App</p>
+                <p className="text-[11px] text-[#8C7E83]">CampusQuest UPI App</p>
               </div>
             </div>
-            <p className="text-xs text-slate-300 mb-4">
+            <p className="text-xs text-[#6E6265] mb-4">
               Apple Safari memerlukan 2 langkah mudah agar ikon muncul di Homescreen HP Anda:
             </p>
-            <ol className="space-y-3 text-xs text-slate-200">
-              <li className="flex items-start gap-2.5 bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
-                <div className="w-6 h-6 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0 font-bold">1</div>
+            <ol className="space-y-3 text-xs text-[#2C2224]">
+              <li className="flex items-start gap-2.5 bg-white p-2.5 rounded-2xl border border-[#E8DFD1]">
+                <div className="w-6 h-6 rounded-full bg-[#E8F6F3] text-[#2D8D84] flex items-center justify-center shrink-0 font-bold">1</div>
                 <div>
-                  Ketuk tombol <strong>Share / Bagikan</strong> <Share2 className="w-3.5 h-3.5 inline text-sky-400 mx-1" /> di toolbar bawah Safari.
+                  Ketuk tombol <strong>Share / Bagikan</strong> <Share2 className="w-3.5 h-3.5 inline text-[#2D8D84] mx-1" /> di toolbar bawah Safari.
                 </div>
               </li>
-              <li className="flex items-start gap-2.5 bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
-                <div className="w-6 h-6 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0 font-bold">2</div>
+              <li className="flex items-start gap-2.5 bg-white p-2.5 rounded-2xl border border-[#E8DFD1]">
+                <div className="w-6 h-6 rounded-full bg-[#FBF0F2] text-[#7A1E34] flex items-center justify-center shrink-0 font-bold">2</div>
                 <div>
-                  Scroll ke bawah lalu pilih <strong>&quot;Tambahkan ke Layar Utama&quot;</strong> (Add to Home Screen) <PlusSquare className="w-3.5 h-3.5 inline text-sky-400 mx-1" />.
+                  Scroll ke bawah lalu pilih <strong>&quot;Tambahkan ke Layar Utama&quot;</strong> (Add to Home Screen) <PlusSquare className="w-3.5 h-3.5 inline text-[#7A1E34] mx-1" />.
                 </div>
               </li>
             </ol>
             <button
               onClick={() => setShowIosGuide(false)}
-              className="w-full mt-5 py-2.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-semibold text-xs rounded-xl transition-colors"
+              className="w-full mt-5 py-2.5 bg-gradient-to-r from-[#2D8D84] to-[#247D75] hover:from-[#195C56] hover:to-[#2D8D84] text-white font-bold text-xs rounded-2xl transition-all shadow-md shadow-[#2D8D84]/20"
             >
               Saya Mengerti
             </button>
