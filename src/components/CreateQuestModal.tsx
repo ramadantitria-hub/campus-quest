@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useCampusQuest } from '@/context/CampusQuestContext';
-import { CAMPUS_LANDMARKS } from '@/lib/mock-data';
+import { CAMPUS_LANDMARKS, PURWAKARTA_SERVICE_AREAS } from '@/lib/mock-data';
 import { ServiceCategory, PaymentMethod } from '@/types/campus-quest';
 import {
   X,
@@ -19,7 +19,8 @@ import {
   DollarSign,
   Sparkles,
   HelpCircle,
-  CheckCircle
+  CheckCircle,
+  Edit3
 } from 'lucide-react';
 
 interface CreateQuestModalProps {
@@ -41,8 +42,19 @@ export default function CreateQuestModal({
   const [title, setTitle] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [unit, setUnit] = useState('porsi');
-  const [originAddress, setOriginAddress] = useState(CAMPUS_LANDMARKS[0].name);
-  const [destinationAddress, setDestinationAddress] = useState(CAMPUS_LANDMARKS[4].name);
+  // Location selection states (Preset vs Manual)
+  const [originType, setOriginType] = useState<'preset' | 'manual'>('preset');
+  const [originAddress, setOriginAddress] = useState(
+    defaultCategory === 'JASTAP' ? 'Kantin Kampus' : 'Mawar (Purwakarta)'
+  );
+  const [manualOrigin, setManualOrigin] = useState('');
+
+  const [destinationType, setDestinationType] = useState<'preset' | 'manual'>('preset');
+  const [destinationAddress, setDestinationAddress] = useState(
+    defaultCategory === 'JASTAP' ? 'Gedung Kuliah 1' : 'Gedung Laboratorium Terpadu'
+  );
+  const [manualDestination, setManualDestination] = useState('');
+
   const [notes, setNotes] = useState('');
   const [bountyFee, setBountyFee] = useState(15000);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('QRIS');
@@ -55,31 +67,33 @@ export default function CreateQuestModal({
 
   // Preset suggestions for rapid filling
   const loadPreset = (presetType: string) => {
+    setOriginType('preset');
+    setDestinationType('preset');
     if (presetType === 'makan') {
-      setTitle('Nasi Ayam Geprek Sambal Bawang Kantin Geugeut + Es Jeruk');
+      setTitle('Nasi Ayam Geprek Sambal Bawang Serba 10k + Es Jeruk');
       setQuantity(1);
       setUnit('porsi');
-      setOriginAddress('Kantin Geugeut FPTK UPI');
-      setDestinationAddress('Asrama Mahasiswa UPI Gedung B');
-      setNotes('Sambal level 3 dipisah tolong ya. Nanti ketemu di lobi asrama.');
+      setOriginAddress('Serba Sepuluh Ribu');
+      setDestinationAddress('Gedung Kuliah 4 (Smart Classroom)');
+      setNotes('Sambal level 3 dipisah tolong ya. Nanti ketemu di lobi Smart Classroom.');
       setBountyFee(12000);
     } else if (presetType === 'print') {
-      setTitle('Print Tugas Makalah 25 Lembar & Jilid Mika Gegerkalong');
+      setTitle('Print Tugas Makalah 25 Lembar & Jilid di Depan Kampus');
       setQuantity(25);
       setUnit('lembar');
-      setOriginAddress('Percetakan & Fotokopi Gegerkalong UPI');
-      setDestinationAddress('Gedung Isola (Rektorat UPI)');
+      setOriginAddress('Kantin Depan Kampus / Jalan');
+      setDestinationAddress('Gedung Layanan Administrasi / Rektorat');
       setNotes('File PDF dikirim lewat chat ya. Butuh jam 13:00 untuk kumpul tugas.');
       setBountyFee(15000);
     } else if (presetType === 'windows') {
-      setTitle('Install Ulang Windows 11 + Software Praktikum Teknik UPI');
+      setTitle('Install Ulang Windows 11 + Software Praktikum UPI Purwakarta');
       setQuantity(1);
       setUnit('perangkat');
       setDeviceSpecs('Laptop Lenovo ThinkPad E14 Gen 4');
       setServiceIssue('Windows lambat dan sering blue screen setelah update');
-      setOriginAddress('Lab Komputer FPMIPA & FPTK UPI');
-      setDestinationAddress('Perpustakaan Pusat UPI');
-      setNotes('Mohon backup folder Dokumen di drive D');
+      setOriginAddress('Kemuning (Purwakarta)');
+      setDestinationAddress('Gedung Laboratorium Terpadu');
+      setNotes('Jemput laptop di kost Kemuning, mohon backup folder Dokumen di drive D');
       setBountyFee(65000);
     } else if (presetType === 'thermal') {
       setTitle('Bersihkan Debu Kipas Laptop & Ganti Thermal Paste Asus');
@@ -87,9 +101,9 @@ export default function CreateQuestModal({
       setUnit('perangkat');
       setDeviceSpecs('Asus TUF Gaming FX505');
       setServiceIssue('Suhu GPU sampai 92 derajat saat rendering tugas akhir');
-      setOriginAddress('Asrama Mahasiswa UPI Gedung A');
-      setDestinationAddress('FPTK & Lab Komputer FPMIPA UPI');
-      setNotes('Bawa pasta pendingin kualitas bagus ya bro');
+      setOriginAddress('Mawar (Purwakarta)');
+      setDestinationAddress('Gedung Laboratorium Terpadu');
+      setNotes('Bawa pasta pendingin kualitas bagus ya bro, jemput di Jl. Mawar');
       setBountyFee(55000);
     }
   };
@@ -107,19 +121,27 @@ export default function CreateQuestModal({
         ? `Perangkat: ${deviceSpecs || 'Laptop/Komputer Mahasiswa'}\nKeluhan: ${serviceIssue || title}\nCatatan: ${notes}`
         : `${notes || 'Tidak ada catatan tambahan'}`;
 
+    const finalOrigin = originType === 'manual'
+      ? (manualOrigin.trim() || 'Lokasi Custom')
+      : originAddress;
+
+    const finalDestination = destinationType === 'manual'
+      ? (manualDestination.trim() || 'Lokasi Custom')
+      : destinationAddress;
+
     createQuest({
       category,
       title: title.trim(),
       description: questDescription,
       quantity,
       unit,
-      origin_address: originAddress,
-      destination_address: destinationAddress,
+      origin_address: finalOrigin,
+      destination_address: finalDestination,
       bounty_fee: bountyFee,
       payment_method: paymentMethod,
-      notes,
-      landmark_origin: originAddress,
-      landmark_destination: destinationAddress
+      notes: notes.trim(),
+      landmark_origin: originType === 'preset' ? originAddress : 'Lokasi Manual / Kost',
+      landmark_destination: destinationType === 'preset' ? destinationAddress : 'Lokasi Manual / Kost'
     });
 
     onClose();
@@ -184,7 +206,11 @@ export default function CreateQuestModal({
             <div className="flex p-1 bg-[#F2EBE0] rounded-2xl border border-[#E3D7C6] shadow-inner">
               <button
                 type="button"
-                onClick={() => setCategory('JASTAP')}
+                onClick={() => {
+                  setCategory('JASTAP');
+                  setOriginAddress('Kantin Kampus');
+                  setDestinationAddress('Gedung Kuliah 1');
+                }}
                 className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   category === 'JASTAP'
                     ? 'bg-[#2D8D84] text-white shadow-md shadow-[#2D8D84]/25'
@@ -196,7 +222,11 @@ export default function CreateQuestModal({
               </button>
               <button
                 type="button"
-                onClick={() => setCategory('JARVIS')}
+                onClick={() => {
+                  setCategory('JARVIS');
+                  setOriginAddress('Mawar (Purwakarta)');
+                  setDestinationAddress('Gedung Laboratorium Terpadu');
+                }}
                 className={`flex-1 py-1.5 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   category === 'JARVIS'
                     ? 'bg-[#7A1E34] text-white shadow-md shadow-[#7A1E34]/25'
@@ -360,42 +390,172 @@ export default function CreateQuestModal({
               </>
             )}
 
-            {/* Locations */}
+            {/* Locations (Segmented by Category + Manual Option) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-bold text-[#4A3D41] mb-1 flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-[#2D8D84]" />
-                  {category === 'JASTAP' ? 'Titik Ambil / Toko' : 'Lokasi Ambil Perangkat'}
-                </label>
-                <select
-                  value={originAddress}
-                  onChange={(e) => setOriginAddress(e.target.value)}
-                  className="w-full px-3 py-2 rounded-2xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] focus:outline-none focus:border-[#2D8D84] shadow-2xs"
-                >
-                  {CAMPUS_LANDMARKS.map((lm) => (
-                    <option key={lm.id} value={lm.name}>
-                      {lm.name}
-                    </option>
-                  ))}
-                </select>
+              {/* Titik Ambil / Toko / Lokasi Jemput */}
+              <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-[#E8DFD1]">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-[#4A3D41] flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-[#2D8D84]" />
+                    {category === 'JASTAP' ? 'Titik Ambil / Toko' : 'Lokasi Jemput Perangkat'}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextType = originType === 'preset' ? 'manual' : 'preset';
+                      setOriginType(nextType);
+                      if (nextType === 'manual' && !manualOrigin) setManualOrigin(originAddress);
+                    }}
+                    className="text-[10px] font-semibold text-[#2D8D84] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <Edit3 className="w-3 h-3" />
+                    <span>{originType === 'preset' ? 'Ketik Manual' : 'Pilih Denah'}</span>
+                  </button>
+                </div>
+
+                {originType === 'preset' ? (
+                  <select
+                    value={originAddress}
+                    onChange={(e) => {
+                      if (e.target.value === '__MANUAL__') {
+                        setOriginType('manual');
+                      } else {
+                        setOriginAddress(e.target.value);
+                      }
+                    }}
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] focus:outline-none focus:border-[#2D8D84] shadow-2xs font-medium"
+                  >
+                    {category === 'JASTAP' ? (
+                      <>
+                        <optgroup label="🍟 Jajanan & Kuliner (Kampus & Depan Jalan)">
+                          <option value="Kantin Kampus">Kantin Kampus (Dalam Kampus)</option>
+                          <option value="Serba Sepuluh Ribu">Serba Sepuluh Ribu (Depan Kampus)</option>
+                          <option value="Indomaret">Indomaret (Depan Kampus)</option>
+                          <option value="Kantin Depan Kampus / Jalan">Kantin Depan Kampus / Jalan</option>
+                          <option value="Nusantara">Nusantara (Depan Kampus)</option>
+                        </optgroup>
+                        <optgroup label="🏛️ Gedung & Fasilitas Kampus">
+                          {CAMPUS_LANDMARKS.filter((lm) => !lm.isFoodSpot).map((lm) => (
+                            <option key={lm.id} value={lm.name}>
+                              {lm.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      </>
+                    ) : (
+                      <>
+                        <optgroup label="🏘️ Area Purwakarta Dekat Kampus">
+                          {PURWAKARTA_SERVICE_AREAS.map((area) => (
+                            <option key={area.id} value={area.name}>
+                              {area.name} - {area.description}
+                            </option>
+                          ))}
+                        </optgroup>
+                        <optgroup label="🏛️ Gedung Lingkungan Kampus">
+                          {CAMPUS_LANDMARKS.map((lm) => (
+                            <option key={lm.id} value={lm.name}>
+                              {lm.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      </>
+                    )}
+                    <option value="__MANUAL__">✍️ Lainnya (Ketik Lokasi Manual / Kost...)</option>
+                  </select>
+                ) : (
+                  <div>
+                    <input
+                      type="text"
+                      value={manualOrigin}
+                      onChange={(e) => setManualOrigin(e.target.value)}
+                      placeholder={
+                        category === 'JASTAP'
+                          ? 'Contoh: Seblak Prasmanan Depan Gerbang, Warung Bu Haji...'
+                          : 'Contoh: Kost Mawar Putri No. 5, Jl. Kemuning Gang 2...'
+                      }
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-[#2D8D84] text-xs text-[#2C2224] placeholder:text-[#8E7F83] focus:outline-none focus:ring-1 focus:ring-[#2D8D84] shadow-2xs"
+                      autoFocus
+                    />
+                    <span className="text-[10px] text-[#2D8D84] mt-1 block">
+                      * Lokasi bebas diketik manual
+                    </span>
+                  </div>
+                )}
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-[#4A3D41] mb-1 flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-[#7A1E34]" />
-                  {category === 'JASTAP' ? 'Titik Antar (Tujuan Anda)' : 'Lokasi Antar / Servis'}
-                </label>
-                <select
-                  value={destinationAddress}
-                  onChange={(e) => setDestinationAddress(e.target.value)}
-                  className="w-full px-3 py-2 rounded-2xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] focus:outline-none focus:border-[#7A1E34] shadow-2xs"
-                >
-                  {CAMPUS_LANDMARKS.map((lm) => (
-                    <option key={lm.id} value={lm.name}>
-                      {lm.name}
-                    </option>
-                  ))}
-                </select>
+              {/* Titik Antar / Lokasi Servis */}
+              <div className="bg-[#FAF7F2] p-3 rounded-2xl border border-[#E8DFD1]">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-[#4A3D41] flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-[#7A1E34]" />
+                    {category === 'JASTAP' ? 'Titik Antar (Tujuan Anda)' : 'Lokasi Pengerjaan / Antar'}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextType = destinationType === 'preset' ? 'manual' : 'preset';
+                      setDestinationType(nextType);
+                      if (nextType === 'manual' && !manualDestination) setManualDestination(destinationAddress);
+                    }}
+                    className="text-[10px] font-semibold text-[#7A1E34] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <Edit3 className="w-3 h-3" />
+                    <span>{destinationType === 'preset' ? 'Ketik Manual' : 'Pilih Denah'}</span>
+                  </button>
+                </div>
+
+                {destinationType === 'preset' ? (
+                  <select
+                    value={destinationAddress}
+                    onChange={(e) => {
+                      if (e.target.value === '__MANUAL__') {
+                        setDestinationType('manual');
+                      } else {
+                        setDestinationAddress(e.target.value);
+                      }
+                    }}
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] focus:outline-none focus:border-[#7A1E34] shadow-2xs font-medium"
+                  >
+                    <optgroup label="🏛️ Gedung & Ruang Kampus">
+                      {CAMPUS_LANDMARKS.filter((lm) => lm.category !== 'kantin').map((lm) => (
+                        <option key={lm.id} value={lm.name}>
+                          {lm.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="📍 Kuliner & Spot Lainnya">
+                      {CAMPUS_LANDMARKS.filter((lm) => lm.category === 'kantin').map((lm) => (
+                        <option key={lm.id} value={lm.name}>
+                          {lm.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                    {category === 'JARVIS' && (
+                      <optgroup label="🏘️ Area Purwakarta Sekitar Kampus">
+                        {PURWAKARTA_SERVICE_AREAS.map((area) => (
+                          <option key={area.id} value={area.name}>
+                            {area.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    <option value="__MANUAL__">✍️ Lainnya (Ketik Lokasi Antar / Kost Manual...)</option>
+                  </select>
+                ) : (
+                  <div>
+                    <input
+                      type="text"
+                      value={manualDestination}
+                      onChange={(e) => setManualDestination(e.target.value)}
+                      placeholder="Contoh: Gedung Kuliah 2 Lt 3 R. 204, Kost Melati Kamar 8..."
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-[#7A1E34] text-xs text-[#2C2224] placeholder:text-[#8E7F83] focus:outline-none focus:ring-1 focus:ring-[#7A1E34] shadow-2xs"
+                      autoFocus
+                    />
+                    <span className="text-[10px] text-[#7A1E34] mt-1 block">
+                      * Lokasi bebas diketik manual
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 

@@ -2,69 +2,185 @@ import { CampusLandmark, Profile, Quest, ChatMessage, Review } from '@/types/cam
 
 export const CAMPUS_LANDMARKS: CampusLandmark[] = [
   {
-    id: 'kantin-pusat',
-    name: 'Kantin Geugeut FPTK UPI',
-    category: 'kantin',
-    x: 22,
-    y: 35,
-    description: 'Pusat kuliner kampus UPI, geprek, jus, mie & warung makan'
-  },
-  {
-    id: 'perpus-pusat',
-    name: 'Perpustakaan Pusat UPI',
-    category: 'fasilitas',
-    x: 48,
-    y: 28,
-    description: 'Pusat literasi UPI, ruang baca hening, wifi kencang'
-  },
-  {
-    id: 'rektorat',
-    name: 'Gedung Isola (Rektorat UPI)',
-    category: 'fasilitas',
-    x: 50,
-    y: 12,
-    description: 'Landmark cagar budaya Isola, pusat rektorat dan administrasi UPI'
-  },
-  {
-    id: 'fakultas-teknik',
-    name: 'FPTK & Lab Komputer FPMIPA UPI',
-    category: 'fakultas',
-    x: 78,
-    y: 38,
-    description: 'Bengkel mesin FPTK, lab hardware & ruang praktikum FPMIPA UPI'
-  },
-  {
-    id: 'asrama-b',
-    name: 'Asrama Mahasiswa UPI Gedung B',
-    category: 'asrama',
-    x: 20,
-    y: 72,
-    description: 'Hunian asrama mahasiswa UPI & parkiran sepeda motor'
-  },
-  {
-    id: 'asrama-a',
-    name: 'Asrama Mahasiswa UPI Gedung A',
-    category: 'asrama',
-    x: 38,
-    y: 78,
-    description: 'Hunian asrama mahasiswi UPI & gazebo komunal'
-  },
-  {
-    id: 'fotokopi-gerbang',
-    name: 'Percetakan & Fotokopi Gegerkalong UPI',
-    category: 'fasilitas',
-    x: 82,
-    y: 65,
-    description: 'Tempat jilid skripsi UPI, print warna, scan berkas akademik'
-  },
-  {
     id: 'gerbang-utama',
-    name: 'Gerbang Utama Setiabudi UPI & Halte Bus',
+    name: 'Gerbang Utama & Pos Keamanan',
     category: 'gerbang',
     x: 50,
+    y: 92,
+    description: 'Pintu gerbang utama kampus UPI Purwakarta, pos satpam & shelter ojol'
+  },
+  {
+    id: 'rektorat-admin',
+    name: 'Gedung Layanan Administrasi / Rektorat',
+    category: 'fasilitas',
+    x: 26,
+    y: 70,
+    description: 'Pusat layanan administrasi akademik, birokrasi kampus & dekanat'
+  },
+  {
+    id: 'normaal-school',
+    name: 'Gedung Bersejarah (Normaal School)',
+    category: 'fasilitas',
+    x: 50,
+    y: 72,
+    description: 'Bangunan cagar budaya bersejarah Normaal School UPI Purwakarta'
+  },
+  {
+    id: 'kuliah-1',
+    name: 'Gedung Kuliah 1',
+    category: 'fakultas',
+    x: 20,
+    y: 34,
+    description: 'Ruang kelas perkuliahan reguler 1 & ruang dosen'
+  },
+  {
+    id: 'kuliah-2',
+    name: 'Gedung Kuliah 2',
+    category: 'fakultas',
+    x: 38,
+    y: 32,
+    description: 'Ruang kelas perkuliahan reguler 2 & laboratorium microteaching'
+  },
+  {
+    id: 'kuliah-3',
+    name: 'Gedung Kuliah 3',
+    category: 'fakultas',
+    x: 62,
+    y: 32,
+    description: 'Ruang kelas perkuliahan 3 & ruang diskusi mahasiswa'
+  },
+  {
+    id: 'kuliah-4',
+    name: 'Gedung Kuliah 4 (Smart Classroom)',
+    category: 'fakultas',
+    x: 80,
+    y: 34,
+    description: 'Gedung kuliah modern Smart Classroom dengan fasilitas multimedia'
+  },
+  {
+    id: 'lab-terpadu',
+    name: 'Gedung Laboratorium Terpadu',
+    category: 'fakultas',
+    x: 30,
+    y: 15,
+    description: 'Pusat lab komputer, hardware bengkel praktikum & sains terpadu'
+  },
+  {
+    id: 'aula-serbaguna',
+    name: 'Gedung Serbaguna (Aula / Multipurpose Hall)',
+    category: 'fasilitas',
+    x: 70,
+    y: 15,
+    description: 'Aula serbaguna pertemuan, kegiatan ormawa, wisuda & seminar kampus'
+  },
+  {
+    id: 'perpus-sc',
+    name: 'Gedung Perpustakaan & Student Center',
+    category: 'fasilitas',
+    x: 74,
+    y: 52,
+    description: 'Perpustakaan digital, ruang baca nyaman, co-working & sekretariat mahasiswa'
+  },
+  {
+    id: 'masjid-kampus',
+    name: 'Masjid / Musala Kampus',
+    category: 'fasilitas',
+    x: 74,
+    y: 70,
+    description: 'Tempat ibadah utama civitas akademika & kegiatan keagamaan'
+  },
+  {
+    id: 'kantin-kampus',
+    name: 'Kantin Kampus',
+    category: 'kantin',
+    x: 26,
+    y: 52,
+    isFoodSpot: true,
+    description: 'Pusat aneka makanan, nasi rames, minuman & kantin dalam lingkungan kampus'
+  },
+  {
+    id: 'serba-sepuluh-ribu',
+    name: 'Serba Sepuluh Ribu',
+    category: 'kantin',
+    x: 36,
+    y: 84,
+    isFoodSpot: true,
+    description: 'Spot jajanan serba Rp 10.000 favorit mahasiswa depan kampus'
+  },
+  {
+    id: 'indomaret',
+    name: 'Indomaret',
+    category: 'kantin',
+    x: 22,
     y: 90,
-    description: 'Titik jemput Jl. Dr. Setiabudi 229, pos satpam & shelter ojol'
+    isFoodSpot: true,
+    description: 'Minimarket kebutuhan harian, snack, minuman dingin & ATM depan kampus'
+  },
+  {
+    id: 'kantin-depan',
+    name: 'Kantin Depan Kampus / Jalan',
+    category: 'kantin',
+    x: 78,
+    y: 90,
+    isFoodSpot: true,
+    description: 'Deretan warung makan, kuliner kaki lima & jajanan pinggir jalan depan kampus'
+  },
+  {
+    id: 'nusantara',
+    name: 'Nusantara',
+    category: 'kantin',
+    x: 64,
+    y: 84,
+    isFoodSpot: true,
+    description: 'Rumah makan masakan Nusantara & lauk pauk komplit sekitar kampus'
+  },
+  {
+    id: 'theater-hexa-park',
+    name: 'Open-Air Theater Park & Hexa Park',
+    category: 'fasilitas',
+    x: 50,
+    y: 52,
+    description: 'Taman terbuka hijau, teater alam, & area santai komunal Hexa Park'
   }
+];
+
+export const PURWAKARTA_SERVICE_AREAS = [
+  { id: 'area-mawar', name: 'Mawar (Purwakarta)', description: 'Area Jl. Mawar, kost mahasiswa & ruko sekitar kampus' },
+  { id: 'area-kemuning', name: 'Kemuning (Purwakarta)', description: 'Area hunian kost & pemukiman Jl. Kemuning Purwakarta' },
+  { id: 'area-beringin', name: 'Beringin (Purwakarta)', description: 'Area Jl. Beringin & akses sekitar gerbang kampus' },
+  { id: 'area-panorama', name: 'Panorama (Purwakarta)', description: 'Zona komersial, pertokoan & pasar Panorama Purwakarta' },
+  { id: 'area-ciseureuh', name: 'Ciseureuh (Purwakarta)', description: 'Kawasan pemukiman & kost mahasiswa Ciseureuh' },
+  { id: 'area-nagri-kaler', name: 'Nagri Kaler (Purwakarta)', description: 'Kelurahan Nagri Kaler pusat lingkungan kampus UPI' },
+  { id: 'area-kost-sekitar', name: 'Kost Mahasiswa Sekitar Kampus', description: 'Lingkungan kos-kosan & kontrakan sekitar kampus UPI' }
+];
+
+// Spot jajanan & kuliner khusus JASTAP
+export const JASTAP_FOOD_SPOTS = [
+  'Kantin Kampus',
+  'Serba Sepuluh Ribu',
+  'Indomaret',
+  'Kantin Depan Kampus / Jalan',
+  'Nusantara',
+  'Gerbang Utama & Pos Keamanan',
+  'Gedung Perpustakaan & Student Center'
+];
+
+// Area servis hardware & komputer khusus JARVIS
+export const JARVIS_SERVICE_LOCATIONS = [
+  'Mawar (Purwakarta)',
+  'Kemuning (Purwakarta)',
+  'Beringin (Purwakarta)',
+  'Panorama (Purwakarta)',
+  'Ciseureuh (Purwakarta)',
+  'Nagri Kaler (Purwakarta)',
+  'Kost Mahasiswa Sekitar Kampus',
+  'Gedung Laboratorium Terpadu',
+  'Gedung Kuliah 4 (Smart Classroom)',
+  'Gedung Kuliah 1',
+  'Gedung Kuliah 2',
+  'Gedung Kuliah 3',
+  'Gedung Perpustakaan & Student Center',
+  'Gedung Bersejarah (Normaal School)'
 ];
 
 export const DEMO_STUDENTS: Profile[] = [
@@ -279,7 +395,7 @@ export const INITIAL_QUESTS: Quest[] = [
     customer_name: 'Bima Arya Prasetya',
     customer_nim: '2206123',
     customer_phone: '081298765432',
-    customer_major: 'Pendidikan Teknik Mesin (S1)',
+    customer_major: 'Pendidikan Sistem Komputer (S1)',
     customer_avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
     runner_id: 'usr-runner-002',
     runner_name: 'Reza Fachri (The Machinist)',
@@ -287,11 +403,11 @@ export const INITIAL_QUESTS: Quest[] = [
     runner_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
     category: 'JARVIS',
     title: 'Install Windows 11 & Ganti Thermal Paste Laptop Asus',
-    description: 'Laptop Asus Vivobook panas dan kipas bising. Tolong dibersihkan debu kipas dan diberi pasta baru. Software office standar.',
+    description: 'Laptop Asus Vivobook panas dan kipas bising. Tolong dibersihkan debu kipas dan diberi pasta baru di area Mawar Purwakarta.',
     quantity: 1,
     unit: 'perangkat',
-    origin_address: 'Lab Komputer FPMIPA UPI, Lt 2',
-    destination_address: 'Asrama Mahasiswa UPI Gedung B, Kamar 314',
+    origin_address: 'Mawar (Purwakarta) - Kost Melati No. 12',
+    destination_address: 'Gedung Laboratorium Terpadu',
     bounty_fee: 65000,
     item_cost: 25000,
     receipt_image_url: 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=400&auto=format&fit=crop&q=80',
@@ -301,8 +417,8 @@ export const INITIAL_QUESTS: Quest[] = [
     payment_status: 'PENDING',
     created_at: new Date(Date.now() - 3600000).toISOString(),
     updated_at: new Date(Date.now() - 1200000).toISOString(),
-    landmark_origin: 'FPTK & Lab Komputer FPMIPA UPI',
-    landmark_destination: 'Asrama Mahasiswa UPI Gedung B',
+    landmark_origin: 'Mawar (Purwakarta)',
+    landmark_destination: 'Gedung Laboratorium Terpadu',
     notes: 'Bawa obeng set presisi ya bro'
   },
   {
@@ -314,12 +430,12 @@ export const INITIAL_QUESTS: Quest[] = [
     customer_major: 'Manajemen Bisnis (S1)',
     customer_avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80',
     category: 'JASTAP',
-    title: 'Jastap Nasi Geprek Sambal Matah Level 3 + Es Teh',
-    description: 'Titip beli di Kantin Geugeut FPTK UPI. Sambal dipisah tolong ya. Antar ke lantai dasar perpustakaan.',
+    title: 'Titip Snack Serba Sepuluh Ribu & Es Jeruk Segar',
+    description: 'Titip beli di Serba Sepuluh Ribu depan kampus. 2 porsi cireng isi & es jeruk. Antar ke Smart Classroom Lt 2.',
     quantity: 2,
     unit: 'porsi',
-    origin_address: 'Kantin Geugeut FPTK UPI',
-    destination_address: 'Perpustakaan Pusat UPI, Lobi Depan',
+    origin_address: 'Serba Sepuluh Ribu',
+    destination_address: 'Gedung Kuliah 4 (Smart Classroom), Lt 2',
     bounty_fee: 12000,
     item_cost: 0,
     status: 'OPEN',
@@ -328,9 +444,9 @@ export const INITIAL_QUESTS: Quest[] = [
     payment_status: 'PENDING',
     created_at: new Date(Date.now() - 900000).toISOString(),
     updated_at: new Date(Date.now() - 900000).toISOString(),
-    landmark_origin: 'Kantin Geugeut FPTK UPI',
-    landmark_destination: 'Perpustakaan Pusat UPI',
-    notes: 'Uang makan akan diganti sesuai struk'
+    landmark_origin: 'Serba Sepuluh Ribu',
+    landmark_destination: 'Gedung Kuliah 4 (Smart Classroom)',
+    notes: 'Uang jajan akan diganti tunai/QRIS sesuai struk'
   },
   {
     id: 'qst-003',
@@ -341,14 +457,14 @@ export const INITIAL_QUESTS: Quest[] = [
     customer_major: 'Pendidikan Geografi (S1)',
     customer_avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80',
     category: 'JASTAP',
-    title: 'Print Dokumen Jurnal & Jilid Softcover 45 Lembar',
-    description: 'Cetak dokumen praktikum warna di Fotokopi Gegerkalong. Antar sebelum jam 14:00 di Gedung Isola.',
-    quantity: 45,
-    unit: 'lembar',
-    origin_address: 'Percetakan & Fotokopi Gegerkalong UPI',
-    destination_address: 'Gedung Isola (Rektorat UPI) Lt 3 Ruang Seminar',
+    title: 'Titip Makan Siang Ayam Bakar Nusantara Komplit',
+    description: 'Beli paket ayam bakar komplit di RM Nusantara jalan depan kampus. Antar ke Rektorat / Layanan Administrasi.',
+    quantity: 1,
+    unit: 'porsi',
+    origin_address: 'Nusantara',
+    destination_address: 'Gedung Layanan Administrasi / Rektorat, R. 204',
     bounty_fee: 15000,
-    item_cost: 22000,
+    item_cost: 24000,
     status: 'ON_THE_WAY',
     completion_otp: '651239',
     payment_method: 'CASH',
@@ -359,8 +475,8 @@ export const INITIAL_QUESTS: Quest[] = [
     runner_avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
     created_at: new Date(Date.now() - 5400000).toISOString(),
     updated_at: new Date(Date.now() - 1800000).toISOString(),
-    landmark_origin: 'Percetakan & Fotokopi Gegerkalong UPI',
-    landmark_destination: 'Gedung Isola (Rektorat UPI)'
+    landmark_origin: 'Nusantara',
+    landmark_destination: 'Gedung Layanan Administrasi / Rektorat'
   },
   {
     id: 'qst-004',
@@ -372,11 +488,11 @@ export const INITIAL_QUESTS: Quest[] = [
     customer_avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80',
     category: 'JARVIS',
     title: 'Ganti Port Charger / Service Tombol Power iPad Air',
-    description: 'Tombol power macet dan port USB-C agak longgar. Butuh dicek solderannya.',
+    description: 'Tombol power macet dan port USB-C agak longgar. Jemput di Kemuning dekat kampus Purwakarta.',
     quantity: 1,
     unit: 'perangkat',
-    origin_address: 'Asrama Mahasiswa UPI Gedung A',
-    destination_address: 'FPTK & Lab Komputer FPMIPA UPI',
+    origin_address: 'Kemuning (Purwakarta) - Gang Beringin 3',
+    destination_address: 'Gedung Laboratorium Terpadu',
     bounty_fee: 80000,
     item_cost: 0,
     status: 'OPEN',
@@ -385,8 +501,8 @@ export const INITIAL_QUESTS: Quest[] = [
     payment_status: 'PENDING',
     created_at: new Date(Date.now() - 7200000).toISOString(),
     updated_at: new Date(Date.now() - 7200000).toISOString(),
-    landmark_origin: 'Asrama Mahasiswa UPI Gedung A',
-    landmark_destination: 'FPTK & Lab Komputer FPMIPA UPI'
+    landmark_origin: 'Kemuning (Purwakarta)',
+    landmark_destination: 'Gedung Laboratorium Terpadu'
   },
   {
     id: 'qst-005',
@@ -394,29 +510,29 @@ export const INITIAL_QUESTS: Quest[] = [
     customer_name: 'Bima Arya Prasetya',
     customer_nim: '2206123',
     customer_phone: '081298765432',
-    customer_major: 'Pendidikan Teknik Mesin (S1)',
+    customer_major: 'Pendidikan Sistem Komputer (S1)',
     customer_avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
     runner_id: 'usr-runner-003',
     runner_name: 'Fikri Haikal (The Agent)',
     runner_phone: '081233445566',
     runner_avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200&auto=format&fit=crop&q=80',
     category: 'JASTAP',
-    title: 'Beli Kopi Susu Aren Gula Sedang 3 Cup',
-    description: 'Beli di Kafe Kopi Mahasiswa Dekat Gerbang Utama.',
+    title: 'Titip Kopi Botol Dingin & Snack Roti Indomaret',
+    description: 'Titip beli di Indomaret depan gerbang kampus. Antar ke lantai 2 perpustakaan.',
     quantity: 3,
-    unit: 'cup',
-    origin_address: 'Gerbang Utama Setiabudi UPI & Halte Bus',
-    destination_address: 'Perpustakaan Pusat UPI, Lantai 2',
+    unit: 'bungkus',
+    origin_address: 'Indomaret',
+    destination_address: 'Gedung Perpustakaan & Student Center, Lantai 2',
     bounty_fee: 10000,
-    item_cost: 45000,
+    item_cost: 32000,
     status: 'COMPLETED',
     completion_otp: '918274',
     payment_method: 'QRIS',
     payment_status: 'PAID',
     created_at: new Date(Date.now() - 86400000).toISOString(),
     updated_at: new Date(Date.now() - 82800000).toISOString(),
-    landmark_origin: 'Gerbang Utama Setiabudi UPI & Halte Bus',
-    landmark_destination: 'Perpustakaan Pusat UPI'
+    landmark_origin: 'Indomaret',
+    landmark_destination: 'Gedung Perpustakaan & Student Center'
   }
 ];
 

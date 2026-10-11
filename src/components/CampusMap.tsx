@@ -22,6 +22,7 @@ interface CampusMapProps {
 
 export default function CampusMap({ activeQuest, onSelectLandmark }: CampusMapProps) {
   const [selectedLandmark, setSelectedLandmark] = useState<CampusLandmark | null>(null);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'kantin' | 'kuliah' | 'fasilitas' | 'gerbang'>('all');
   const [userGps, setUserGps] = useState<{ lat: number; lng: number } | null>(null);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [runnerAnimOffset, setRunnerAnimOffset] = useState(0);
@@ -66,7 +67,7 @@ export default function CampusMap({ activeQuest, onSelectLandmark }: CampusMapPr
 
   const destinationLandmark = CAMPUS_LANDMARKS.find(
     (lm) => lm.name.toLowerCase() === activeQuest?.destination_address.toLowerCase()
-  ) || CAMPUS_LANDMARKS[4];
+  ) || CAMPUS_LANDMARKS[3];
 
   // Interpolated runner position
   const runnerX =
@@ -74,39 +75,108 @@ export default function CampusMap({ activeQuest, onSelectLandmark }: CampusMapPr
   const runnerY =
     originLandmark.y + ((destinationLandmark.y - originLandmark.y) * runnerAnimOffset) / 100;
 
+  // Filtered landmarks
+  const filteredLandmarks = CAMPUS_LANDMARKS.filter((lm) => {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'kantin') return lm.category === 'kantin';
+    if (activeFilter === 'kuliah') return lm.category === 'fakultas';
+    if (activeFilter === 'gerbang') return lm.category === 'gerbang';
+    if (activeFilter === 'fasilitas') return lm.category === 'fasilitas';
+    return true;
+  });
+
   return (
     <div className="bg-white border border-[#E8DFD1] rounded-2xl sm:rounded-3xl overflow-hidden shadow-md relative">
       {/* Map Header Toolbar */}
-      <div className="p-3.5 bg-white border-b border-[#E8DFD1] flex items-center justify-between">
+      <div className="p-3.5 bg-white border-b border-[#E8DFD1] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-[#FBF0F2] text-[#7A1E34] flex items-center justify-center border border-[#F1CCD3]">
-            <Compass className="w-4 h-4 animate-spin" style={{ animationDuration: '20s' }} />
+          <div className="w-8 h-8 rounded-xl bg-[#FBF0F2] text-[#7A1E34] flex items-center justify-center border border-[#F1CCD3] shrink-0">
+            <Compass className="w-4.5 h-4.5 animate-spin" style={{ animationDuration: '20s' }} />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-[#2C2224] flex items-center gap-1.5">
-              Radar Wilayah Kampus &amp; Titik Temu
+            <h4 className="text-xs font-bold text-[#2C2224] flex items-center gap-1.5 flex-wrap">
+              Denah Kampus UPI Purwakarta &amp; Radar Titik Temu
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#E8F6F3] text-[#2D8D84] border border-[#A5DDD3] font-mono font-semibold">
-                Live Geolocation
+                17 Titik Denah
               </span>
             </h4>
             <p className="text-[10px] text-[#6E6265]">
-              Universitas Pendidikan Indonesia (UPI) • Kampus Bumi Siliwangi
+              Universitas Pendidikan Indonesia (UPI) • Kampus Daerah Purwakarta
             </p>
           </div>
         </div>
 
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={handleGetLocation}
+            disabled={gpsLoading}
+            className="px-3 py-1.5 rounded-xl bg-[#FAF7F2] hover:bg-[#F2EBE0] text-[#7A1E34] text-xs font-semibold flex items-center gap-1.5 border border-[#E8DFD1] transition-colors cursor-pointer"
+          >
+            <LocateFixed className="w-3.5 h-3.5 text-[#7A1E34]" />
+            <span>{gpsLoading ? 'Mendeteksi...' : 'Cek GPS Saya'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Interactive Category Filter Pills */}
+      <div className="px-3.5 py-2 bg-[#FAF7F2] border-b border-[#E8DFD1] flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+        <span className="text-[10px] font-bold text-[#6E6265] shrink-0 mr-1 flex items-center gap-1">
+          <Layers className="w-3 h-3 text-[#7A1E34]" /> Filter Denah:
+        </span>
         <button
-          onClick={handleGetLocation}
-          disabled={gpsLoading}
-          className="px-3 py-1.5 rounded-xl bg-[#FAF7F2] hover:bg-[#F2EBE0] text-[#7A1E34] text-xs font-semibold flex items-center gap-1.5 border border-[#E8DFD1] transition-colors cursor-pointer"
+          onClick={() => setActiveFilter('all')}
+          className={`px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer shrink-0 ${
+            activeFilter === 'all'
+              ? 'bg-[#2C2224] text-white shadow-xs'
+              : 'bg-white text-[#6E6265] border border-[#E8DFD1] hover:text-[#2C2224]'
+          }`}
         >
-          <LocateFixed className="w-3.5 h-3.5 text-[#7A1E34]" />
-          <span>{gpsLoading ? 'Mendeteksi...' : 'Cek GPS Saya'}</span>
+          Semua ({CAMPUS_LANDMARKS.length})
+        </button>
+        <button
+          onClick={() => setActiveFilter('kantin')}
+          className={`px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+            activeFilter === 'kantin'
+              ? 'bg-[#2D8D84] text-white shadow-xs'
+              : 'bg-white text-[#2D8D84] border border-[#A5DDD3] hover:bg-[#E8F6F3]'
+          }`}
+        >
+          🍟 Jajanan &amp; Kuliner (5)
+        </button>
+        <button
+          onClick={() => setActiveFilter('kuliah')}
+          className={`px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+            activeFilter === 'kuliah'
+              ? 'bg-[#7A1E34] text-white shadow-xs'
+              : 'bg-white text-[#7A1E34] border border-[#F1CCD3] hover:bg-[#FBF0F2]'
+          }`}
+        >
+          🏛️ Gedung Kuliah &amp; Lab (5)
+        </button>
+        <button
+          onClick={() => setActiveFilter('fasilitas')}
+          className={`px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+            activeFilter === 'fasilitas'
+              ? 'bg-[#2C2224] text-white shadow-xs'
+              : 'bg-white text-[#6E6265] border border-[#E8DFD1] hover:text-[#2C2224]'
+          }`}
+        >
+          🏢 Fasilitas &amp; Ibadah (6)
+        </button>
+        <button
+          onClick={() => setActiveFilter('gerbang')}
+          className={`px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer shrink-0 flex items-center gap-1 ${
+            activeFilter === 'gerbang'
+              ? 'bg-[#2C2224] text-white shadow-xs'
+              : 'bg-white text-[#6E6265] border border-[#E8DFD1] hover:text-[#2C2224]'
+          }`}
+        >
+          🚪 Gerbang Utama (1)
         </button>
       </div>
 
       {/* Interactive Map Canvas Container */}
-      <div className="relative w-full h-80 sm:h-96 bg-[#F5EFE6] overflow-hidden select-none">
+      <div className="relative w-full h-84 sm:h-100 bg-[#F5EFE6] overflow-hidden select-none">
         {/* Subtle grid background */}
         <div
           className="absolute inset-0 opacity-20 pointer-events-none"
@@ -117,16 +187,36 @@ export default function CampusMap({ activeQuest, onSelectLandmark }: CampusMapPr
           }}
         />
 
-        {/* Campus Road Network Vector Lines */}
+        {/* UPI Purwakarta Campus Road Network Vector Lines */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none" strokeWidth="2">
-          <line x1="22%" y1="35%" x2="48%" y2="28%" strokeDasharray="4 4" stroke="#D3C7B6" />
-          <line x1="48%" y1="28%" x2="50%" y2="12%" strokeDasharray="4 4" stroke="#D3C7B6" />
-          <line x1="48%" y1="28%" x2="78%" y2="38%" strokeDasharray="4 4" stroke="#D3C7B6" />
-          <line x1="78%" y1="38%" x2="82%" y2="65%" strokeDasharray="4 4" stroke="#D3C7B6" />
-          <line x1="22%" y1="35%" x2="20%" y2="72%" strokeDasharray="4 4" stroke="#D3C7B6" />
-          <line x1="20%" y1="72%" x2="38%" y2="78%" strokeDasharray="4 4" stroke="#D3C7B6" />
-          <line x1="38%" y1="78%" x2="50%" y2="90%" strokeDasharray="4 4" stroke="#D3C7B6" />
-          <line x1="82%" y1="65%" x2="50%" y2="90%" strokeDasharray="4 4" stroke="#D3C7B6" />
+          {/* Gerbang Utama (50, 92) ke Indomaret (22, 90) & Kantin Depan (78, 90) */}
+          <line x1="50%" y1="92%" x2="22%" y2="90%" strokeDasharray="4 4" stroke="#D3C7B6" />
+          <line x1="50%" y1="92%" x2="78%" y2="90%" strokeDasharray="4 4" stroke="#D3C7B6" />
+          {/* Kuliner depan Serba 10k (36, 84) & Nusantara (64, 84) */}
+          <line x1="22%" y1="90%" x2="36%" y2="84%" strokeDasharray="4 4" stroke="#D3C7B6" />
+          <line x1="78%" y1="90%" x2="64%" y2="84%" strokeDasharray="4 4" stroke="#D3C7B6" />
+          {/* Gerbang (50, 92) ke Normaal School (50, 72) */}
+          <line x1="50%" y1="92%" x2="50%" y2="72%" strokeDasharray="4 4" stroke="#D3C7B6" />
+          {/* Normaal School (50, 72) ke Rektorat (26, 70) & Masjid (74, 70) */}
+          <line x1="50%" y1="72%" x2="26%" y2="70%" strokeDasharray="4 4" stroke="#D3C7B6" />
+          <line x1="50%" y1="72%" x2="74%" y2="70%" strokeDasharray="4 4" stroke="#D3C7B6" />
+          {/* Normaal School (50, 72) ke Hexa Park (50, 52) */}
+          <line x1="50%" y1="72%" x2="50%" y2="52%" strokeDasharray="4 4" stroke="#D3C7B6" />
+          {/* Hexa Park (50, 52) ke Kantin Kampus (26, 52) & Perpustakaan (74, 52) */}
+          <line x1="50%" y1="52%" x2="26%" y2="52%" strokeDasharray="4 4" stroke="#D3C7B6" />
+          <line x1="50%" y1="52%" x2="74%" y2="52%" strokeDasharray="4 4" stroke="#D3C7B6" />
+          {/* Kantin Kampus (26, 52) ke Kuliah 1 (20, 34) & Kuliah 2 (38, 32) */}
+          <line x1="26%" y1="52%" x2="20%" y2="34%" strokeDasharray="4 4" stroke="#D3C7B6" />
+          <line x1="26%" y1="52%" x2="38%" y2="32%" strokeDasharray="4 4" stroke="#D3C7B6" />
+          {/* Perpustakaan (74, 52) ke Kuliah 3 (62, 32) & Kuliah 4 Smart Classroom (80, 34) */}
+          <line x1="74%" y1="52%" x2="62%" y2="32%" strokeDasharray="4 4" stroke="#D3C7B6" />
+          <line x1="74%" y1="52%" x2="80%" y2="34%" strokeDasharray="4 4" stroke="#D3C7B6" />
+          {/* Kuliah 2 (38, 32) ke Lab Terpadu (30, 15) */}
+          <line x1="38%" y1="32%" x2="30%" y2="15%" strokeDasharray="4 4" stroke="#D3C7B6" />
+          {/* Kuliah 3 (62, 32) ke Aula Serbaguna (70, 15) */}
+          <line x1="62%" y1="32%" x2="70%" y2="15%" strokeDasharray="4 4" stroke="#D3C7B6" />
+          {/* Lab Terpadu (30, 15) ke Aula Serbaguna (70, 15) */}
+          <line x1="30%" y1="15%" x2="70%" y2="15%" strokeDasharray="4 4" stroke="#D3C7B6" />
 
           {/* Active Quest Route Line */}
           {activeQuest && (
@@ -144,10 +234,11 @@ export default function CampusMap({ activeQuest, onSelectLandmark }: CampusMapPr
         </svg>
 
         {/* Landmarks Markers */}
-        {CAMPUS_LANDMARKS.map((landmark) => {
+        {filteredLandmarks.map((landmark) => {
           const isSelected = selectedLandmark?.id === landmark.id;
           const isOrigin = activeQuest?.origin_address === landmark.name;
           const isDestination = activeQuest?.destination_address === landmark.name;
+          const isFood = landmark.isFoodSpot;
 
           return (
             <div
@@ -162,11 +253,13 @@ export default function CampusMap({ activeQuest, onSelectLandmark }: CampusMapPr
               <div
                 className={`relative flex items-center justify-center rounded-full transition-all duration-300 shadow-md ${
                   isDestination
-                    ? 'w-9 h-9 bg-[#7A1E34] text-white shadow-[#7A1E34]/40 scale-110 ring-4 ring-[#7A1E34]/25'
+                    ? 'w-9 h-9 bg-[#7A1E34] text-white shadow-[#7A1E34]/40 scale-115 ring-4 ring-[#7A1E34]/25'
                     : isOrigin
-                    ? 'w-9 h-9 bg-[#2D8D84] text-white shadow-[#2D8D84]/40 scale-110 ring-4 ring-[#2D8D84]/25'
+                    ? 'w-9 h-9 bg-[#2D8D84] text-white shadow-[#2D8D84]/40 scale-115 ring-4 ring-[#2D8D84]/25'
                     : isSelected
                     ? 'w-8 h-8 bg-[#7A1E34] text-white shadow-[#7A1E34]/40 ring-2 ring-[#7A1E34]'
+                    : isFood
+                    ? 'w-7.5 h-7.5 bg-[#E8F6F3] text-[#2D8D84] border-2 border-[#2D8D84] hover:bg-[#2D8D84] hover:text-white'
                     : 'w-7 h-7 bg-white text-[#6E6265] border border-[#E8DFD1] hover:border-[#2D8D84] hover:text-[#2D8D84]'
                 }`}
               >
@@ -174,11 +267,14 @@ export default function CampusMap({ activeQuest, onSelectLandmark }: CampusMapPr
                 {isDestination && (
                   <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-white rounded-full animate-ping" />
                 )}
+                {isFood && !isDestination && !isOrigin && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-500 rounded-full" title="Spot Kuliner JASTAP" />
+                )}
               </div>
 
               {/* Landmark Name Label */}
-              <div className="absolute top-8 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-0.5 rounded-lg bg-white/95 border border-[#E8DFD1] text-[10px] font-semibold text-[#2C2224] group-hover:text-[#7A1E34] group-hover:border-[#F1CCD3] transition-colors pointer-events-none shadow-sm">
-                {landmark.name}
+              <div className="absolute top-8 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-0.5 rounded-lg bg-white/95 border border-[#E8DFD1] text-[10px] font-semibold text-[#2C2224] group-hover:text-[#7A1E34] group-hover:border-[#F1CCD3] transition-colors pointer-events-none shadow-sm z-20">
+                {isFood ? `🍟 ${landmark.name}` : landmark.name}
               </div>
             </div>
           );
@@ -215,19 +311,26 @@ export default function CampusMap({ activeQuest, onSelectLandmark }: CampusMapPr
 
       {/* Selected Landmark Detail Card */}
       {selectedLandmark && (
-        <div className="p-3 bg-white border-t border-[#E8DFD1] flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#FBF0F2] text-[#7A1E34] flex items-center justify-center border border-[#F1CCD3]">
+        <div className="p-3 bg-white border-t border-[#E8DFD1] flex items-center justify-between text-xs gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-[#FBF0F2] text-[#7A1E34] flex items-center justify-center border border-[#F1CCD3] shrink-0">
               <MapPin className="w-4 h-4" />
             </div>
-            <div>
-              <p className="font-bold text-[#2C2224]">{selectedLandmark.name}</p>
-              <p className="text-[11px] text-[#6E6265]">{selectedLandmark.description}</p>
+            <div className="min-w-0">
+              <p className="font-bold text-[#2C2224] flex items-center gap-1.5 truncate">
+                {selectedLandmark.name}
+                {selectedLandmark.isFoodSpot && (
+                  <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-amber-100 text-amber-800 font-bold border border-amber-300">
+                    Kuliner JASTAP
+                  </span>
+                )}
+              </p>
+              <p className="text-[11px] text-[#6E6265] truncate">{selectedLandmark.description}</p>
             </div>
           </div>
           <button
             onClick={() => setSelectedLandmark(null)}
-            className="text-[#6E6265] hover:text-[#2C2224] px-2 py-1 text-xs cursor-pointer font-semibold"
+            className="text-[#6E6265] hover:text-[#2C2224] px-2 py-1 text-xs cursor-pointer font-semibold shrink-0"
           >
             Tutup
           </button>

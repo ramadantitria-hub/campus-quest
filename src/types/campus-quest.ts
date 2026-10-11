@@ -123,8 +123,16 @@ export interface Review {
 export interface CampusLandmark {
   id: string;
   name: string;
-  category: 'kantin' | 'fakultas' | 'asrama' | 'fasilitas' | 'gerbang';
+  category: 'kantin' | 'fakultas' | 'asrama' | 'fasilitas' | 'gerbang' | 'kuliner';
   x: number; // Percentage on map canvas
   y: number; // Percentage on map canvas
   description: string;
+  isFoodSpot?: boolean; // Khusus spot jajanan / toko kuliner JASTAP
+}
+
+export interface ServiceArea {
+  id: string;
+  name: string;
+  description: string;
+  category: 'kampus' | 'purwakarta';
 }
