@@ -182,15 +182,15 @@ export default function CustomerDashboard({
                     </span>
                   </div>
 
-                  <h4 className="text-sm font-bold text-white line-clamp-1">{quest.title}</h4>
-                  <p className="text-xs text-slate-400 line-clamp-2 mt-1">{quest.description}</p>
+                  <h4 className="text-sm font-bold text-white line-clamp-2 break-words">{quest.title}</h4>
+                  <p className="text-xs text-slate-400 line-clamp-2 break-words mt-1">{quest.description}</p>
 
-                  <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-slate-400">
-                    <div className="flex items-center gap-1 truncate">
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 text-[11px] text-slate-400">
+                    <div className="flex items-center gap-1.5 min-w-0">
                       <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                       <span className="truncate">{quest.origin_address}</span>
                     </div>
-                    <div className="flex items-center gap-1 truncate">
+                    <div className="flex items-center gap-1.5 min-w-0">
                       <MapPin className="w-3.5 h-3.5 text-sky-400 shrink-0" />
                       <span className="truncate">{quest.destination_address}</span>
                     </div>
@@ -243,7 +243,7 @@ export default function CustomerDashboard({
                 className="p-3 bg-slate-900/60 hover:bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between text-xs cursor-pointer transition-colors"
               >
                 <div className="min-w-0 pr-3">
-                  <p className="font-semibold text-white truncate">{quest.title}</p>
+                  <p className="font-semibold text-white line-clamp-2 break-words">{quest.title}</p>
                   <span className="text-[10px] text-slate-400">
                     Selesai • OTP Valid • Bounty Rp {quest.bounty_fee.toLocaleString('id-ID')}
                   </span>

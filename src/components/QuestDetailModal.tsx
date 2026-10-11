@@ -222,10 +222,10 @@ export default function QuestDetailModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700/80 transition-all cursor-pointer group shadow-sm"
+                className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700/80 transition-all cursor-pointer group shadow-sm"
               >
                 <ArrowLeft className="w-3.5 h-3.5 text-slate-400 group-hover:-translate-x-0.5 transition-transform" />
-                <span>Kembali</span>
+                <span className="hidden sm:inline">Kembali</span>
               </button>
               <button
                 onClick={onClose}
@@ -267,9 +267,9 @@ export default function QuestDetailModal({
                   return (
                     <div key={st.key} className="flex flex-col items-center text-center">
                       <div
-                        className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                        className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold transition-all ${
                           isCurrent
-                            ? 'bg-sky-500 text-slate-950 ring-4 ring-sky-500/30 font-extrabold scale-110'
+                            ? 'bg-sky-500 text-slate-950 ring-2 sm:ring-4 ring-sky-500/30 font-extrabold scale-105 sm:scale-110'
                             : isDone
                             ? 'bg-emerald-500 text-slate-950 font-bold'
                             : 'bg-slate-800 text-slate-500 border border-slate-700'
@@ -278,7 +278,7 @@ export default function QuestDetailModal({
                         {idx + 1}
                       </div>
                       <span
-                        className={`text-[9px] sm:text-[10px] font-semibold mt-1.5 leading-tight line-clamp-1 ${
+                        className={`text-[8px] sm:text-[10px] font-semibold mt-1 leading-tight line-clamp-1 ${
                           isCurrent ? 'text-sky-300 font-bold' : isDone ? 'text-slate-200' : 'text-slate-600'
                         }`}
                       >
@@ -328,22 +328,22 @@ export default function QuestDetailModal({
               </h4>
 
               <div className="space-y-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400 flex items-center gap-1">
-                    <Coins className="w-3.5 h-3.5 text-amber-400" />
-                    Biaya Jasa (Bounty Penawaran Customer)
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-slate-400 flex items-center gap-1 min-w-0">
+                    <Coins className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span className="truncate sm:overflow-visible">Bounty Jasa Runner</span>
                   </span>
-                  <span className="font-bold font-mono text-amber-300">
+                  <span className="font-bold font-mono text-amber-300 shrink-0">
                     Rp {quest.bounty_fee.toLocaleString('id-ID')}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400 flex items-center gap-1">
-                    <Receipt className="w-3.5 h-3.5 text-sky-400" />
-                    Biaya Aktual Belanjaan / Sparepart (Nota Fisik)
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-slate-400 flex items-center gap-1 min-w-0">
+                    <Receipt className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                    <span className="truncate sm:overflow-visible">Biaya Belanjaan / Sparepart</span>
                   </span>
-                  <span className="font-bold font-mono text-sky-300">
+                  <span className="font-bold font-mono text-sky-300 shrink-0">
                     Rp {(quest.item_cost || 0).toLocaleString('id-ID')}
                   </span>
                 </div>

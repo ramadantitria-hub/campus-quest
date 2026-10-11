@@ -135,8 +135,9 @@ export default function CreateQuestModal({
             onClick={onClose}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700/80 transition-all cursor-pointer group shadow-sm"
           >
-            <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:-translate-x-1 transition-transform" />
-            <span>Kembali ke Halaman Utama</span>
+            <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:-translate-x-1 transition-transform shrink-0" />
+            <span className="hidden sm:inline">Kembali ke Halaman Utama</span>
+            <span className="sm:hidden">Kembali</span>
           </button>
 
           <button

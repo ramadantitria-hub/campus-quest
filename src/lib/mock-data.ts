@@ -310,8 +310,8 @@ export const INITIAL_QUESTS: Quest[] = [
     description: 'Beli di Kafe Kopi Mahasiswa Dekat Gerbang Utama.',
     quantity: 3,
     unit: 'cup',
-    origin_address: 'Gerbang Utama & Halte Bus',
-    destination_address: 'Perpustakaan Pusat, Lantai 2',
+    origin_address: 'Gerbang Utama Setiabudi UPI & Halte Bus',
+    destination_address: 'Perpustakaan Pusat UPI, Lantai 2',
     bounty_fee: 10000,
     item_cost: 45000,
     status: 'COMPLETED',
@@ -320,8 +320,8 @@ export const INITIAL_QUESTS: Quest[] = [
     payment_status: 'PAID',
     created_at: new Date(Date.now() - 86400000).toISOString(),
     updated_at: new Date(Date.now() - 82800000).toISOString(),
-    landmark_origin: 'Gerbang Utama & Halte Bus',
-    landmark_destination: 'Perpustakaan Pusat'
+    landmark_origin: 'Gerbang Utama Setiabudi UPI & Halte Bus',
+    landmark_destination: 'Perpustakaan Pusat UPI'
   }
 ];
 

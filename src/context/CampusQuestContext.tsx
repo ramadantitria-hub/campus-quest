@@ -86,11 +86,11 @@ interface CampusQuestContextType {
 const CampusQuestContext = createContext<CampusQuestContextType | null>(null);
 
 const STORAGE_KEYS = {
-  PROFILE: 'cq_profile_v1',
-  IS_LOGGED_IN: 'cq_is_logged_in_v1',
-  QUESTS: 'cq_quests_v1',
-  CHATS: 'cq_chats_v1',
-  REVIEWS: 'cq_reviews_v1'
+  PROFILE: 'cq_profile_v2_upi',
+  IS_LOGGED_IN: 'cq_is_logged_in_v2_upi',
+  QUESTS: 'cq_quests_v2_upi',
+  CHATS: 'cq_chats_v2_upi',
+  REVIEWS: 'cq_reviews_v2_upi'
 };
 
 export function CampusQuestProvider({ children }: { children: React.ReactNode }) {

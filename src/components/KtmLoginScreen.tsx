@@ -247,10 +247,10 @@ export default function KtmLoginScreen() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-extrabold text-lg text-white tracking-tight">
+                <span className="font-extrabold text-base sm:text-lg text-white tracking-tight">
                   Campus<span className="text-rose-400">Quest</span>
                 </span>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-950/80 border border-rose-500/30 text-rose-300">
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-950/80 border border-rose-500/30 text-rose-300 hidden sm:inline-flex">
                   Edisi Mahasiswa UPI
                 </span>
               </div>
@@ -263,12 +263,12 @@ export default function KtmLoginScreen() {
           <div className="flex items-center gap-2">
             <button
               onClick={enterGuestMode}
-              className="text-xs font-semibold text-slate-300 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+              className="text-xs font-semibold text-slate-300 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 px-2.5 sm:px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-sm shrink-0"
             >
               <span>Mode Tamu</span>
               <ArrowRight className="w-3.5 h-3.5 text-rose-400" />
             </button>
-            <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-950/50 border border-emerald-500/30 px-3 py-1.5 rounded-xl hidden sm:flex items-center gap-1.5 shadow-sm">
+            <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-950/50 border border-emerald-500/30 px-3 py-1.5 rounded-xl hidden md:flex items-center gap-1.5 shadow-sm">
               <ShieldCheck className="w-3.5 h-3.5" />
               <span>Portal Terverifikasi Mahasiswa UPI</span>
             </span>
@@ -277,26 +277,36 @@ export default function KtmLoginScreen() {
       </header>
 
       {/* Main Gate Hero & Login Card */}
-      <main className="relative z-10 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 flex-1 flex items-center">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center w-full">
+      <main className="relative z-10 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-8 lg:py-12 flex-1 flex items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-12 items-center w-full">
           {/* Left Column: Campus Quest UPI Value Proposition */}
-          <div className="lg:col-span-5 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold">
-              <GraduationCap className="w-4 h-4 text-rose-400" />
-              <span>Khusus Mahasiswa Universitas Pendidikan Indonesia</span>
+          <div className="lg:col-span-5 space-y-3 sm:space-y-6">
+            <div className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-300 text-[11px] sm:text-xs font-semibold max-w-full">
+              <GraduationCap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-400 shrink-0" />
+              <span className="truncate">Khusus Mahasiswa Universitas Pendidikan Indonesia</span>
             </div>
 
             <div>
-              <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+              <h1 className="text-xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight break-words">
                 Satu Akses KTM UPI untuk Seluruh Kebutuhan Kampus.
               </h1>
-              <p className="text-sm sm:text-base text-slate-300 mt-3 leading-relaxed">
-                Platform peer-to-peer terpercaya khusus mahasiswa Universitas Pendidikan Indonesia. Titip beli makanan Geugeut FPTK, fotokopi Gegerkalong, hingga servis laptop di Asrama Mahasiswa UPI dengan penawaran upah mandiri.
-              </p>
             </div>
 
-            {/* Feature Cards Showcase */}
-            <div className="space-y-3 pt-2">
+            {/* Mobile Compact Feature Pills (Single Row on Smartphones) */}
+            <div className="flex lg:hidden items-center gap-1.5 flex-wrap pt-0.5">
+              <span className="px-2.5 py-1 rounded-xl bg-slate-900/90 border border-emerald-500/30 text-[11px] text-emerald-300 flex items-center gap-1 font-medium">
+                <ShoppingBag className="w-3 h-3 text-emerald-400 shrink-0" /> JASTAP Titip Beli
+              </span>
+              <span className="px-2.5 py-1 rounded-xl bg-slate-900/90 border border-rose-500/30 text-[11px] text-rose-300 flex items-center gap-1 font-medium">
+                <Wrench className="w-3 h-3 text-rose-400 shrink-0" /> JARVIS Servis
+              </span>
+              <span className="px-2.5 py-1 rounded-xl bg-slate-900/90 border border-sky-500/30 text-[11px] text-sky-300 flex items-center gap-1 font-medium">
+                <Lock className="w-3 h-3 text-sky-400 shrink-0" /> Canvas Watermark
+              </span>
+            </div>
+
+            {/* Desktop Feature Cards Showcase (Visible on Large Screens) */}
+            <div className="hidden lg:flex flex-col space-y-3 pt-2">
               <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-start gap-3.5 hover:border-emerald-500/30 transition-colors">
                 <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
                   <ShoppingBag className="w-4 h-4" />
@@ -343,38 +353,38 @@ export default function KtmLoginScreen() {
 
           {/* Right Column: The Interactive Login Card */}
           <div className="lg:col-span-7">
-            <div className="bg-slate-900/95 border border-slate-700/80 rounded-3xl p-5 sm:p-7 shadow-2xl backdrop-blur-xl relative">
+            <div className="bg-slate-900/95 border border-slate-700/80 rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-2xl backdrop-blur-xl relative">
               {/* Card Header */}
-              <div className="flex items-center justify-between mb-5 pb-4 border-b border-slate-800">
-                <div>
-                  <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-                    <GraduationCap className="w-5 h-5 text-rose-400" />
-                    Portal Masuk Mahasiswa UPI
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+                <div className="min-w-0 pr-2">
+                  <h2 className="text-base sm:text-xl font-bold text-white flex items-center gap-2 truncate">
+                    <GraduationCap className="w-5 h-5 text-rose-400 shrink-0" />
+                    <span className="truncate">Portal Masuk Mahasiswa UPI</span>
                   </h2>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Otentikasi khusus civitas akademika Universitas Pendidikan Indonesia
+                  <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 truncate">
+                    Otentikasi khusus civitas akademika UPI
                   </p>
                 </div>
-                <span className="text-[10px] font-mono bg-rose-500/10 text-rose-400 border border-rose-500/30 px-2 py-1 rounded-lg">
+                <span className="text-[10px] font-mono bg-rose-500/10 text-rose-400 border border-rose-500/30 px-2 py-1 rounded-lg shrink-0">
                   UPI Verified
                 </span>
               </div>
 
               {/* Method Switcher Tabs (2 Tabs Only - Real UPI Student Verification) */}
-              <div className="grid grid-cols-2 p-1 bg-slate-950 border border-slate-800 rounded-2xl mb-5 text-xs font-semibold">
+              <div className="grid grid-cols-2 p-1 bg-slate-950 border border-slate-800 rounded-2xl mb-4 text-xs font-semibold">
                 <button
                   onClick={() => {
                     setActiveTab('ocr_scan');
                     soundFX.pop();
                   }}
-                  className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl transition-all cursor-pointer ${
+                  className={`flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-xl transition-all cursor-pointer text-xs ${
                     activeTab === 'ocr_scan'
                       ? 'bg-gradient-to-r from-rose-600 to-red-700 text-white shadow-md shadow-rose-900/30'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
-                  <Camera className="w-3.5 h-3.5" />
-                  <span className="truncate">Pindai / Upload KTM UPI</span>
+                  <Camera className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Pindai / Upload KTM</span>
                 </button>
 
                 <button
@@ -383,13 +393,13 @@ export default function KtmLoginScreen() {
                     stopCamera();
                     soundFX.pop();
                   }}
-                  className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl transition-all cursor-pointer ${
+                  className={`flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-xl transition-all cursor-pointer text-xs ${
                     activeTab === 'sso_nim'
                       ? 'bg-gradient-to-r from-rose-600 to-red-700 text-white shadow-md shadow-rose-900/30'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
-                  <KeyRound className="w-3.5 h-3.5" />
+                  <KeyRound className="w-3.5 h-3.5 shrink-0" />
                   <span className="truncate">NIM &amp; SSO Portal UPI</span>
                 </button>
               </div>
@@ -654,22 +664,23 @@ export default function KtmLoginScreen() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3 pt-2">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-2">
                         <button
                           onClick={() => {
                             setHasScannedResult(false);
                             setScannedKtmUrl(null);
                           }}
-                          className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                          className="w-full sm:flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           <RefreshCw className="w-3.5 h-3.5" /> Pindai Ulang
                         </button>
 
                         <button
                           onClick={handleConfirmKtmLogin}
-                          className="flex-2 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 cursor-pointer"
+                          className="w-full sm:flex-2 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 cursor-pointer"
                         >
-                          <Check className="w-4 h-4" /> Masuk Sebagai Mahasiswa UPI ({scannedFullName.split(' ')[0]}) →
+                          <Check className="w-4 h-4 shrink-0" />
+                          <span className="truncate">Masuk Sebagai Mahasiswa UPI ({scannedFullName.split(' ')[0]}) →</span>
                         </button>
                       </div>
                     </div>
@@ -802,12 +813,12 @@ export default function KtmLoginScreen() {
               )}
 
               {/* Bottom Card Helper: Guest Explorer Mode */}
-              <div className="mt-5 pt-3.5 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+              <div className="mt-5 pt-3.5 border-t border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-slate-400">
                 <span className="text-[11px] sm:text-xs">Ingin melihat dashboard dan quest board dulu?</span>
                 <button
                   type="button"
                   onClick={enterGuestMode}
-                  className="font-bold text-rose-400 hover:text-rose-300 flex items-center gap-1 cursor-pointer transition-colors text-xs"
+                  className="font-bold text-rose-400 hover:text-rose-300 flex items-center gap-1 cursor-pointer transition-colors text-xs shrink-0"
                 >
                   <span>Jelajahi Mode Tamu</span>
                   <ArrowRight className="w-3.5 h-3.5" />

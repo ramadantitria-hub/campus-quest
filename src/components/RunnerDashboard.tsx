@@ -204,21 +204,21 @@ export default function RunnerDashboard({
                       </span>
                     </div>
 
-                    <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-amber-300 transition-colors">
+                    <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-amber-300 transition-colors line-clamp-2 break-words">
                       {quest.title}
                     </h3>
-                    <p className="text-xs text-slate-400 mt-1 line-clamp-2">{quest.description}</p>
+                    <p className="text-xs text-slate-400 mt-1 line-clamp-2 break-words">{quest.description}</p>
 
                     <div className="mt-3 p-2.5 bg-slate-950/70 rounded-xl border border-slate-800/80 space-y-1.5 text-[11px]">
-                      <div className="flex items-center gap-1.5 text-slate-300">
-                        <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                        <span className="font-semibold text-slate-400">Ambil:</span>
-                        <span className="truncate">{quest.origin_address}</span>
+                      <div className="flex items-start gap-1.5 text-slate-300 min-w-0">
+                        <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                        <span className="font-semibold text-slate-400 shrink-0">Ambil:</span>
+                        <span className="break-words line-clamp-1 sm:line-clamp-2 min-w-0">{quest.origin_address}</span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-slate-300">
-                        <MapPin className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                        <span className="font-semibold text-slate-400">Antar:</span>
-                        <span className="truncate">{quest.destination_address}</span>
+                      <div className="flex items-start gap-1.5 text-slate-300 min-w-0">
+                        <MapPin className="w-3.5 h-3.5 text-sky-400 shrink-0 mt-0.5" />
+                        <span className="font-semibold text-slate-400 shrink-0">Antar:</span>
+                        <span className="break-words line-clamp-1 sm:line-clamp-2 min-w-0">{quest.destination_address}</span>
                       </div>
                     </div>
                   </div>
@@ -282,18 +282,18 @@ export default function RunnerDashboard({
                       </span>
                     </div>
 
-                    <h3 className="text-base font-bold text-white">{quest.title}</h3>
+                    <h3 className="text-sm sm:text-base font-bold text-white line-clamp-2 break-words">{quest.title}</h3>
 
-                    <div className="my-3 p-3 bg-amber-950/30 border border-amber-500/20 rounded-xl flex items-center justify-between">
+                    <div className="my-3 p-3 bg-amber-950/30 border border-amber-500/20 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                       <div>
-                        <span className="text-[10px] text-amber-300 uppercase font-bold block flex items-center gap-1">
+                        <span className="text-[10px] text-amber-300 uppercase font-bold flex items-center gap-1">
                           <KeyRound className="w-3 h-3" /> Kode OTP untuk Pemesan:
                         </span>
-                        <span className="text-lg font-black font-mono text-amber-400 tracking-widest">
+                        <span className="text-lg font-black font-mono text-amber-400 tracking-widest block mt-0.5">
                           {quest.completion_otp}
                         </span>
                       </div>
-                      <span className="text-[10px] text-slate-400 text-right max-w-[130px]">
+                      <span className="text-[10px] text-slate-400 sm:text-right max-w-full sm:max-w-[130px]">
                         Tunjukkan ke pemesan saat serah terima
                       </span>
                     </div>
