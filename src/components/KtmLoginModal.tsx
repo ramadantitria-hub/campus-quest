@@ -39,13 +39,33 @@ interface KtmLoginModalProps {
   onClose: () => void;
 }
 
-type LoginTab = 'ocr_scan' | 'sso_nim';
+type LoginTab = 'login' | 'register' | 'ocr_scan';
 type ScanSource = 'upload' | 'camera';
 
 export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
-  const { loginWithKtm, loginWithNim, isLoggedIn } = useCampusQuest();
+  const { loginWithCredentials, registerAccount, loginWithKtm, isLoggedIn } = useCampusQuest();
 
-  const [activeTab, setActiveTab] = useState<LoginTab>('ocr_scan');
+  const [activeTab, setActiveTab] = useState<LoginTab>('login');
+
+  // Login State
+  const [loginNim, setLoginNim] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [loginRole, setLoginRole] = useState<UserRole>('customer');
+  const [loginError, setLoginError] = useState<string | null>(null);
+
+  // Register State
+  const [regFullName, setRegFullName] = useState('');
+  const [regNim, setRegNim] = useState('');
+  const [regMajor, setRegMajor] = useState('Mekatronika dan Kecerdasan Buatan (S1)');
+  const [regFaculty, setRegFaculty] = useState('Kampus UPI di Purwakarta');
+  const [regPhone, setRegPhone] = useState('');
+  const [regRole, setRegRole] = useState<UserRole>('customer');
+  const [regPassword, setRegPassword] = useState('');
+  const [regConfirmPassword, setRegConfirmPassword] = useState('');
+  const [showRegPassword, setShowRegPassword] = useState(false);
+  const [regError, setRegError] = useState<string | null>(null);
+  const [regSuccess, setRegSuccess] = useState<string | null>(null);
 
   // OCR Scan State
   const [scanSource, setScanSource] = useState<ScanSource>('upload');
@@ -64,13 +84,6 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
   const [scannedRole, setScannedRole] = useState<UserRole>('customer');
   const [hasScannedResult, setHasScannedResult] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
-
-  // SSO / NIM Input State (UPI Dedicated)
-  const [nimInput, setNimInput] = useState('');
-  const [pinInput, setPinInput] = useState('');
-  const [facultyInput, setFacultyInput] = useState('FPTK - Fakultas Pendidikan Teknologi dan Kejuruan');
-  const [showPin, setShowPin] = useState(false);
-  const [ssoError, setSsoError] = useState<string | null>(null);
 
   // Webcam stream
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -229,24 +242,68 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
     onClose();
   };
 
-  const handleSsoLogin = (e: React.FormEvent) => {
+  const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSsoError(null);
-    const cleanNim = nimInput.trim();
+    setLoginError(null);
+    const cleanNim = loginNim.trim();
     if (!cleanNim) {
-      setSsoError('Masukkan Nomor Induk Mahasiswa (NIM) UPI Anda.');
+      setLoginError('Masukkan Nomor Induk Mahasiswa (NIM) UPI Anda.');
       return;
     }
-    if (cleanNim.length < 5) {
-      setSsoError('Format NIM UPI tidak valid. Umumnya terdiri dari 7 digit angka.');
-      return;
-    }
-
-    const res = loginWithNim(cleanNim, pinInput, 'Universitas Pendidikan Indonesia (UPI)', facultyInput);
+    const res = loginWithCredentials(cleanNim, loginPassword, loginRole);
     if (res.success) {
       onClose();
     } else {
-      setSsoError(res.message);
+      setLoginError(res.message);
+    }
+  };
+
+  const handleRegisterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setRegError(null);
+    setRegSuccess(null);
+
+    const cleanName = regFullName.trim();
+    const cleanNim = regNim.trim();
+    const cleanPhone = regPhone.trim();
+    const cleanPassword = regPassword.trim();
+
+    if (!cleanName) {
+      setRegError('Nama lengkap mahasiswa UPI wajib diisi.');
+      return;
+    }
+    if (!cleanNim || cleanNim.length < 5) {
+      setRegError('NIM UPI harus terdiri dari minimal 5 digit angka.');
+      return;
+    }
+    if (!cleanPhone) {
+      setRegError('Nomor WhatsApp / HP aktif wajib diisi.');
+      return;
+    }
+    if (!cleanPassword) {
+      setRegError('Password akun wajib diisi.');
+      return;
+    }
+    if (cleanPassword !== regConfirmPassword.trim()) {
+      setRegError('Konfirmasi password tidak cocok.');
+      return;
+    }
+
+    const res = registerAccount({
+      fullName: cleanName,
+      nim: cleanNim,
+      password: cleanPassword,
+      major: regMajor,
+      faculty: regFaculty,
+      university: 'Universitas Pendidikan Indonesia (UPI)',
+      phone: cleanPhone,
+      role: regRole
+    });
+
+    if (res.success) {
+      onClose();
+    } else {
+      setRegError(res.message);
     }
   };
 
@@ -288,9 +345,44 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
           </div>
         </div>
 
-        {/* Method Switcher Tabs (2 Tabs Only - Real UPI Verification) */}
-        <div className="grid grid-cols-2 p-1 bg-slate-950 border border-slate-800 rounded-2xl mb-6 text-xs font-semibold">
+        {/* Method Switcher Tabs (3 Tabs: Login, Register, OCR Scan) */}
+        <div className="grid grid-cols-3 p-1 bg-slate-950 border border-slate-800 rounded-2xl mb-6 text-xs font-semibold gap-1">
           <button
+            type="button"
+            onClick={() => {
+              setActiveTab('login');
+              stopCamera();
+              soundFX.pop();
+            }}
+            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl transition-all cursor-pointer ${
+              activeTab === 'login'
+                ? 'bg-gradient-to-r from-rose-600 to-red-700 text-white shadow-md shadow-rose-900/30'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <KeyRound className="w-3.5 h-3.5" />
+            <span className="truncate">Masuk</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('register');
+              stopCamera();
+              soundFX.pop();
+            }}
+            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl transition-all cursor-pointer ${
+              activeTab === 'register'
+                ? 'bg-gradient-to-r from-rose-600 to-red-700 text-white shadow-md shadow-rose-900/30'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <User className="w-3.5 h-3.5" />
+            <span className="truncate">Daftar</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => {
               setActiveTab('ocr_scan');
               soundFX.pop();
@@ -302,23 +394,7 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
             }`}
           >
             <Camera className="w-3.5 h-3.5" />
-            <span className="truncate">Scan / Upload KTM UPI</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab('sso_nim');
-              stopCamera();
-              soundFX.pop();
-            }}
-            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl transition-all cursor-pointer ${
-              activeTab === 'sso_nim'
-                ? 'bg-gradient-to-r from-rose-600 to-red-700 text-white shadow-md shadow-rose-900/30'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            <KeyRound className="w-3.5 h-3.5" />
-            <span className="truncate">NIM &amp; SSO Portal UPI</span>
+            <span className="truncate">Pindai KTM</span>
           </button>
         </div>
 
@@ -669,40 +745,177 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
           </div>
         )}
 
-        {/* TAB 2: SSO / NIM & PASSWORD KAMPUS UPI */}
-        {activeTab === 'sso_nim' && (
-          <form onSubmit={handleSsoLogin} className="space-y-4">
-            <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-300 flex items-start gap-2.5">
-              <Building className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+        {/* TAB 1: FORM MASUK (LOGIN) */}
+        {activeTab === 'login' && (
+          <form onSubmit={handleLoginSubmit} className="space-y-4">
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-300 flex items-start gap-2.5">
+              <KeyRound className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-white">Login Single Sign-On (SSO) Portal Mahasiswa UPI</p>
+                <p className="font-semibold text-white">Masuk Akun Mahasiswa UPI</p>
                 <p className="text-[11px] text-slate-400 mt-0.5">
-                  Terintegrasi langsung dengan akun resmi portal.upi.edu / SIAKAD Universitas Pendidikan Indonesia.
+                  Masukkan NIM UPI dan password akun Anda. Akun Runner dan Customer terpisah otomatis berdasarkan kredensial pendaftaran.
                 </p>
               </div>
             </div>
 
-            {/* Kampus Fixed Card */}
+            {/* Input NIM UPI */}
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Hash className="w-3.5 h-3.5 text-rose-400" />
+                  Nomor Induk Mahasiswa (NIM UPI)
+                </span>
+                <span className="text-[10px] text-slate-500 font-mono">Format 7-Digit</span>
+              </label>
+              <input
+                type="text"
+                value={loginNim}
+                onChange={(e) => setLoginNim(e.target.value)}
+                placeholder="Contoh: 2201945 atau 2108765"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white font-mono placeholder:font-sans focus:outline-none focus:border-rose-500"
+              />
+            </div>
+
+            {/* Input Password */}
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1.5">
-                <Building className="w-3.5 h-3.5 text-rose-400" />
-                Perguruan Tinggi Terintegrasi
+                <Lock className="w-3.5 h-3.5 text-rose-400" />
+                Kata Sandi / Password Akun
               </label>
-              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-rose-950 border border-rose-500/30 flex items-center justify-center text-rose-400 font-bold text-xs">
-                    UPI
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-white">Universitas Pendidikan Indonesia</p>
-                    <p className="text-[10px] text-slate-400 flex items-center gap-1">
-                      <MapPin className="w-2.5 h-2.5 text-rose-400" /> Kampus Bumi Siliwangi (Bandung) &amp; Kampus Daerah
-                    </p>
-                  </div>
-                </div>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-500/30">
-                  Resmi
-                </span>
+              <div className="relative">
+                <input
+                  type={showLoginPassword ? 'text' : 'password'}
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  placeholder="Masukkan password akun Anda..."
+                  className="w-full px-3.5 py-2.5 pr-10 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-rose-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  className="absolute right-3 top-2.5 text-slate-400 hover:text-white"
+                >
+                  {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Role Switcher Option during Login */}
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                Pilihan Halaman / Peran Masuk:
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setLoginRole('customer')}
+                  className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    loginRole === 'customer'
+                      ? 'bg-rose-500/20 border-rose-500 text-rose-300 shadow-sm'
+                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                  <span>Customer Portal</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLoginRole('runner')}
+                  className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    loginRole === 'runner'
+                      ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-sm'
+                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  <span>Runner Hub</span>
+                </button>
+              </div>
+            </div>
+
+            {loginError && (
+              <div className="p-3 rounded-xl bg-red-950/60 border border-red-500/50 text-red-300 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{loginError}</span>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 text-white font-bold text-xs transition-all shadow-lg shadow-rose-900/40 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <KeyRound className="w-4 h-4" /> Masuk ke CampusQuest UPI →
+            </button>
+
+            <div className="text-center pt-1">
+              <button
+                type="button"
+                onClick={() => setActiveTab('register')}
+                className="text-xs text-rose-400 hover:underline font-semibold cursor-pointer"
+              >
+                Belum punya akun? Daftar Akun Mahasiswa Baru di sini →
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* TAB 2: FORM DAFTAR AKUN BARU (REGISTER) */}
+        {activeTab === 'register' && (
+          <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
+            <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-300 flex items-start gap-2.5">
+              <User className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-white">Pendaftaran Akun Baru Mahasiswa UPI</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  Setiap akun memiliki data tersendiri. Anda dapat mendaftar dengan NIM yang sama namun password berbeda untuk menguji akun Runner vs Customer secara terpisah.
+                </p>
+              </div>
+            </div>
+
+            {/* Input Nama Lengkap */}
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-rose-400" />
+                Nama Lengkap Mahasiswa UPI
+              </label>
+              <input
+                type="text"
+                value={regFullName}
+                onChange={(e) => setRegFullName(e.target.value)}
+                placeholder="Contoh: Farhan Ramadhan atau Sarah Putri"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-rose-500"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Input NIM UPI */}
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1.5">
+                  <Hash className="w-3.5 h-3.5 text-rose-400" />
+                  NIM UPI (7-Digit)
+                </label>
+                <input
+                  type="text"
+                  value={regNim}
+                  onChange={(e) => setRegNim(e.target.value)}
+                  placeholder="Contoh: 2201945"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white font-mono placeholder:font-sans focus:outline-none focus:border-rose-500"
+                />
+              </div>
+
+              {/* Input No HP / WhatsApp */}
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-rose-400" />
+                  Nomor WhatsApp / HP Aktif
+                </label>
+                <input
+                  type="tel"
+                  value={regPhone}
+                  onChange={(e) => setRegPhone(e.target.value)}
+                  placeholder="Contoh: 081234567890"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white font-mono placeholder:font-sans focus:outline-none focus:border-rose-500"
+                />
               </div>
             </div>
 
@@ -713,8 +926,8 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
                 Fakultas / Kampus Daerah UPI
               </label>
               <select
-                value={facultyInput}
-                onChange={(e) => setFacultyInput(e.target.value)}
+                value={regFaculty}
+                onChange={(e) => setRegFaculty(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-rose-500"
               >
                 {UPI_FACULTIES.map((fac, idx) => (
@@ -725,68 +938,123 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
               </select>
             </div>
 
-            {/* Input NIM UPI */}
+            {/* Program Studi / Jurusan */}
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1.5">
-                <Hash className="w-3.5 h-3.5 text-rose-400" />
-                Nomor Induk Mahasiswa (NIM UPI 7-Digit)
+                <BookOpen className="w-3.5 h-3.5 text-rose-400" />
+                Program Studi / Jurusan
               </label>
               <input
                 type="text"
-                value={nimInput}
-                onChange={(e) => setNimInput(e.target.value)}
-                placeholder="Contoh: 2201945 atau 2108765"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white font-mono placeholder:font-sans focus:outline-none focus:border-rose-500"
+                value={regMajor}
+                onChange={(e) => setRegMajor(e.target.value)}
+                placeholder="Contoh: Pendidikan Ilmu Komputer (S1)"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-rose-500"
               />
             </div>
 
-            {/* Input Password / PIN SSO */}
+            {/* PILIHAN PERAN / ROLE PENDAFTARAN */}
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1.5">
-                <KeyRound className="w-3.5 h-3.5 text-rose-400" />
-                Password Akun SSO UPI / SIAKAD
+              <label className="block text-xs font-semibold text-white mb-1.5">
+                Daftar Sebagai Peran Utama:
               </label>
-              <div className="relative">
-                <input
-                  type={showPin ? 'text' : 'password'}
-                  value={pinInput}
-                  onChange={(e) => setPinInput(e.target.value)}
-                  placeholder="Masukkan password akun portal.upi.edu Anda..."
-                  className="w-full px-3.5 py-2.5 pr-10 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-rose-500"
-                />
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowPin(!showPin)}
-                  className="absolute right-3 top-2.5 text-slate-400 hover:text-white"
+                  onClick={() => setRegRole('customer')}
+                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    regRole === 'customer'
+                      ? 'bg-rose-500/20 border-rose-500 text-white shadow-md'
+                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
                 >
-                  {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  <div className="flex items-center gap-1.5 font-bold text-xs text-rose-300">
+                    <ShoppingBag className="w-4 h-4" /> Customer UPI
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-1 leading-tight">
+                    Titip beli makanan, print kilat, &amp; panggil servis teknisi.
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setRegRole('runner')}
+                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    regRole === 'runner'
+                      ? 'bg-amber-500/20 border-amber-500 text-white shadow-md'
+                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 font-bold text-xs text-amber-300">
+                    <Zap className="w-4 h-4" /> Runner UPI
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-1 leading-tight">
+                    Ambil quest pesanan mahasiswa lain &amp; dapatkan penghasilan instan.
+                  </p>
                 </button>
               </div>
             </div>
 
-            {ssoError && (
-              <div className="p-3 rounded-xl bg-red-950/40 border border-red-500/30 text-red-300 text-xs flex items-center gap-2">
+            {/* Password & Konfirmasi Password */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-rose-400" />
+                  Password Akun
+                </label>
+                <input
+                  type={showRegPassword ? 'text' : 'password'}
+                  value={regPassword}
+                  onChange={(e) => setRegPassword(e.target.value)}
+                  placeholder="Minimal 6 karakter..."
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-rose-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-rose-400" />
+                  Konfirmasi Password
+                </label>
+                <input
+                  type={showRegPassword ? 'text' : 'password'}
+                  value={regConfirmPassword}
+                  onChange={(e) => setRegConfirmPassword(e.target.value)}
+                  placeholder="Ulangi password..."
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-rose-500"
+                />
+              </div>
+            </div>
+
+            {regError && (
+              <div className="p-3 rounded-xl bg-red-950/60 border border-red-500/50 text-red-300 text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{ssoError}</span>
+                <span>{regError}</span>
               </div>
             )}
 
-            {/* Info format NIM UPI */}
-            <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px] text-slate-400 space-y-1">
-              <p className="text-rose-300 font-semibold flex items-center gap-1">
-                💡 Ketentuan Akses Mahasiswa UPI:
-              </p>
-              <p className="text-slate-400">
-                • Masukkan NIM 7 digit aktif (contoh: angkatan 22 format <span className="text-white font-mono font-bold">220xxxx</span>, angkatan 21 format <span className="text-white font-mono font-bold">210xxxx</span>).
-              </p>
-            </div>
+            {regSuccess && (
+              <div className="p-3 rounded-xl bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 shrink-0" />
+                <span>{regSuccess}</span>
+              </div>
+            )}
 
             <button
               type="submit"
-              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 text-white font-bold text-xs transition-all shadow-lg shadow-rose-900/40 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs transition-all shadow-lg shadow-emerald-900/40 flex items-center justify-center gap-2 cursor-pointer"
             >
-              <KeyRound className="w-4 h-4" /> Masuk via SSO Portal UPI
+              <Check className="w-4 h-4" /> Daftar Akun {regRole === 'runner' ? 'Runner' : 'Customer'} UPI →
             </button>
+
+            <div className="text-center pt-1">
+              <button
+                type="button"
+                onClick={() => setActiveTab('login')}
+                className="text-xs text-rose-400 hover:underline font-semibold cursor-pointer"
+              >
+                Sudah punya akun? Masuk langsung di sini →
+              </button>
+            </div>
           </form>
         )}
 

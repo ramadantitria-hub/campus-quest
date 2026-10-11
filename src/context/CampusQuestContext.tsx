@@ -9,7 +9,8 @@ import {
   UserRole,
   QuestStatus,
   PaymentMethod,
-  ServiceCategory
+  ServiceCategory,
+  RegisteredAccount
 } from '@/types/campus-quest';
 import {
   INITIAL_PROFILE,
@@ -38,9 +39,27 @@ interface CampusQuestContextType {
   closeLoginModal: () => void;
   enterGuestMode: () => void;
   exitGuestMode: () => void;
+  registerAccount: (data: {
+    fullName: string;
+    nim: string;
+    password?: string;
+    major?: string;
+    faculty?: string;
+    university?: string;
+    phone?: string;
+    role: UserRole;
+    avatarUrl?: string;
+    ktmUrl?: string;
+  }) => { success: boolean; message: string };
+  loginWithCredentials: (
+    nim: string,
+    password?: string,
+    targetRole?: UserRole
+  ) => { success: boolean; message: string };
   loginWithKtm: (data: {
     fullName: string;
     nim: string;
+    password?: string;
     university?: string;
     faculty?: string;
     major?: string;
@@ -89,6 +108,7 @@ const CampusQuestContext = createContext<CampusQuestContextType | null>(null);
 const STORAGE_KEYS = {
   PROFILE: 'cq_profile_v2_upi',
   IS_LOGGED_IN: 'cq_is_logged_in_v2_upi',
+  REGISTERED_ACCOUNTS: 'cq_registered_accounts_v2_upi',
   QUESTS: 'cq_quests_v2_upi',
   CHATS: 'cq_chats_v2_upi',
   REVIEWS: 'cq_reviews_v2_upi'
@@ -243,6 +263,9 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
       id: `qst-${Date.now().toString(36)}`,
       customer_id: profile.id,
       customer_name: profile.full_name,
+      customer_nim: profile.nim,
+      customer_phone: profile.phone,
+      customer_major: profile.major,
       customer_avatar: profile.avatar_url,
       category: data.category,
       title: data.title,
@@ -274,6 +297,9 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
           id: newQuest.id,
           customer_id: newQuest.customer_id,
           customer_name: newQuest.customer_name,
+          customer_nim: newQuest.customer_nim,
+          customer_phone: newQuest.customer_phone,
+          customer_major: newQuest.customer_major,
           customer_avatar: newQuest.customer_avatar,
           category: newQuest.category,
           title: newQuest.title,
@@ -312,6 +338,7 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
             status: 'ACCEPTED',
             runner_id: profile.id,
             runner_name: profile.full_name,
+            runner_phone: profile.phone,
             runner_avatar: profile.avatar_url,
             updated_at: new Date().toISOString()
           };
@@ -327,6 +354,7 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
           status: 'ACCEPTED',
           runner_id: profile.id,
           runner_name: profile.full_name,
+          runner_phone: profile.phone,
           runner_avatar: profile.avatar_url,
           updated_at: new Date().toISOString()
         })
@@ -636,9 +664,205 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     setIsGuestMode(false);
   };
 
+  const registerAccount = (data: {
+    fullName: string;
+    nim: string;
+    password?: string;
+    major?: string;
+    faculty?: string;
+    university?: string;
+    phone?: string;
+    role: UserRole;
+    avatarUrl?: string;
+    ktmUrl?: string;
+  }): { success: boolean; message: string } => {
+    const cleanNim = data.nim.trim();
+    const cleanName = data.fullName.trim();
+    const cleanMajor = data.major?.trim() || 'Mekatronika dan Kecerdasan Buatan (S1)';
+    const cleanFaculty = data.faculty?.trim() || 'Kampus UPI di Purwakarta';
+    const cleanPassword = data.password?.trim() || '123456';
+    const cleanRole = data.role;
+
+    if (!cleanNim || cleanNim.length < 5) {
+      return { success: false, message: 'NIM harus terdiri dari minimal 5 digit angka UPI.' };
+    }
+    if (!cleanName) {
+      return { success: false, message: 'Nama lengkap mahasiswa wajib diisi.' };
+    }
+
+    const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(cleanName)}&background=e11d48&color=fff&size=200`;
+    
+    // Each registered credential has its own isolated ID based on nim + password
+    const credHash = cleanPassword
+      ? Math.abs(cleanPassword.split('').reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0)).toString(36)
+      : Date.now().toString(36);
+    const accountId = `usr-${cleanNim}-${credHash}`;
+    
+    const newProfile: Profile = {
+      id: accountId,
+      full_name: cleanName,
+      nim: cleanNim,
+      university: data.university || 'Universitas Pendidikan Indonesia (UPI)',
+      faculty: cleanFaculty,
+      major: cleanMajor,
+      phone: data.phone || '08' + Math.floor(1000000000 + Math.random() * 9000000000),
+      avatar_url: data.avatarUrl || fallbackAvatar,
+      ktm_url: data.ktmUrl,
+      is_verified: true,
+      active_mode: cleanRole,
+      student_status: 'AKTIF',
+      runner_specialty: ['JASTAP', 'JARVIS'],
+      rating: 5.0,
+      total_completed_orders: 0,
+      wallet_balance: cleanRole === 'runner' ? 25000 : 50000,
+      created_at: new Date().toISOString()
+    };
+
+    // Save account in REGISTERED_ACCOUNTS list (supports different passwords for same NIM!)
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.REGISTERED_ACCOUNTS);
+      const accounts: RegisteredAccount[] = stored ? JSON.parse(stored) : [];
+      const updatedAccounts = accounts.filter((a) => !(a.nim === cleanNim && a.password === cleanPassword));
+      updatedAccounts.push({
+        id: newProfile.id,
+        nim: cleanNim,
+        password: cleanPassword,
+        full_name: cleanName,
+        major: cleanMajor,
+        faculty: cleanFaculty,
+        university: newProfile.university || 'Universitas Pendidikan Indonesia (UPI)',
+        phone: newProfile.phone,
+        role: cleanRole,
+        avatar_url: newProfile.avatar_url,
+        ktm_url: newProfile.ktm_url,
+        created_at: newProfile.created_at
+      });
+      localStorage.setItem(STORAGE_KEYS.REGISTERED_ACCOUNTS, JSON.stringify(updatedAccounts));
+    } catch {
+      // quota
+    }
+
+    soundFX.success();
+    fireCelebrationConfetti();
+    setProfile(newProfile);
+    setIsLoggedIn(true);
+    setIsGuestMode(false);
+    setIsLoginModalOpen(false);
+    setActiveTab('home');
+
+    if (supabase) {
+      supabase.from('profiles').upsert(newProfile).then(({ error }) => {
+        if (error) console.warn('Supabase registerAccount upsert:', error.message);
+      });
+    }
+
+    return {
+      success: true,
+      message: `Pendaftaran berhasil! Selamat datang, ${cleanName}. Masuk sebagai ${cleanRole === 'runner' ? 'Runner' : 'Customer'}.`
+    };
+  };
+
+  const loginWithCredentials = (
+    nim: string,
+    password?: string,
+    targetRole?: UserRole
+  ): { success: boolean; message: string } => {
+    const cleanNim = nim.trim();
+    const cleanPassword = password?.trim() || '';
+
+    if (!cleanNim) {
+      return { success: false, message: 'Nomor Induk Mahasiswa (NIM) wajib diisi.' };
+    }
+
+    // 1. Check registered accounts list
+    let registeredList: RegisteredAccount[] = [];
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.REGISTERED_ACCOUNTS);
+      if (stored) registeredList = JSON.parse(stored);
+    } catch {
+      registeredList = [];
+    }
+
+    // Look for exact match of nim + password
+    const matched = registeredList.find(
+      (a) => a.nim === cleanNim && (cleanPassword ? a.password === cleanPassword : true)
+    );
+
+    // If password provided and no exact match found, but NIM exists with different password:
+    if (!matched && cleanPassword) {
+      const nimExists = registeredList.find((a) => a.nim === cleanNim);
+      if (nimExists) {
+        return { success: false, message: 'Password salah untuk akun NIM ini. Silakan cek kembali atau daftar baru.' };
+      }
+    }
+
+    // 2. Check DEMO_STUDENTS if not in registered accounts
+    if (!matched) {
+      const demo = DEMO_STUDENTS.find((s) => s.nim === cleanNim);
+      if (demo) {
+        soundFX.success();
+        fireCelebrationConfetti();
+        const roleToUse = targetRole || demo.active_mode;
+        const loggedProfile = { ...demo, active_mode: roleToUse };
+        setProfile(loggedProfile);
+        setIsLoggedIn(true);
+        setIsGuestMode(false);
+        setIsLoginModalOpen(false);
+        setActiveTab('home');
+        return { success: true, message: `Login berhasil! Selamat datang kembali, ${demo.full_name}.` };
+      }
+    }
+
+    if (matched) {
+      soundFX.success();
+      fireCelebrationConfetti();
+      const roleToUse = targetRole || matched.role;
+      const loggedProfile: Profile = {
+        id: matched.id,
+        full_name: matched.full_name,
+        nim: matched.nim,
+        university: matched.university,
+        faculty: matched.faculty,
+        major: matched.major,
+        phone: matched.phone,
+        avatar_url: matched.avatar_url,
+        ktm_url: matched.ktm_url,
+        is_verified: true,
+        student_status: 'AKTIF',
+        active_mode: roleToUse,
+        runner_specialty: ['JASTAP', 'JARVIS'],
+        rating: 5.0,
+        total_completed_orders: 0,
+        wallet_balance: roleToUse === 'runner' ? 25000 : 50000,
+        created_at: matched.created_at
+      };
+      setProfile(loggedProfile);
+      setIsLoggedIn(true);
+      setIsGuestMode(false);
+      setIsLoginModalOpen(false);
+      setActiveTab('home');
+      return {
+        success: true,
+        message: `Login berhasil! Selamat datang kembali, ${matched.full_name} (${roleToUse === 'runner' ? 'Runner' : 'Customer'}).`
+      };
+    }
+
+    // If not found at all, auto-create this distinct account with the given password & role!
+    return registerAccount({
+      fullName: `Mahasiswa UPI (${cleanNim})`,
+      nim: cleanNim,
+      password: cleanPassword || '123456',
+      role: targetRole || 'customer',
+      major: 'Mekatronika dan Kecerdasan Buatan (S1)',
+      faculty: 'Kampus UPI di Purwakarta',
+      university: 'Universitas Pendidikan Indonesia (UPI)'
+    });
+  };
+
   const loginWithKtm = (data: {
     fullName: string;
     nim: string;
+    password?: string;
     university?: string;
     faculty?: string;
     major?: string;
@@ -647,47 +871,18 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     avatarUrl?: string;
     role?: UserRole;
   }) => {
-    soundFX.success();
-    fireCelebrationConfetti();
-    const cleanNim = data.nim.trim();
-    const existing = DEMO_STUDENTS.find((s) => s.nim === cleanNim);
-    const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.fullName)}&background=e11d48&color=fff&size=200`;
-    const newProfile: Profile = {
-      ...(existing || profile),
-      id: existing ? existing.id : (profile.id.startsWith('usr-') ? profile.id : `usr-${Date.now().toString(36)}`),
-      full_name: data.fullName,
-      nim: cleanNim,
-      university: data.university || existing?.university || 'Universitas Pendidikan Indonesia (UPI)',
-      faculty: data.faculty || existing?.faculty || 'Kampus UPI di Purwakarta',
-      major: data.major || existing?.major || 'Mekatronika dan Kecerdasan Buatan (S1)',
-      phone: data.phone || existing?.phone || profile.phone,
-      avatar_url: data.avatarUrl || existing?.avatar_url || fallbackAvatar,
-      ktm_url: data.ktmUrl,
-      is_verified: true,
-      active_mode: data.role || existing?.active_mode || profile.active_mode,
-      student_status: 'AKTIF'
-    };
-    setProfile(newProfile);
-    setIsLoggedIn(true);
-    setIsGuestMode(false);
-    setIsLoginModalOpen(false);
-
-    if (supabase) {
-      supabase.from('profiles').upsert({
-        id: newProfile.id,
-        full_name: newProfile.full_name,
-        nim: newProfile.nim,
-        phone: newProfile.phone,
-        avatar_url: newProfile.avatar_url,
-        ktm_url: newProfile.ktm_url,
-        faculty: newProfile.faculty,
-        major: newProfile.major,
-        is_verified: true,
-        active_mode: newProfile.active_mode
-      }).then(({ error }) => {
-        if (error) console.warn('Supabase profile upsert:', error.message);
-      });
-    }
+    registerAccount({
+      fullName: data.fullName,
+      nim: data.nim,
+      password: data.password || '123456',
+      major: data.major,
+      faculty: data.faculty,
+      university: data.university,
+      phone: data.phone,
+      role: data.role || 'customer',
+      avatarUrl: data.avatarUrl,
+      ktmUrl: data.ktmUrl
+    });
   };
 
   const loginWithNim = (nim: string, _pin?: string, university?: string, faculty?: string): { success: boolean; message: string } => {
@@ -808,6 +1003,8 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
         closeLoginModal,
         enterGuestMode,
         exitGuestMode,
+        registerAccount,
+        loginWithCredentials,
         loginWithKtm,
         loginWithNim,
         loginAsStudent,

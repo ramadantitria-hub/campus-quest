@@ -33,9 +33,13 @@ export default function CustomerDashboard({
 }: CustomerDashboardProps) {
   const { profile, quests } = useCampusQuest();
 
-  // Quests belonging to customer or overall
-  const activeQuests = quests.filter((q) => q.status !== 'COMPLETED' && q.status !== 'CANCELLED');
-  const completedQuests = quests.filter((q) => q.status === 'COMPLETED');
+  // Quests belonging to this customer profile specifically
+  const activeQuests = quests.filter(
+    (q) => q.customer_id === profile.id && q.status !== 'COMPLETED' && q.status !== 'CANCELLED'
+  );
+  const completedQuests = quests.filter(
+    (q) => q.customer_id === profile.id && q.status === 'COMPLETED'
+  );
 
   return (
     <div className="space-y-6">

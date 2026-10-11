@@ -71,9 +71,28 @@ export interface Quest {
   payment_proof_url?: string;
   created_at: string;
   updated_at: string;
+  customer_phone?: string;
+  customer_nim?: string;
+  customer_major?: string;
+  runner_phone?: string;
   landmark_origin?: string;
   landmark_destination?: string;
   notes?: string;
+}
+
+export interface RegisteredAccount {
+  id: string;
+  nim: string;
+  password: string;
+  full_name: string;
+  major: string;
+  faculty: string;
+  university: string;
+  phone: string;
+  role: UserRole;
+  avatar_url?: string;
+  ktm_url?: string;
+  created_at: string;
 }
 
 export interface ChatMessage {

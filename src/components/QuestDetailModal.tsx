@@ -23,9 +23,13 @@ import {
   Upload,
   ArrowRight,
   ArrowLeft,
-  Sparkles,
   KeyRound,
-  FileText
+  FileText,
+  Phone,
+  User,
+  Navigation,
+  Send,
+  Check
 } from 'lucide-react';
 
 interface QuestDetailModalProps {
@@ -58,6 +62,8 @@ export default function QuestDetailModal({
   const [itemCostInput, setItemCostInput] = useState('');
   const [receiptImage, setReceiptImage] = useState<string | null>(null);
   const [isCompressingReceipt, setIsCompressingReceipt] = useState(false);
+  const [notaMessage, setNotaMessage] = useState<string | null>(null);
+  const [runnerFeedback, setRunnerFeedback] = useState<string | null>(null);
 
   // OTP input for customer
   const [otpInput, setOtpInput] = useState('');
@@ -106,16 +112,41 @@ export default function QuestDetailModal({
   const totalBill = quest.bounty_fee + (quest.item_cost || 0);
 
   // Handlers for Runner
-  const handleSaveItemCost = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAcceptInModal = () => {
+    acceptQuest(quest.id);
+    setRunnerFeedback('✓ Quest berhasil Anda ambil! Segera persiapkan perjalanan.');
+  };
+
+  const handleUpdateStatusInModal = (nextStatus: QuestStatus) => {
+    updateQuestStatus(quest.id, nextStatus);
+    const labelMap: Record<QuestStatus, string> = {
+      OPEN: 'Quest dibuka kembali',
+      ACCEPTED: 'Quest siap dikerjakan',
+      ON_THE_WAY: 'Status diperbarui: OTW menuju lokasi penjemputan/belanja!',
+      IN_PROGRESS: 'Status diperbarui: Sedang belanja/servis pesanan!',
+      DELIVERING: 'Status diperbarui: Sedang menuju titik temu pemesan!',
+      COMPLETED: 'Status: Transaksi selesai!',
+      CANCELLED: 'Status: Dibatalkan'
+    };
+    setRunnerFeedback(labelMap[nextStatus] || 'Status berhasil diperbarui!');
+  };
+
+  const handleSaveItemCost = (e?: React.FormEvent, andAdvanceToDelivering = false) => {
+    if (e) e.preventDefault();
+    setNotaMessage(null);
     const cost = parseInt(itemCostInput, 10);
     if (isNaN(cost) || cost < 0) {
-      alert('Masukkan nominal nota yang valid');
+      setNotaMessage('⚠️ Masukkan nominal nota belanja yang valid (angka positif).');
       return;
     }
     updateItemCost(quest.id, cost, receiptImage || undefined);
     setItemCostInput('');
-    alert('Biaya nota belanja & foto bukti berhasil diperbarui!');
+    if (andAdvanceToDelivering) {
+      updateQuestStatus(quest.id, 'DELIVERING');
+      setRunnerFeedback(`✓ Nota Rp ${cost.toLocaleString('id-ID')} disimpan & status beralih: Sedang OTW ke Pemesan!`);
+    } else {
+      setNotaMessage(`✓ Biaya nota Rp ${cost.toLocaleString('id-ID')} & bukti foto berhasil disimpan ke tagihan!`);
+    }
   };
 
   const handleReceiptFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -293,29 +324,141 @@ export default function QuestDetailModal({
               </div>
             </div>
 
-            {/* Quick Details Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                <div className="min-w-0">
-                  <span className="text-[10px] text-slate-400 block font-semibold">Titik Ambil / Lokasi Barang</span>
-                  <span className="text-xs font-medium text-white break-words">{quest.origin_address}</span>
+            {/* 1. KARTU IDENTITAS PEMESAN (CUSTOMER UPI) */}
+            <div className="p-4 bg-gradient-to-br from-slate-900 via-slate-900 to-sky-950/40 rounded-2xl border border-sky-500/30 space-y-3.5 shadow-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-sky-500/20 border border-sky-500/40 text-sky-400 flex items-center justify-center font-bold text-xs">
+                    UPI
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5 text-sky-400" />
+                      Identitas Pemesan (Customer UPI)
+                    </h4>
+                    <p className="text-[10px] text-slate-400">Civitas Akademika Universitas Pendidikan Indonesia</p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3 text-emerald-400" /> Terverifikasi UPI
+                </span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-slate-950/90 rounded-xl border border-slate-800">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="relative shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={
+                        quest.customer_avatar ||
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(quest.customer_name)}&background=0284c7&color=fff&size=100`
+                      }
+                      alt={quest.customer_name}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-sky-500/40"
+                    />
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-slate-950" />
+                  </div>
+                  <div className="min-w-0">
+                    <h5 className="text-sm font-bold text-white truncate">{quest.customer_name}</h5>
+                    <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5 flex-wrap">
+                      {quest.customer_nim && (
+                        <span className="font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700/60 text-sky-300 font-bold">
+                          NIM: {quest.customer_nim}
+                        </span>
+                      )}
+                      <span className="truncate">{quest.customer_major || 'Mahasiswa UPI'}</span>
+                    </div>
+                    {quest.customer_phone && (
+                      <span className="text-[10px] text-slate-400 block mt-0.5 font-mono">
+                        No. HP / WA: {quest.customer_phone}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Direct Contact Buttons */}
+                <div className="flex items-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800 shrink-0">
+                  {quest.customer_phone && (
+                    <a
+                      href={`https://wa.me/62${quest.customer_phone.replace(/^0/, '').replace(/\D/g, '')}?text=${encodeURIComponent(
+                        `Halo Kak ${quest.customer_name}, saya runner CampusQuest UPI yang menerima pesanan "${quest.title}". Saya ingin konfirmasi titik penjemputan & kebutuhan pesanan.`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-md shadow-emerald-600/20"
+                    >
+                      <Phone className="w-3.5 h-3.5" />
+                      <span>WhatsApp</span>
+                    </a>
+                  )}
+                  <button
+                    onClick={() => onOpenChat(quest.id)}
+                    className="px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-md shadow-sky-600/20"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>Chat Internal</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. PANDUAN RUTE PENJEMPUTAN & PENGANTARAN (TITIK AMBIL & ANTAR) */}
+            <div className="p-4 bg-slate-950/80 rounded-2xl border border-slate-800 space-y-3.5">
+              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                <Navigation className="w-4 h-4 text-amber-400" />
+                Panduan Lokasi Titik Ambil &amp; Titik Antar
+              </h4>
+
+              <div className="relative pl-7 space-y-4 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-gradient-to-b before:from-amber-400 before:to-sky-400">
+                {/* Titik Ambil */}
+                <div className="relative">
+                  <div className="absolute -left-7 top-0.5 w-4 h-4 rounded-full bg-amber-500 border-2 border-slate-950 flex items-center justify-center shadow" />
+                  <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                        1. Titik Ambil / Pembelian
+                      </span>
+                      {quest.landmark_origin && (
+                        <span className="text-[11px] text-amber-400/90 font-medium">
+                          Patokan: {quest.landmark_origin}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs font-semibold text-white mt-1.5 break-words">{quest.origin_address}</p>
+                  </div>
+                </div>
+
+                {/* Titik Antar */}
+                <div className="relative">
+                  <div className="absolute -left-7 top-0.5 w-4 h-4 rounded-full bg-sky-500 border-2 border-slate-950 flex items-center justify-center shadow" />
+                  <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/40">
+                        2. Titik Antar / Lokasi Temu Pemesan
+                      </span>
+                      {quest.landmark_destination && (
+                        <span className="text-[11px] text-sky-400/90 font-medium">
+                          Patokan: {quest.landmark_destination}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs font-semibold text-white mt-1.5 break-words">{quest.destination_address}</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
-                <div className="min-w-0">
-                  <span className="text-[10px] text-slate-400 block font-semibold">Titik Antar / Lokasi Temu</span>
-                  <span className="text-xs font-medium text-white break-words">{quest.destination_address}</span>
+              {quest.notes && (
+                <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 space-y-1">
+                  <strong className="text-amber-400 block font-semibold">Catatan Khusus Pemesan:</strong>
+                  <p className="text-slate-300 break-words">{quest.notes}</p>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Quest Description & Notes */}
             <div className="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800 space-y-1.5 text-xs">
               <div className="flex items-center justify-between text-slate-400">
-                <span className="font-semibold text-slate-300">Deskripsi Kebutuhan:</span>
+                <span className="font-semibold text-slate-300">Deskripsi Rincian Kebutuhan:</span>
                 <span>
                   Jumlah: <strong className="text-white">{quest.quantity} {quest.unit}</strong>
                 </span>
@@ -344,7 +487,7 @@ export default function QuestDetailModal({
                 <div className="flex items-start justify-between gap-2">
                   <span className="text-slate-400 flex items-center gap-1 min-w-0">
                     <Receipt className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                    <span className="truncate sm:overflow-visible">Biaya Belanjaan / Sparepart</span>
+                    <span className="truncate sm:overflow-visible">Biaya Belanjaan / Sparepart Riil</span>
                   </span>
                   <span className="font-bold font-mono text-sky-300 shrink-0">
                     Rp {(quest.item_cost || 0).toLocaleString('id-ID')}
@@ -382,25 +525,39 @@ export default function QuestDetailModal({
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
                     <Wrench className="w-4 h-4 text-amber-400" />
-                    Panel Aksi Runner (Eksekusi Pesanan)
+                    Panel Kendali Misi Runner (Interactive Control)
                   </h4>
                   <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full font-mono">
                     Mode Runner
                   </span>
                 </div>
 
+                {/* Inline Feedback Banner */}
+                {runnerFeedback && (
+                  <div className="p-3 bg-emerald-950/80 border border-emerald-500/50 rounded-xl text-xs text-emerald-300 flex items-center justify-between gap-2 animate-fadeIn">
+                    <span className="font-medium">{runnerFeedback}</span>
+                    <button
+                      onClick={() => setRunnerFeedback(null)}
+                      className="text-emerald-400 hover:text-white text-xs font-bold"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+
                 {/* If Quest is OPEN: Accept or Decline (page 8 spec) */}
                 {quest.status === 'OPEN' && (
-                  <div className="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2">
+                  <div className="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-3">
                     <p className="text-xs text-slate-300">
-                      Ambil pesanan ini dengan harga bounty <strong>Rp {quest.bounty_fee.toLocaleString('id-ID')}</strong>?
+                      Ambil pesanan ini dengan harga upah jasa (bounty){' '}
+                      <strong className="text-amber-400">Rp {quest.bounty_fee.toLocaleString('id-ID')}</strong>?
                     </p>
                     <div className="flex gap-2 pt-1">
                       <button
-                        onClick={() => acceptQuest(quest.id)}
+                        onClick={handleAcceptInModal}
                         className="flex-1 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-md shadow-amber-400/20 flex items-center justify-center gap-1.5 cursor-pointer"
                       >
-                        <CheckCircle className="w-4 h-4" /> Terima Quest (Accept)
+                        <CheckCircle className="w-4 h-4" /> Terima &amp; Kerjakan Quest Ini
                       </button>
                       <button
                         onClick={() => {
@@ -409,7 +566,7 @@ export default function QuestDetailModal({
                         }}
                         className="py-2.5 px-4 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-400 text-xs font-semibold"
                       >
-                        Tolak (Decline)
+                        Tolak
                       </button>
                     </div>
                   </div>
@@ -419,49 +576,58 @@ export default function QuestDetailModal({
                 {quest.status !== 'OPEN' && quest.status !== 'COMPLETED' && (
                   <div className="space-y-3">
                     <label className="text-xs font-semibold text-slate-200 block">
-                      Perbarui Tahap Pengerjaan Anda:
+                      Perbarui Tahap Pengerjaan Anda (1-Klik Interaktif):
                     </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                       <button
-                        onClick={() => updateQuestStatus(quest.id, 'ON_THE_WAY')}
-                        className={`py-2 px-2.5 rounded-xl text-xs font-semibold border transition-all ${
+                        onClick={() => handleUpdateStatusInModal('ON_THE_WAY')}
+                        className={`py-2 px-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                           quest.status === 'ON_THE_WAY'
-                            ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-bold'
-                            : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
+                            ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-bold shadow-md shadow-amber-500/10'
+                            : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-white'
                         }`}
                       >
-                        1. OTW ke Lokasi
+                        1. 🚀 OTW ke Lokasi
                       </button>
                       <button
-                        onClick={() => updateQuestStatus(quest.id, 'IN_PROGRESS')}
-                        className={`py-2 px-2.5 rounded-xl text-xs font-semibold border transition-all ${
+                        onClick={() => handleUpdateStatusInModal('IN_PROGRESS')}
+                        className={`py-2 px-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                           quest.status === 'IN_PROGRESS'
-                            ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-bold'
-                            : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
+                            ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-bold shadow-md shadow-amber-500/10'
+                            : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-white'
                         }`}
                       >
-                        2. Belanja / Servis
+                        2. 🛒 Belanja / Servis
                       </button>
                       <button
-                        onClick={() => updateQuestStatus(quest.id, 'DELIVERING')}
-                        className={`py-2 px-2.5 rounded-xl text-xs font-semibold border transition-all ${
+                        onClick={() => handleUpdateStatusInModal('DELIVERING')}
+                        className={`py-2 px-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                           quest.status === 'DELIVERING'
-                            ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-bold'
-                            : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
+                            ? 'bg-amber-500/20 border-amber-500 text-amber-300 font-bold shadow-md shadow-amber-500/10'
+                            : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-white'
                         }`}
                       >
-                        3. Menuju Pemesan
+                        3. 🛵 Menuju Pemesan
                       </button>
                     </div>
 
                     {/* Input nota & foto struk */}
-                    <form onSubmit={handleSaveItemCost} className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2.5">
-                      <label className="text-xs font-bold text-slate-300 block flex items-center justify-between">
-                        <span>Input Biaya Nota Belanja / Sparepart:</span>
-                        <span className="text-[11px] text-sky-400 font-mono">
-                          Saat ini: Rp {(quest.item_cost || 0).toLocaleString('id-ID')}
+                    <div className="p-3.5 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-300 block">
+                          Input Biaya Nota Belanja / Sparepart:
+                        </label>
+                        <span className="text-[11px] text-sky-400 font-mono font-bold">
+                          Nota saat ini: Rp {(quest.item_cost || 0).toLocaleString('id-ID')}
                         </span>
-                      </label>
+                      </div>
+
+                      {notaMessage && (
+                        <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-medium text-emerald-300">
+                          {notaMessage}
+                        </div>
+                      )}
+
                       <div className="flex gap-2">
                         <input
                           type="number"
@@ -500,13 +666,23 @@ export default function QuestDetailModal({
                         </div>
                       )}
 
-                      <button
-                        type="submit"
-                        className="w-full py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl transition-colors cursor-pointer"
-                      >
-                        Simpan Biaya Nota ke Transaksi
-                      </button>
-                    </form>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={(e) => handleSaveItemCost(e, false)}
+                          className="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl transition-colors cursor-pointer border border-slate-700"
+                        >
+                          Simpan Nota Saja
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => handleSaveItemCost(e, true)}
+                          className="py-2.5 px-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-xl transition-colors cursor-pointer shadow-md shadow-amber-400/20"
+                        >
+                          ⚡ Simpan &amp; Lanjut Antar ke Pemesan
+                        </button>
+                      </div>
+                    </div>
 
                     {/* Display OTP for Runner to tell Customer */}
                     <div className="p-3.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 rounded-xl text-center">
@@ -517,7 +693,7 @@ export default function QuestDetailModal({
                         {quest.completion_otp}
                       </div>
                       <span className="text-[10px] text-slate-400 block mt-1">
-                        Customer akan memasukkan kode ini di aplikasinya untuk mencairkan saldo Anda.
+                        Customer akan memasukkan kode ini di aplikasinya untuk menyelesaikan pesanan &amp; mencairkan saldo Anda.
                       </span>
                     </div>
                   </div>
