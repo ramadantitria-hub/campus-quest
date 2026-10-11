@@ -43,6 +43,7 @@ interface CampusQuestContextType {
     nim: string;
     university?: string;
     faculty?: string;
+    major?: string;
     phone?: string;
     ktmUrl: string;
     avatarUrl?: string;
@@ -635,6 +636,7 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     nim: string;
     university?: string;
     faculty?: string;
+    major?: string;
     phone?: string;
     ktmUrl: string;
     avatarUrl?: string;
@@ -644,15 +646,17 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     fireCelebrationConfetti();
     const cleanNim = data.nim.trim();
     const existing = DEMO_STUDENTS.find((s) => s.nim === cleanNim);
+    const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.fullName)}&background=e11d48&color=fff&size=200`;
     const newProfile: Profile = {
       ...(existing || profile),
       id: existing ? existing.id : (profile.id.startsWith('usr-') ? profile.id : `usr-${Date.now().toString(36)}`),
       full_name: data.fullName,
       nim: cleanNim,
       university: data.university || existing?.university || 'Universitas Pendidikan Indonesia (UPI)',
-      faculty: data.faculty || existing?.faculty || 'FPTK - Teknik Mesin',
+      faculty: data.faculty || existing?.faculty || 'Kampus UPI di Purwakarta',
+      major: data.major || existing?.major || 'Mekatronika dan Kecerdasan Buatan (S1)',
       phone: data.phone || existing?.phone || profile.phone,
-      avatar_url: data.avatarUrl || existing?.avatar_url || profile.avatar_url,
+      avatar_url: data.avatarUrl || existing?.avatar_url || fallbackAvatar,
       ktm_url: data.ktmUrl,
       is_verified: true,
       active_mode: data.role || existing?.active_mode || profile.active_mode,
@@ -671,6 +675,8 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
         phone: newProfile.phone,
         avatar_url: newProfile.avatar_url,
         ktm_url: newProfile.ktm_url,
+        faculty: newProfile.faculty,
+        major: newProfile.major,
         is_verified: true,
         active_mode: newProfile.active_mode
       }).then(({ error }) => {

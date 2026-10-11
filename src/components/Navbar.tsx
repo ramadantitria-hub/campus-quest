@@ -189,13 +189,20 @@ export default function Navbar({
                           </div>
                         </div>
 
-                        <div className="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px]">
-                          <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                            <ShieldCheck className="w-3 h-3" /> KTM Aktif
-                          </span>
-                          <span className="text-slate-400 font-mono">
-                            {profile.faculty || 'FPTK - Teknik Mesin'}
-                          </span>
+                        <div className="mt-2.5 pt-2 border-t border-slate-800/80 space-y-1 text-[10px]">
+                          <div className="flex items-center justify-between">
+                            <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                              <ShieldCheck className="w-3 h-3" /> KTM UPI Aktif
+                            </span>
+                            <span className="text-slate-400 font-mono truncate max-w-[140px]">
+                              {profile.faculty || 'Kampus UPI di Purwakarta'}
+                            </span>
+                          </div>
+                          {profile.major && (
+                            <p className="text-[10px] text-rose-300 font-medium truncate">
+                              Prodi: {profile.major}
+                            </p>
+                          )}
                         </div>
                       </div>
 

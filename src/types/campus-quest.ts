@@ -24,6 +24,7 @@ export interface Profile {
   ktm_url?: string;
   university?: string;
   faculty?: string;
+  major?: string; // Jurusan / Program Studi
   student_status?: 'AKTIF' | 'CUTI' | 'LULUS';
   is_verified: boolean;
   active_mode: UserRole;
@@ -39,6 +40,7 @@ export interface KtmOcrResult {
   nim: string;
   university: string;
   faculty: string;
+  major?: string; // Jurusan / Program Studi
   status: 'AKTIF' | 'CUTI' | 'LULUS';
   confidenceScore: number;
   ktmImageUrl: string;

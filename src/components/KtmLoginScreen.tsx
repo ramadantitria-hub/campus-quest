@@ -27,7 +27,8 @@ import {
   Check,
   ScanLine,
   Wrench,
-  MapPin
+  MapPin,
+  BookOpen
 } from 'lucide-react';
 
 function generateSampleNim(prefix = '2201'): string {
@@ -52,12 +53,14 @@ export default function KtmLoginScreen() {
   // Scanned Card Data (UPI Specialized)
   const [scannedFullName, setScannedFullName] = useState('');
   const [scannedNim, setScannedNim] = useState('');
+  const [scannedMajor, setScannedMajor] = useState('');
   const [scannedUniversity, setScannedUniversity] = useState('Universitas Pendidikan Indonesia (UPI)');
-  const [scannedFaculty, setScannedFaculty] = useState('FPTK - Fakultas Pendidikan Teknologi dan Kejuruan');
+  const [scannedFaculty, setScannedFaculty] = useState('Kampus UPI di Purwakarta');
   const [scannedKtmUrl, setScannedKtmUrl] = useState<string | null>(null);
   const [scannedAvatarUrl, setScannedAvatarUrl] = useState<string | null>(null);
   const [scannedRole, setScannedRole] = useState<UserRole>('customer');
   const [hasScannedResult, setHasScannedResult] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // SSO / NIM Input State (UPI Specialized)
   const [nimInput, setNimInput] = useState('');
@@ -109,51 +112,58 @@ export default function KtmLoginScreen() {
     startCamera(nextMode);
   };
 
-  const runOcrAnalysis = async (
-    rawImageUrl: string,
-    extractedData?: {
-      fullName?: string;
-      nim?: string;
-      university?: string;
-      faculty?: string;
-      avatarUrl?: string;
-    }
-  ) => {
+  const runOcrAnalysis = async (rawImageUrl: string) => {
     setIsScanning(true);
     setHasScannedResult(false);
-    setScanProgress(15);
-    setScanStep('1/4 Mendeteksi orientasi kartu KTM UPI...');
+    setValidationError(null);
+    setScanProgress(20);
+    setScanStep('1/3 Memulai analisis citra KTM UPI...');
 
-    await new Promise((r) => setTimeout(r, 350));
-    setScanProgress(45);
-    setScanStep('2/4 Mengekstrak identitas mahasiswa (Nama, NIM 7-digit, Fakultas UPI)...');
+    let resolvedName = '';
+    let resolvedNim = '';
+    let resolvedMajor = '';
+    let resolvedFaculty = 'Kampus UPI di Purwakarta';
 
-    await new Promise((r) => setTimeout(r, 400));
-    setScanProgress(75);
-    setScanStep('3/4 Memvalidasi pangkalan data aktif Universitas Pendidikan Indonesia...');
+    try {
+      setScanProgress(45);
+      setScanStep('2/3 Mengekstrak Nama, NIM 7-digit & Program Studi via OCR Engine...');
+      const res = await fetch('/api/ocr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: rawImageUrl })
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        resolvedName = json.data.fullName || '';
+        resolvedNim = json.data.nim || '';
+        resolvedMajor = json.data.major || '';
+        if (json.data.faculty) {
+          resolvedFaculty = json.data.faculty;
+        }
+      }
+    } catch (err) {
+      console.warn('OCR error, beralih ke input manual:', err);
+    }
 
-    const resolvedNim = extractedData?.nim || generateSampleNim('2201');
-    const resolvedName = extractedData?.fullName || 'Mahasiswa Aktif UPI';
+    setScanProgress(80);
+    setScanStep('3/3 Menyematkan cap proteksi canvas watermark resmi UPI...');
 
     let watermarked = rawImageUrl;
     try {
-      watermarked = await addKtmWatermark(rawImageUrl, resolvedNim, resolvedName);
+      watermarked = await addKtmWatermark(
+        rawImageUrl,
+        resolvedNim || 'UPI-MAHASISWA',
+        resolvedName || 'KTM AKTIF'
+      );
     } catch {
       watermarked = rawImageUrl;
     }
 
-    setScanProgress(95);
-    setScanStep('4/4 Menyematkan cap proteksi canvas watermark resmi UPI...');
-    await new Promise((r) => setTimeout(r, 250));
-
-    setScannedFullName(extractedData?.fullName || 'Bima Arya Prasetya');
+    setScannedFullName(resolvedName);
     setScannedNim(resolvedNim);
-    setScannedUniversity('Universitas Pendidikan Indonesia (UPI)');
-    setScannedFaculty(extractedData?.faculty || 'FPTK - Fakultas Pendidikan Teknologi dan Kejuruan');
-    setScannedAvatarUrl(
-      extractedData?.avatarUrl ||
-        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80'
-    );
+    setScannedMajor(resolvedMajor);
+    setScannedFaculty(resolvedFaculty);
+    setScannedAvatarUrl(null); // Foto tidak wajib!
     setScannedKtmUrl(watermarked);
 
     setScanProgress(100);
@@ -169,14 +179,12 @@ export default function KtmLoginScreen() {
     const reader = new FileReader();
     reader.onload = async (event) => {
       const dataUrl = event.target?.result as string;
-      await runOcrAnalysis(dataUrl, {
-        fullName: 'Mahasiswa UPI (Hasil Pindai)',
-        nim: generateSampleNim('2201'),
-        university: 'Universitas Pendidikan Indonesia (UPI)',
-        faculty: 'FPTK - Fakultas Pendidikan Teknologi dan Kejuruan'
-      });
+      if (dataUrl) {
+        await runOcrAnalysis(dataUrl);
+      }
     };
     reader.readAsDataURL(file);
+    e.target.value = '';
   };
 
   const handleCapturePhoto = async () => {
@@ -191,21 +199,34 @@ export default function KtmLoginScreen() {
     const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
     stopCamera();
 
-    await runOcrAnalysis(dataUrl, {
-      fullName: 'Mahasiswa UPI (Kamera Live)',
-      nim: generateSampleNim('2304'),
-      university: 'Universitas Pendidikan Indonesia (UPI)',
-      faculty: 'FPMIPA - Fakultas Pendidikan Matematika dan Ilmu Pengetahuan Alam'
-    });
+    await runOcrAnalysis(dataUrl);
   };
 
   const handleConfirmKtmLogin = () => {
-    if (!scannedNim || !scannedFullName) return;
+    setValidationError(null);
+    const cleanName = scannedFullName.trim();
+    const cleanNim = scannedNim.trim();
+    const cleanMajor = scannedMajor.trim();
+
+    if (!cleanName) {
+      setValidationError('Nama Mahasiswa wajib terisi (hasil OCR atau ketik manual).');
+      return;
+    }
+    if (!cleanNim) {
+      setValidationError('Nomor Induk Mahasiswa (NIM) UPI wajib terisi (contoh: 2502895).');
+      return;
+    }
+    if (!cleanMajor) {
+      setValidationError('Program Studi / Jurusan wajib terisi (contoh: Mekatronika dan Kecerdasan Buatan (S1)).');
+      return;
+    }
+
     loginWithKtm({
-      fullName: scannedFullName,
-      nim: scannedNim,
-      university: 'Universitas Pendidikan Indonesia (UPI)',
+      fullName: cleanName,
+      nim: cleanNim,
+      major: cleanMajor,
       faculty: scannedFaculty,
+      university: 'Universitas Pendidikan Indonesia (UPI)',
       ktmUrl: scannedKtmUrl || '',
       avatarUrl: scannedAvatarUrl || undefined,
       role: scannedRole
@@ -578,35 +599,88 @@ export default function KtmLoginScreen() {
 
                       <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
                         <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                          <span className="text-xs font-bold text-slate-200">Hasil Pembacaan Data KTM Mahasiswa UPI</span>
+                          <span className="text-xs font-bold text-slate-200">Data Terverifikasi Mahasiswa UPI</span>
                           <span className="text-[10px] text-slate-400">Dapat diedit bila perlu penyesuaian</span>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        {/* Banner Ketentuan Wajib & Opsional */}
+                        <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-slate-300 flex items-start gap-2">
+                          <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                           <div>
-                            <label className="text-slate-400 block mb-1 flex items-center gap-1">
-                              <User className="w-3 h-3 text-rose-400" /> Nama Mahasiswa:
+                            <span className="font-semibold text-white">Ketentuan Validasi: </span>
+                            Wajib ada <strong className="text-rose-300">Nama</strong>, <strong className="text-rose-300">NIM</strong>, dan <strong className="text-rose-300">Jurusan</strong>. Foto profil/wajah <span className="text-emerald-400 font-semibold">tidak wajib</span> (otomatis dibuatkan dari inisial).
+                          </div>
+                        </div>
+
+                        {validationError && (
+                          <div className="p-2.5 rounded-xl bg-rose-950/60 border border-rose-500/50 text-rose-200 text-xs flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                            <span>{validationError}</span>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                          {/* 1. NAMA MAHASISWA (WAJIB) */}
+                          <div>
+                            <label className="text-slate-300 block mb-1 flex items-center justify-between">
+                              <span className="flex items-center gap-1 font-medium">
+                                <User className="w-3 h-3 text-rose-400" /> Nama Mahasiswa:
+                              </span>
+                              <span className="text-[10px] text-rose-400 font-bold">* Wajib</span>
                             </label>
                             <input
                               type="text"
                               value={scannedFullName}
-                              onChange={(e) => setScannedFullName(e.target.value)}
-                              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-semibold focus:outline-none focus:border-rose-500"
+                              onChange={(e) => {
+                                setScannedFullName(e.target.value);
+                                if (validationError) setValidationError(null);
+                              }}
+                              placeholder="Contoh: TRIA RAMADANTI"
+                              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-semibold focus:outline-none focus:border-rose-500 placeholder-slate-500"
                             />
                           </div>
 
+                          {/* 2. NIM UPI (WAJIB) */}
                           <div>
-                            <label className="text-slate-400 block mb-1 flex items-center gap-1">
-                              <Hash className="w-3 h-3 text-rose-400" /> Nomor Induk Mahasiswa (NIM UPI):
+                            <label className="text-slate-300 block mb-1 flex items-center justify-between">
+                              <span className="flex items-center gap-1 font-medium">
+                                <Hash className="w-3 h-3 text-rose-400" /> Nomor Induk Mahasiswa (NIM UPI):
+                              </span>
+                              <span className="text-[10px] text-rose-400 font-bold">* Wajib</span>
                             </label>
                             <input
                               type="text"
                               value={scannedNim}
-                              onChange={(e) => setScannedNim(e.target.value)}
-                              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-mono font-bold focus:outline-none focus:border-rose-500"
+                              onChange={(e) => {
+                                setScannedNim(e.target.value);
+                                if (validationError) setValidationError(null);
+                              }}
+                              placeholder="7 digit, contoh: 2502895"
+                              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-mono font-bold focus:outline-none focus:border-rose-500 placeholder-slate-500"
                             />
                           </div>
 
+                          {/* 3. JURUSAN / PROGRAM STUDI (WAJIB) */}
+                          <div className="sm:col-span-2">
+                            <label className="text-slate-300 block mb-1 flex items-center justify-between">
+                              <span className="flex items-center gap-1 font-medium">
+                                <BookOpen className="w-3 h-3 text-rose-400" /> Jurusan / Program Studi:
+                              </span>
+                              <span className="text-[10px] text-rose-400 font-bold">* Wajib</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={scannedMajor}
+                              onChange={(e) => {
+                                setScannedMajor(e.target.value);
+                                if (validationError) setValidationError(null);
+                              }}
+                              placeholder="Contoh: Mekatronika dan Kecerdasan Buatan (S1)"
+                              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white font-semibold focus:outline-none focus:border-rose-500 placeholder-slate-500"
+                            />
+                          </div>
+
+                          {/* 4. PERGURUAN TINGGI */}
                           <div>
                             <label className="text-slate-400 block mb-1 flex items-center gap-1">
                               <Building className="w-3 h-3 text-rose-400" /> Perguruan Tinggi:
@@ -617,9 +691,13 @@ export default function KtmLoginScreen() {
                             </div>
                           </div>
 
+                          {/* 5. FAKULTAS / KAMPUS DAERAH */}
                           <div>
-                            <label className="text-slate-400 block mb-1 flex items-center gap-1">
-                              <GraduationCap className="w-3 h-3 text-rose-400" /> Fakultas / Kampus Daerah:
+                            <label className="text-slate-300 block mb-1 flex items-center justify-between">
+                              <span className="flex items-center gap-1 font-medium">
+                                <GraduationCap className="w-3 h-3 text-rose-400" /> Fakultas / Kampus Daerah:
+                              </span>
+                              <span className="text-[10px] text-rose-400 font-bold">* Wajib</span>
                             </label>
                             <select
                               value={scannedFaculty}
@@ -632,6 +710,26 @@ export default function KtmLoginScreen() {
                                 </option>
                               ))}
                             </select>
+                          </div>
+
+                          {/* 6. FOTO MAHASISWA (TIDAK WAJIB / OPSIONAL) */}
+                          <div className="sm:col-span-2 p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="w-9 h-9 rounded-full bg-rose-600/30 border border-rose-500/40 flex items-center justify-center text-xs font-bold text-rose-300 shrink-0">
+                                {scannedFullName ? scannedFullName.charAt(0).toUpperCase() : 'U'}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-xs font-semibold text-slate-200 flex items-center gap-1">
+                                  <span>Foto Mahasiswa</span>
+                                  <span className="text-[10px] font-normal text-emerald-400 bg-emerald-950/60 px-1.5 py-0.2 rounded border border-emerald-500/30">
+                                    Tidak Wajib (Opsional)
+                                  </span>
+                                </p>
+                                <p className="text-[11px] text-slate-400 truncate">
+                                  Foto mah tidak wajib. Sistem otomatis memakai inisial nama Anda.
+                                </p>
+                              </div>
+                            </div>
                           </div>
                         </div>
 
