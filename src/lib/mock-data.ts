@@ -3,67 +3,67 @@ import { CampusLandmark, Profile, Quest, ChatMessage, Review } from '@/types/cam
 export const CAMPUS_LANDMARKS: CampusLandmark[] = [
   {
     id: 'kantin-pusat',
-    name: 'Kantin Pusat / Vokasi',
+    name: 'Kantin Geugeut FPTK UPI',
     category: 'kantin',
     x: 22,
     y: 35,
-    description: 'Pusat kuliner kampus, geprek, jus, mie & warung makan'
+    description: 'Pusat kuliner kampus UPI, geprek, jus, mie & warung makan'
   },
   {
     id: 'perpus-pusat',
-    name: 'Perpustakaan Pusat',
+    name: 'Perpustakaan Pusat UPI',
     category: 'fasilitas',
     x: 48,
     y: 28,
-    description: 'Pusat literasi, ruang baca hening, wifi kencang'
+    description: 'Pusat literasi UPI, ruang baca hening, wifi kencang'
   },
   {
     id: 'rektorat',
-    name: 'Gedung Rektorat',
+    name: 'Gedung Isola (Rektorat UPI)',
     category: 'fasilitas',
     x: 50,
     y: 12,
-    description: 'Pusat administrasi, rektorat dan aula serbaguna'
+    description: 'Landmark cagar budaya Isola, pusat rektorat dan administrasi UPI'
   },
   {
     id: 'fakultas-teknik',
-    name: 'Fakultas Teknik & Lab Komputer',
+    name: 'FPTK & Lab Komputer FPMIPA UPI',
     category: 'fakultas',
     x: 78,
     y: 38,
-    description: 'Lab hardware, bengkel teknik mesin & robotika'
+    description: 'Bengkel mesin FPTK, lab hardware & ruang praktikum FPMIPA UPI'
   },
   {
     id: 'asrama-b',
-    name: 'Asrama Mahasiswa Gedung B',
+    name: 'Asrama Mahasiswa UPI Gedung B',
     category: 'asrama',
     x: 20,
     y: 72,
-    description: 'Kamar asrama mahasiswa & parkiran sepeda motor'
+    description: 'Hunian asrama mahasiswa UPI & parkiran sepeda motor'
   },
   {
     id: 'asrama-a',
-    name: 'Asrama Mahasiswa Gedung A',
+    name: 'Asrama Mahasiswa UPI Gedung A',
     category: 'asrama',
     x: 38,
     y: 78,
-    description: 'Hunian asrama putri & gazebo komunal'
+    description: 'Hunian asrama mahasiswi UPI & gazebo komunal'
   },
   {
     id: 'fotokopi-gerbang',
-    name: 'Fotokopi & Percetakan Barokah',
+    name: 'Percetakan & Fotokopi Gegerkalong UPI',
     category: 'fasilitas',
     x: 82,
     y: 65,
-    description: 'Tempat jilid skripsi, print warna, scan dokumen'
+    description: 'Tempat jilid skripsi UPI, print warna, scan berkas akademik'
   },
   {
     id: 'gerbang-utama',
-    name: 'Gerbang Utama & Halte Bus',
+    name: 'Gerbang Utama Setiabudi UPI & Halte Bus',
     category: 'gerbang',
     x: 50,
     y: 90,
-    description: 'Titik temu ojek online, jemputan travel, pos satpam'
+    description: 'Titik jemput Jl. Dr. Setiabudi 229, pos satpam & shelter ojol'
   }
 ];
 
@@ -71,9 +71,9 @@ export const DEMO_STUDENTS: Profile[] = [
   {
     id: 'usr-current-001',
     full_name: 'Bima Arya Prasetya',
-    nim: '2206123891',
-    university: 'Universitas Indonesia',
-    faculty: 'Fakultas Teknik - Teknik Mesin',
+    nim: '2201945',
+    university: 'Universitas Pendidikan Indonesia (UPI)',
+    faculty: 'FPTK - Pendidikan Teknik Mesin',
     phone: '081298765432',
     avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
     ktm_url: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&auto=format&fit=crop&q=80',
@@ -89,9 +89,9 @@ export const DEMO_STUDENTS: Profile[] = [
   {
     id: 'usr-runner-002',
     full_name: 'Reza Fachri (The Machinist)',
-    nim: '2106198002',
-    university: 'Universitas Indonesia',
-    faculty: 'Fakultas Ilmu Komputer - Sistem Informasi',
+    nim: '2108765',
+    university: 'Universitas Pendidikan Indonesia (UPI)',
+    faculty: 'FPMIPA - Ilmu Komputer',
     phone: '081388776655',
     avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
     ktm_url: 'https://images.unsplash.com/photo-1589330694653-ded6df03f754?w=500&auto=format&fit=crop&q=80',
@@ -107,9 +107,9 @@ export const DEMO_STUDENTS: Profile[] = [
   {
     id: 'usr-cust-003',
     full_name: 'Nabila Putri',
-    nim: '2306145678',
-    university: 'Institut Teknologi Bandung',
-    faculty: 'Sekolah Teknik Elektro & Informatika (STEI)',
+    nim: '2304512',
+    university: 'Universitas Pendidikan Indonesia (UPI)',
+    faculty: 'FPEB - Manajemen Bisnis',
     phone: '081912345678',
     avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80',
     ktm_url: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=500&auto=format&fit=crop&q=80',
@@ -125,9 +125,9 @@ export const DEMO_STUDENTS: Profile[] = [
   {
     id: 'usr-cust-004',
     full_name: 'Dimas Kurniawan',
-    nim: '2206187654',
-    university: 'Universitas Indonesia',
-    faculty: 'Fakultas Hukum - Hukum Pidana',
+    nim: '2203876',
+    university: 'Universitas Pendidikan Indonesia (UPI)',
+    faculty: 'FPIPS - Pendidikan Geografi',
     phone: '085611223344',
     avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80',
     ktm_url: 'https://images.unsplash.com/photo-1589330694653-ded6df03f754?w=500&auto=format&fit=crop&q=80',
@@ -143,9 +143,9 @@ export const DEMO_STUDENTS: Profile[] = [
   {
     id: 'usr-cust-005',
     full_name: 'Sarah Amalia',
-    nim: '2106154321',
-    university: 'Universitas Gadjah Mada',
-    faculty: 'Fakultas Kedokteran & Kesehatan Masyarakat',
+    nim: '2106543',
+    university: 'Universitas Pendidikan Indonesia (UPI)',
+    faculty: 'FPBS - Pendidikan Bahasa Inggris',
     phone: '087799881122',
     avatar_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80',
     ktm_url: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&auto=format&fit=crop&q=80',
@@ -164,34 +164,34 @@ export const INITIAL_PROFILE: Profile = DEMO_STUDENTS[0];
 
 export const SAMPLE_KTM_PRESETS = [
   {
-    label: 'KTM Universitas Indonesia (Teknik Mesin)',
+    label: 'KTM UPI - FPTK (Teknik Mesin)',
     fullName: 'Bima Arya Prasetya',
-    nim: '2206123891',
-    university: 'Universitas Indonesia',
-    faculty: 'Fakultas Teknik - Teknik Mesin',
+    nim: '2201945',
+    university: 'Universitas Pendidikan Indonesia (UPI)',
+    faculty: 'FPTK - Pendidikan Teknik Mesin',
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
-    badgeColor: 'from-amber-400 to-yellow-600',
-    univBadge: 'UI'
+    badgeColor: 'from-rose-600 to-red-800',
+    univBadge: 'UPI'
   },
   {
-    label: 'KTM Institut Teknologi Bandung (STEI)',
+    label: 'KTM UPI - FPMIPA (Ilmu Komputer)',
     fullName: 'Reza Fachri',
-    nim: '2106198002',
-    university: 'Institut Teknologi Bandung',
-    faculty: 'Sekolah Teknik Elektro & Informatika',
+    nim: '2108765',
+    university: 'Universitas Pendidikan Indonesia (UPI)',
+    faculty: 'FPMIPA - Ilmu Komputer',
     avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
-    badgeColor: 'from-sky-500 to-blue-700',
-    univBadge: 'ITB'
+    badgeColor: 'from-rose-600 to-red-800',
+    univBadge: 'UPI'
   },
   {
-    label: 'KTM Universitas Gadjah Mada (Fasilkom)',
+    label: 'KTM UPI - FPEB (Manajemen)',
     fullName: 'Nabila Putri',
-    nim: '2306145678',
-    university: 'Universitas Gadjah Mada',
-    faculty: 'Fakultas MIPA - Ilmu Komputer',
+    nim: '2304512',
+    university: 'Universitas Pendidikan Indonesia (UPI)',
+    faculty: 'FPEB - Manajemen Bisnis',
     avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80',
-    badgeColor: 'from-emerald-500 to-teal-700',
-    univBadge: 'UGM'
+    badgeColor: 'from-rose-600 to-red-800',
+    univBadge: 'UPI'
   }
 ];
 
@@ -209,8 +209,8 @@ export const INITIAL_QUESTS: Quest[] = [
     description: 'Laptop Asus Vivobook panas dan kipas bising. Tolong dibersihkan debu kipas dan diberi pasta baru. Software office standar.',
     quantity: 1,
     unit: 'perangkat',
-    origin_address: 'Lab Komputer Fakultas Teknik, Lt 2',
-    destination_address: 'Asrama Mahasiswa Gedung B, Kamar 314',
+    origin_address: 'Lab Komputer FPMIPA UPI, Lt 2',
+    destination_address: 'Asrama Mahasiswa UPI Gedung B, Kamar 314',
     bounty_fee: 65000,
     item_cost: 25000,
     receipt_image_url: 'https://images.unsplash.com/photo-1591799264318-7e6ef8ddb7ea?w=400&auto=format&fit=crop&q=80',
@@ -220,22 +220,22 @@ export const INITIAL_QUESTS: Quest[] = [
     payment_status: 'PENDING',
     created_at: new Date(Date.now() - 3600000).toISOString(),
     updated_at: new Date(Date.now() - 1200000).toISOString(),
-    landmark_origin: 'Fakultas Teknik & Lab Komputer',
-    landmark_destination: 'Asrama Mahasiswa Gedung B',
+    landmark_origin: 'FPTK & Lab Komputer FPMIPA UPI',
+    landmark_destination: 'Asrama Mahasiswa UPI Gedung B',
     notes: 'Bawa obeng set presisi ya bro'
   },
   {
     id: 'qst-002',
     customer_id: 'usr-cust-003',
-    customer_name: 'Nabila Putri (Ilkom)',
+    customer_name: 'Nabila Putri (FPEB)',
     customer_avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80',
     category: 'JASTAP',
     title: 'Jastap Nasi Geprek Sambal Matah Level 3 + Es Teh',
-    description: 'Titip beli di Warung Bu Siti Kantin Vokasi. Sambal dipisah tolong ya. Antar ke lantai dasar perpustakaan.',
+    description: 'Titip beli di Kantin Geugeut FPTK UPI. Sambal dipisah tolong ya. Antar ke lantai dasar perpustakaan.',
     quantity: 2,
     unit: 'porsi',
-    origin_address: 'Kantin Pusat / Vokasi',
-    destination_address: 'Perpustakaan Pusat, Lobi Depan',
+    origin_address: 'Kantin Geugeut FPTK UPI',
+    destination_address: 'Perpustakaan Pusat UPI, Lobi Depan',
     bounty_fee: 12000,
     item_cost: 0,
     status: 'OPEN',
@@ -244,22 +244,22 @@ export const INITIAL_QUESTS: Quest[] = [
     payment_status: 'PENDING',
     created_at: new Date(Date.now() - 900000).toISOString(),
     updated_at: new Date(Date.now() - 900000).toISOString(),
-    landmark_origin: 'Kantin Pusat / Vokasi',
-    landmark_destination: 'Perpustakaan Pusat',
+    landmark_origin: 'Kantin Geugeut FPTK UPI',
+    landmark_destination: 'Perpustakaan Pusat UPI',
     notes: 'Uang makan akan diganti sesuai struk'
   },
   {
     id: 'qst-003',
     customer_id: 'usr-cust-004',
-    customer_name: 'Dimas Kurniawan (Hukum)',
+    customer_name: 'Dimas Kurniawan (FPIPS)',
     customer_avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80',
     category: 'JASTAP',
     title: 'Print Dokumen Jurnal & Jilid Softcover 45 Lembar',
-    description: 'Cetak dokumen praktikum warna di Fotokopi Barokah. Antar sebelum jam 14:00 di Gedung Rektorat.',
+    description: 'Cetak dokumen praktikum warna di Fotokopi Gegerkalong. Antar sebelum jam 14:00 di Gedung Isola.',
     quantity: 45,
     unit: 'lembar',
-    origin_address: 'Fotokopi & Percetakan Barokah',
-    destination_address: 'Gedung Rektorat Lt 3 Ruang Seminar',
+    origin_address: 'Percetakan & Fotokopi Gegerkalong UPI',
+    destination_address: 'Gedung Isola (Rektorat UPI) Lt 3 Ruang Seminar',
     bounty_fee: 15000,
     item_cost: 22000,
     status: 'ON_THE_WAY',
@@ -271,21 +271,21 @@ export const INITIAL_QUESTS: Quest[] = [
     runner_avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
     created_at: new Date(Date.now() - 5400000).toISOString(),
     updated_at: new Date(Date.now() - 1800000).toISOString(),
-    landmark_origin: 'Fotokopi & Percetakan Barokah',
-    landmark_destination: 'Gedung Rektorat'
+    landmark_origin: 'Percetakan & Fotokopi Gegerkalong UPI',
+    landmark_destination: 'Gedung Isola (Rektorat UPI)'
   },
   {
     id: 'qst-004',
     customer_id: 'usr-cust-005',
-    customer_name: 'Sarah Amalia (Kedokteran)',
+    customer_name: 'Sarah Amalia (FPBS)',
     customer_avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80',
     category: 'JARVIS',
     title: 'Ganti Port Charger / Service Tombol Power iPad Air',
     description: 'Tombol power macet dan port USB-C agak longgar. Butuh dicek solderannya.',
     quantity: 1,
     unit: 'perangkat',
-    origin_address: 'Asrama Mahasiswa Gedung A',
-    destination_address: 'Lab Komputer Fakultas Teknik',
+    origin_address: 'Asrama Mahasiswa UPI Gedung A',
+    destination_address: 'FPTK & Lab Komputer FPMIPA UPI',
     bounty_fee: 80000,
     item_cost: 0,
     status: 'OPEN',
@@ -294,8 +294,8 @@ export const INITIAL_QUESTS: Quest[] = [
     payment_status: 'PENDING',
     created_at: new Date(Date.now() - 7200000).toISOString(),
     updated_at: new Date(Date.now() - 7200000).toISOString(),
-    landmark_origin: 'Asrama Mahasiswa Gedung A',
-    landmark_destination: 'Fakultas Teknik & Lab Komputer'
+    landmark_origin: 'Asrama Mahasiswa UPI Gedung A',
+    landmark_destination: 'FPTK & Lab Komputer FPMIPA UPI'
   },
   {
     id: 'qst-005',
@@ -369,4 +369,21 @@ export const INITIAL_REVIEWS: Review[] = [
     comment: 'Cepat banget sampainya! Kopinya masih dingin dan es batu belum mencair. Runner ramah dan komunikatif.',
     created_at: new Date(Date.now() - 82000000).toISOString()
   }
+];
+
+export const UPI_FACULTIES = [
+  'FPTK - Fakultas Pendidikan Teknologi dan Kejuruan',
+  'FPMIPA - Fakultas Pendidikan Matematika dan Ilmu Pengetahuan Alam',
+  'FIP - Fakultas Ilmu Pendidikan',
+  'FPIPS - Fakultas Pendidikan Ilmu Pengetahuan Sosial',
+  'FPBS - Fakultas Pendidikan Bahasa dan Sastra',
+  'FPEB - Fakultas Pendidikan Ekonomi dan Bisnis',
+  'FPOK - Fakultas Pendidikan Olahraga dan Kesehatan',
+  'FPSD - Fakultas Pendidikan Seni dan Desain',
+  'SPs - Sekolah Pascasarjana UPI',
+  'Kampus UPI di Cibiru',
+  'Kampus UPI di Tasikmalaya',
+  'Kampus UPI di Purwakarta',
+  'Kampus UPI di Sumedang',
+  'Kampus UPI di Serang'
 ];

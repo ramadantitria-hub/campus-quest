@@ -90,7 +90,7 @@ export default function CampusMap({ activeQuest, onSelectLandmark }: CampusMapPr
               </span>
             </h4>
             <p className="text-[10px] text-slate-400">
-              Universitas Indonesia &amp; Ekosistem Kampus Terpadu
+              Universitas Pendidikan Indonesia (UPI) • Kampus Bumi Siliwangi
             </p>
           </div>
         </div>

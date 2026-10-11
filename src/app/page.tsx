@@ -11,6 +11,7 @@ import QuestDetailModal from '@/components/QuestDetailModal';
 import LiveChatDrawer from '@/components/LiveChatDrawer';
 import KtmVerificationModal from '@/components/KtmVerificationModal';
 import KtmLoginModal from '@/components/KtmLoginModal';
+import KtmLoginScreen from '@/components/KtmLoginScreen';
 import WalletModal from '@/components/WalletModal';
 import CampusMap from '@/components/CampusMap';
 import PwaInstallBanner from '@/components/PwaInstallBanner';
@@ -27,7 +28,8 @@ import {
   Zap,
   Info,
   GraduationCap,
-  ShieldCheck
+  ShieldCheck,
+  ArrowLeft
 } from 'lucide-react';
 
 function CampusQuestApp() {
@@ -41,7 +43,9 @@ function CampusQuestApp() {
     isLoginModalOpen,
     openLoginModal,
     closeLoginModal,
-    isLoggedIn
+    isLoggedIn,
+    isLoaded,
+    isGuestMode
   } = useCampusQuest();
 
   // Modals state
@@ -96,6 +100,31 @@ function CampusQuestApp() {
       q.destination_address.toLowerCase().includes(searchQuery.toLowerCase());
     return matchCat && matchSearch;
   });
+
+  // Hydration state check
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-500 via-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-2xl shadow-sky-500/25 animate-pulse mb-4">
+          <Sparkles className="w-8 h-8" />
+        </div>
+        <div className="flex items-center gap-2 text-slate-300 font-semibold text-sm">
+          <div className="w-2 h-2 rounded-full bg-sky-400 animate-ping" />
+          <span>Memverifikasi Sesi Mahasiswa...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Auth gate: Visitors must authenticate with KTM before entering website dashboard (unless exploring as guest)
+  if (!isLoggedIn && !isGuestMode) {
+    return (
+      <>
+        <KtmLoginScreen />
+        <PwaInstallBanner />
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 pb-20 md:pb-8">
@@ -212,24 +241,44 @@ function CampusQuestApp() {
         {activeTab === 'quests' && (
           <div className="space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  <Compass className="w-5 h-5 text-sky-400" />
-                  Semua Quest Mahasiswa
-                </h2>
-                <p className="text-xs text-slate-400">
-                  Daftar permintaan JASTAP &amp; JARVIS di lingkungan kampus
-                </p>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('home')}
+                  className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  title="Kembali ke Halaman Utama"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </button>
+                <div>
+                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                    <Compass className="w-5 h-5 text-sky-400" />
+                    Semua Quest Mahasiswa
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    Daftar permintaan JASTAP &amp; JARVIS di lingkungan kampus
+                  </p>
+                </div>
               </div>
 
-              {activeRole === 'customer' && (
+              <div className="flex items-center gap-2 self-start sm:self-auto">
                 <button
-                  onClick={() => handleOpenCreateQuest('JASTAP')}
-                  className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 self-start cursor-pointer shadow-lg shadow-sky-500/20"
+                  type="button"
+                  onClick={() => setActiveTab('home')}
+                  className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
-                  <PlusCircle className="w-4 h-4" /> Buat Quest
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Ke Halaman Utama</span>
                 </button>
-              )}
+                {activeRole === 'customer' && (
+                  <button
+                    onClick={() => handleOpenCreateQuest('JASTAP')}
+                    className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-lg shadow-sky-500/20"
+                  >
+                    <PlusCircle className="w-4 h-4" /> Buat Quest
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Search and Filters Bar */}
@@ -342,14 +391,35 @@ function CampusQuestApp() {
         {/* VIEW: CAMPUS RADAR MAP */}
         {activeTab === 'map' && (
           <div className="space-y-4">
-            <div>
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-sky-400" />
-                Radar Peta Kampus Terpadu
-              </h2>
-              <p className="text-xs text-slate-400">
-                Visualisasi titik-titik kumpul mahasiswa, tracking runner, dan titik penjemputan barang
-              </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('home')}
+                  className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  title="Kembali ke Halaman Utama"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </button>
+                <div>
+                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-sky-400" />
+                    Radar Peta Kampus Terpadu
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    Visualisasi titik-titik kumpul mahasiswa, tracking runner, dan titik penjemputan barang
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('home')}
+                className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 hover:text-white font-semibold text-xs flex items-center gap-1.5 self-start sm:self-auto transition-colors cursor-pointer"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Ke Halaman Utama</span>
+              </button>
             </div>
 
             <CampusMap

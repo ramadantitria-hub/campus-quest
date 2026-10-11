@@ -22,6 +22,7 @@ import {
   Camera,
   Upload,
   ArrowRight,
+  ArrowLeft,
   Sparkles,
   KeyRound,
   FileText
@@ -217,12 +218,23 @@ export default function QuestDetailModal({
               </div>
             </div>
 
-            <button
-              onClick={onClose}
-              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors shrink-0"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700/80 transition-all cursor-pointer group shadow-sm"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 text-slate-400 group-hover:-translate-x-0.5 transition-transform" />
+                <span>Kembali</span>
+              </button>
+              <button
+                onClick={onClose}
+                className="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Tutup"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Modal Scrollable Body */}

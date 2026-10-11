@@ -14,8 +14,8 @@ export async function generateDigitalKtmCard(params: KtmCardParams): Promise<str
   const {
     fullName,
     nim,
-    university = 'UNIVERSITAS INDONESIA',
-    faculty = 'Fakultas Teknik',
+    university = 'UNIVERSITAS PENDIDIKAN INDONESIA',
+    faculty = 'FPTK - Teknik Mesin',
     avatarUrl,
     status = 'MAHASISWA AKTIF'
   } = params;
@@ -33,21 +33,12 @@ export async function generateDigitalKtmCard(params: KtmCardParams): Promise<str
       return;
     }
 
-    // 1. Base Background Gradient
+    // 1. Base Background Gradient (UPI Crimson Maroon & Dark Slate)
     const bgGrad = ctx.createLinearGradient(0, 0, width, height);
-    if (university.toLowerCase().includes('indonesia') || params.theme === 'ui') {
-      bgGrad.addColorStop(0, '#0f172a');
-      bgGrad.addColorStop(0.5, '#1e293b');
-      bgGrad.addColorStop(1, '#1e1b4b');
-    } else if (university.toLowerCase().includes('bandung') || params.theme === 'itb') {
-      bgGrad.addColorStop(0, '#022c22');
-      bgGrad.addColorStop(0.5, '#0f172a');
-      bgGrad.addColorStop(1, '#082f49');
-    } else {
-      bgGrad.addColorStop(0, '#090d16');
-      bgGrad.addColorStop(0.5, '#131b2e');
-      bgGrad.addColorStop(1, '#1a103c');
-    }
+    bgGrad.addColorStop(0, '#4c0519');
+    bgGrad.addColorStop(0.35, '#881337');
+    bgGrad.addColorStop(0.7, '#1e1b4b');
+    bgGrad.addColorStop(1, '#0f172a');
 
     // Rounded rectangle clipping for the card
     const radius = 28;

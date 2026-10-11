@@ -115,7 +115,7 @@ export default function KtmVerificationModal({ isOpen, onClose }: KtmVerificatio
               )}
             </h3>
             <p className="text-xs text-slate-400">
-              Validasi mahasiswa resmi untuk ekosistem aman CampusQuest
+              Validasi mahasiswa resmi untuk ekosistem aman CampusQuest UPI
             </p>
           </div>
         </div>
@@ -125,7 +125,7 @@ export default function KtmVerificationModal({ isOpen, onClose }: KtmVerificatio
           <div>
             <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-sky-400" />
-              Nama Lengkap (Sesuai KTM)
+              Nama Lengkap (Sesuai KTM UPI)
             </label>
             <input
               type="text"
@@ -140,14 +140,14 @@ export default function KtmVerificationModal({ isOpen, onClose }: KtmVerificatio
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1.5">
                 <Hash className="w-3.5 h-3.5 text-sky-400" />
-                NIM (Nomor Induk Mahasiswa)
+                NIM UPI (7-Digit)
               </label>
               <input
                 type="text"
                 value={nim}
                 onChange={(e) => setNim(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-sky-500 transition-colors"
-                placeholder="2206123891"
+                placeholder="2201945"
               />
             </div>
             <div>
@@ -201,7 +201,7 @@ export default function KtmVerificationModal({ isOpen, onClose }: KtmVerificatio
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-xs font-medium text-slate-300 flex items-center gap-1.5">
                 <FileText className="w-3.5 h-3.5 text-sky-400" />
-                Foto Kartu Tanda Mahasiswa (KTM)
+                Foto Kartu Tanda Mahasiswa (KTM UPI)
               </label>
               <span className="text-[10px] text-sky-400 font-mono flex items-center gap-1">
                 <Lock className="w-3 h-3" /> Auto-Watermark Aktif
@@ -212,8 +212,8 @@ export default function KtmVerificationModal({ isOpen, onClose }: KtmVerificatio
             <div className="bg-sky-950/40 border border-sky-500/30 rounded-xl p-2.5 mb-3 flex items-start gap-2 text-[11px] text-sky-200">
               <Info className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
               <span>
-                <strong>Perlindungan Privasi (Page 8 Spec):</strong> Sistem otomatis membubuhkan watermark permanen{' '}
-                <em>&quot;HANYA UNTUK VERIFIKASI AKUN CAMPUS QUEST&quot;</em> secara diagonal sebelum foto disimpan.
+                <strong>Perlindungan Privasi UPI:</strong> Sistem otomatis membubuhkan watermark permanen{' '}
+                <em>&quot;HANYA UNTUK VERIFIKASI AKUN CAMPUS QUEST UPI&quot;</em> secara diagonal sebelum foto disimpan.
               </span>
             </div>
 

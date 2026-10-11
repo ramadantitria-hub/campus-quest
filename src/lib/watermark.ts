@@ -40,9 +40,9 @@ export async function addKtmWatermark(
 
       // Add watermark overlay
       ctx.save();
-      const text = 'HANYA UNTUK VERIFIKASI AKUN CAMPUS QUEST';
+      const text = 'HANYA UNTUK VERIFIKASI AKUN CAMPUS QUEST UPI';
       const studentPart = studentName ? `${studentName} • ` : '';
-      const subText = `NIM: ${nim} • ${studentPart}${new Date().toLocaleDateString('id-ID')}`;
+      const subText = `NIM UPI: ${nim} • ${studentPart}${new Date().toLocaleDateString('id-ID')}`;
 
       // Calculate angle and spacing
       const angle = -Math.PI / 6; // -30 degrees
@@ -70,13 +70,13 @@ export async function addKtmWatermark(
 
       // Top-Left Security Badge Overlay
       ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-      ctx.fillRect(16, 16, Math.min(320, width - 32), 48);
-      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(16, 16, Math.min(340, width - 32), 48);
+      ctx.fillStyle = '#f43f5e';
       ctx.font = 'bold 12px sans-serif';
-      ctx.fillText('🔒 VERIFIKASI IDENTITAS RESMI', 28, 36);
+      ctx.fillText('🔒 VERIFIKASI RESMI MAHASISWA UPI', 28, 36);
       ctx.fillStyle = '#ffffff';
       ctx.font = '11px sans-serif';
-      ctx.fillText('CampusQuest Protected Document', 28, 52);
+      ctx.fillText('CampusQuest UPI Protected Document', 28, 52);
 
       // Export as compressed WebP or JPEG
       const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);

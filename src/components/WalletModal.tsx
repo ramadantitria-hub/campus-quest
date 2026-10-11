@@ -7,6 +7,7 @@ import {
   Wallet,
   ArrowUpRight,
   ArrowDownLeft,
+  ArrowLeft,
   CheckCircle,
   Building,
   Smartphone,
@@ -14,6 +15,7 @@ import {
   History,
   AlertCircle
 } from 'lucide-react';
+import { soundFX } from '@/lib/audio';
 
 interface WalletModalProps {
   isOpen: boolean;
@@ -68,12 +70,32 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-slate-900 border border-slate-700 max-w-md w-full rounded-2xl p-6 text-white shadow-2xl relative my-8 animate-in fade-in zoom-in-95 duration-200">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        {/* Top Navigation & Back Button */}
+        <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+          <button
+            type="button"
+            onClick={() => {
+              soundFX.pop();
+              onClose();
+            }}
+            className="inline-flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800/90 hover:bg-slate-700 border border-slate-700 px-3.5 py-1.5 rounded-xl transition-all cursor-pointer shadow-sm group"
+          >
+            <ArrowLeft className="w-4 h-4 text-emerald-400 group-hover:-translate-x-0.5 transition-transform" />
+            <span>Kembali ke Halaman Utama</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              soundFX.pop();
+              onClose();
+            }}
+            className="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+            title="Tutup"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-5">
@@ -206,13 +228,28 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={profile.wallet_balance < 10000}
-            className="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-colors shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          >
-            Konfirmasi Tarik Saldo Sekarang
-          </button>
+          {/* Dual Action Buttons: Kembali / Batal + Konfirmasi Tarik Saldo */}
+          <div className="flex items-center gap-2.5 pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                soundFX.pop();
+                onClose();
+              }}
+              className="flex-1 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs border border-slate-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Kembali / Batal</span>
+            </button>
+
+            <button
+              type="submit"
+              disabled={profile.wallet_balance < 10000}
+              className="flex-2 py-2.5 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition-colors shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              <span>Konfirmasi Tarik Saldo Sekarang</span>
+            </button>
+          </div>
         </form>
 
         {/* History */}
@@ -243,6 +280,21 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
               <p className="text-xs text-slate-500 text-center py-2">Belum ada riwayat quest selesai</p>
             )}
           </div>
+        </div>
+
+        {/* Bottom Back Button */}
+        <div className="mt-4 pt-3 border-t border-slate-800">
+          <button
+            type="button"
+            onClick={() => {
+              soundFX.pop();
+              onClose();
+            }}
+            className="w-full py-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700/80 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm group"
+          >
+            <ArrowLeft className="w-4 h-4 text-emerald-400 group-hover:-translate-x-0.5 transition-transform" />
+            <span>Kembali ke Halaman Utama</span>
+          </button>
         </div>
       </div>
     </div>

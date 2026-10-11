@@ -19,11 +19,14 @@ import {
   DEMO_STUDENTS
 } from '@/lib/mock-data';
 import { soundFX } from '@/lib/audio';
+import { fireCelebrationConfetti } from '@/lib/confetti';
 import { supabase } from '@/lib/supabase';
 
 interface CampusQuestContextType {
   profile: Profile;
   isLoggedIn: boolean;
+  isLoaded: boolean;
+  isGuestMode: boolean;
   activeRole: UserRole;
   quests: Quest[];
   chats: Record<string, ChatMessage[]>;
@@ -33,6 +36,8 @@ interface CampusQuestContextType {
   isLoginModalOpen: boolean;
   openLoginModal: () => void;
   closeLoginModal: () => void;
+  enterGuestMode: () => void;
+  exitGuestMode: () => void;
   loginWithKtm: (data: {
     fullName: string;
     nim: string;
@@ -43,7 +48,7 @@ interface CampusQuestContextType {
     avatarUrl?: string;
     role?: UserRole;
   }) => void;
-  loginWithNim: (nim: string, pin?: string) => { success: boolean; message: string };
+  loginWithNim: (nim: string, pin?: string, university?: string, faculty?: string) => { success: boolean; message: string };
   loginAsStudent: (student: Profile) => void;
   logout: () => void;
   setActiveTab: (tab: 'home' | 'quests' | 'map' | 'wallet' | 'profile') => void;
@@ -90,7 +95,8 @@ const STORAGE_KEYS = {
 
 export function CampusQuestProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile>(INITIAL_PROFILE);
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isGuestMode, setIsGuestMode] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [quests, setQuests] = useState<Quest[]>(INITIAL_QUESTS);
   const [chats, setChats] = useState<Record<string, ChatMessage[]>>(INITIAL_CHATS);
@@ -110,12 +116,16 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
         const savedReviews = localStorage.getItem(STORAGE_KEYS.REVIEWS);
 
         if (savedProfile) setProfile(JSON.parse(savedProfile));
-        if (savedLogin !== null) setIsLoggedIn(savedLogin === 'true');
+        if (savedLogin !== null) {
+          setIsLoggedIn(savedLogin === 'true');
+        } else {
+          setIsLoggedIn(false);
+        }
         if (savedQuests) setQuests(JSON.parse(savedQuests));
         if (savedChats) setChats(JSON.parse(savedChats));
         if (savedReviews) setReviews(JSON.parse(savedReviews));
       } catch {
-        // Fallback to initial
+        setIsLoggedIn(false);
       }
       setIsLoaded(true);
     });
@@ -610,6 +620,16 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     setIsLoginModalOpen(false);
   };
 
+  const enterGuestMode = () => {
+    soundFX.pop();
+    setIsGuestMode(true);
+  };
+
+  const exitGuestMode = () => {
+    soundFX.pop();
+    setIsGuestMode(false);
+  };
+
   const loginWithKtm = (data: {
     fullName: string;
     nim: string;
@@ -621,22 +641,26 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     role?: UserRole;
   }) => {
     soundFX.success();
+    fireCelebrationConfetti();
+    const cleanNim = data.nim.trim();
+    const existing = DEMO_STUDENTS.find((s) => s.nim === cleanNim);
     const newProfile: Profile = {
-      ...profile,
-      id: `usr-${Date.now().toString(36)}`,
+      ...(existing || profile),
+      id: existing ? existing.id : (profile.id.startsWith('usr-') ? profile.id : `usr-${Date.now().toString(36)}`),
       full_name: data.fullName,
-      nim: data.nim,
-      university: data.university || 'Universitas Indonesia',
-      faculty: data.faculty || 'Fakultas Teknik',
-      phone: data.phone || profile.phone,
-      avatar_url: data.avatarUrl || profile.avatar_url,
+      nim: cleanNim,
+      university: data.university || existing?.university || 'Universitas Pendidikan Indonesia (UPI)',
+      faculty: data.faculty || existing?.faculty || 'FPTK - Teknik Mesin',
+      phone: data.phone || existing?.phone || profile.phone,
+      avatar_url: data.avatarUrl || existing?.avatar_url || profile.avatar_url,
       ktm_url: data.ktmUrl,
       is_verified: true,
-      active_mode: data.role || profile.active_mode,
+      active_mode: data.role || existing?.active_mode || profile.active_mode,
       student_status: 'AKTIF'
     };
     setProfile(newProfile);
     setIsLoggedIn(true);
+    setIsGuestMode(false);
     setIsLoginModalOpen(false);
 
     if (supabase) {
@@ -655,7 +679,7 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     }
   };
 
-  const loginWithNim = (nim: string, _pin?: string): { success: boolean; message: string } => {
+  const loginWithNim = (nim: string, _pin?: string, university?: string, faculty?: string): { success: boolean; message: string } => {
     const cleanNim = nim.trim();
     if (!cleanNim || cleanNim.length < 5) {
       return { success: false, message: 'NIM harus terdiri dari minimal 5 digit angka.' };
@@ -663,18 +687,20 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     const found = DEMO_STUDENTS.find((s) => s.nim === cleanNim);
     if (found) {
       soundFX.success();
+      fireCelebrationConfetti();
       setProfile(found);
       setIsLoggedIn(true);
+      setIsGuestMode(false);
       setIsLoginModalOpen(false);
-      return { success: true, message: `Login berhasil! Selamat datang kembali, ${found.full_name}.` };
+      return { success: true, message: `Login berhasil! Selamat datang kembali di CampusQuest UPI, ${found.full_name}.` };
     }
 
     const created: Profile = {
-      id: `usr-nim-${cleanNim}`,
-      full_name: `Mahasiswa (${cleanNim})`,
+      id: `usr-upi-${cleanNim}`,
+      full_name: `Mahasiswa UPI (${cleanNim})`,
       nim: cleanNim,
-      university: 'Universitas Indonesia',
-      faculty: 'Fakultas Teknik',
+      university: university || 'Universitas Pendidikan Indonesia (UPI)',
+      faculty: faculty || 'FPTK - Pendidikan Teknik Mesin',
       phone: '0812' + Math.floor(10000000 + Math.random() * 90000000),
       avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
       ktm_url: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&auto=format&fit=crop&q=80',
@@ -688,28 +714,35 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
       created_at: new Date().toISOString()
     };
     soundFX.success();
+    fireCelebrationConfetti();
     setProfile(created);
     setIsLoggedIn(true);
+    setIsGuestMode(false);
     setIsLoginModalOpen(false);
     return { success: true, message: `Akun Mahasiswa dengan NIM ${cleanNim} berhasil dibuat dan masuk!` };
   };
 
   const loginAsStudent = (student: Profile) => {
     soundFX.success();
+    fireCelebrationConfetti();
     setProfile(student);
     setIsLoggedIn(true);
+    setIsGuestMode(false);
     setIsLoginModalOpen(false);
   };
 
   const logout = () => {
     soundFX.pop();
     setIsLoggedIn(false);
+    setIsGuestMode(false);
+    setActiveTab('home');
     localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, 'false');
   };
 
   const resetToDefaultData = () => {
     setProfile(INITIAL_PROFILE);
-    setIsLoggedIn(true);
+    setIsLoggedIn(false);
+    setIsGuestMode(false);
     setQuests(INITIAL_QUESTS);
     setChats(INITIAL_CHATS);
     setReviews(INITIAL_REVIEWS);
@@ -726,6 +759,8 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
       value={{
         profile,
         isLoggedIn,
+        isLoaded,
+        isGuestMode,
         activeRole: profile.active_mode,
         quests,
         chats,
@@ -735,6 +770,8 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
         isLoginModalOpen,
         openLoginModal,
         closeLoginModal,
+        enterGuestMode,
+        exitGuestMode,
         loginWithKtm,
         loginWithNim,
         loginAsStudent,

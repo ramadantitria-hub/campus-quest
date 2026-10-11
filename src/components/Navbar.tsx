@@ -184,7 +184,7 @@ export default function Navbar({
                             <p className="text-xs font-bold text-white truncate">{profile.full_name}</p>
                             <p className="text-[11px] text-sky-400 font-mono">NIM: {profile.nim}</p>
                             <p className="text-[10px] text-slate-400 truncate">
-                              {profile.university || 'Universitas Indonesia'}
+                              {profile.university || 'Universitas Pendidikan Indonesia (UPI)'}
                             </p>
                           </div>
                         </div>
@@ -194,7 +194,7 @@ export default function Navbar({
                             <ShieldCheck className="w-3 h-3" /> KTM Aktif
                           </span>
                           <span className="text-slate-400 font-mono">
-                            {profile.faculty || 'Fakultas Teknik'}
+                            {profile.faculty || 'FPTK - Teknik Mesin'}
                           </span>
                         </div>
                       </div>

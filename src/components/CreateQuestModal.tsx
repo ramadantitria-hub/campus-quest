@@ -6,6 +6,7 @@ import { CAMPUS_LANDMARKS } from '@/lib/mock-data';
 import { ServiceCategory, PaymentMethod } from '@/types/campus-quest';
 import {
   X,
+  ArrowLeft,
   ShoppingBag,
   Wrench,
   Plus,
@@ -55,39 +56,39 @@ export default function CreateQuestModal({
   // Preset suggestions for rapid filling
   const loadPreset = (presetType: string) => {
     if (presetType === 'makan') {
-      setTitle('Nasi Ayam Geprek Sambal Bawang + Es Jeruk');
+      setTitle('Nasi Ayam Geprek Sambal Bawang Kantin Geugeut + Es Jeruk');
       setQuantity(1);
       setUnit('porsi');
-      setOriginAddress('Kantin Pusat / Vokasi');
-      setDestinationAddress('Asrama Mahasiswa Gedung B');
-      setNotes('Sambal level 3 dipisah tolong ya. Nanti ketemu di lobi.');
+      setOriginAddress('Kantin Geugeut FPTK UPI');
+      setDestinationAddress('Asrama Mahasiswa UPI Gedung B');
+      setNotes('Sambal level 3 dipisah tolong ya. Nanti ketemu di lobi asrama.');
       setBountyFee(12000);
     } else if (presetType === 'print') {
-      setTitle('Print Tugas Makalah 25 Lembar & Jilid Mika');
+      setTitle('Print Tugas Makalah 25 Lembar & Jilid Mika Gegerkalong');
       setQuantity(25);
       setUnit('lembar');
-      setOriginAddress('Fotokopi & Percetakan Barokah');
-      setDestinationAddress('Gedung Rektorat');
-      setNotes('File PDF dikirim lewat chat ya. Butuh jam 13:00.');
+      setOriginAddress('Percetakan & Fotokopi Gegerkalong UPI');
+      setDestinationAddress('Gedung Isola (Rektorat UPI)');
+      setNotes('File PDF dikirim lewat chat ya. Butuh jam 13:00 untuk kumpul tugas.');
       setBountyFee(15000);
     } else if (presetType === 'windows') {
-      setTitle('Install Ulang Windows 11 + Software Office & CAD');
+      setTitle('Install Ulang Windows 11 + Software Praktikum Teknik UPI');
       setQuantity(1);
       setUnit('perangkat');
       setDeviceSpecs('Laptop Lenovo ThinkPad E14 Gen 4');
       setServiceIssue('Windows lambat dan sering blue screen setelah update');
-      setOriginAddress('Lab Komputer Fakultas Teknik');
-      setDestinationAddress('Perpustakaan Pusat Gazebo Belakang');
+      setOriginAddress('Lab Komputer FPMIPA & FPTK UPI');
+      setDestinationAddress('Perpustakaan Pusat UPI');
       setNotes('Mohon backup folder Dokumen di drive D');
       setBountyFee(65000);
     } else if (presetType === 'thermal') {
-      setTitle('Bersihkan Debu Kipas Laptop & Ganti Thermal Paste');
+      setTitle('Bersihkan Debu Kipas Laptop & Ganti Thermal Paste Asus');
       setQuantity(1);
       setUnit('perangkat');
       setDeviceSpecs('Asus TUF Gaming FX505');
-      setServiceIssue('Suhu GPU sampai 92 derajat saat rendering');
-      setOriginAddress('Asrama Mahasiswa Gedung A');
-      setDestinationAddress('Fakultas Teknik & Lab Komputer');
+      setServiceIssue('Suhu GPU sampai 92 derajat saat rendering tugas akhir');
+      setOriginAddress('Asrama Mahasiswa UPI Gedung A');
+      setDestinationAddress('FPTK & Lab Komputer FPMIPA UPI');
       setNotes('Bawa pasta pendingin kualitas bagus ya bro');
       setBountyFee(55000);
     }
@@ -126,13 +127,27 @@ export default function CreateQuestModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-700 max-w-lg w-full rounded-2xl p-6 text-white shadow-2xl relative my-8 animate-in fade-in zoom-in-95 duration-200">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
+      <div className="bg-slate-900 border border-slate-700 max-w-lg w-full rounded-2xl p-5 sm:p-6 text-white shadow-2xl relative my-8 animate-in fade-in zoom-in-95 duration-200">
+        {/* Navigation & Back to Home Header */}
+        <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700/80 transition-all cursor-pointer group shadow-sm"
+          >
+            <ArrowLeft className="w-4 h-4 text-slate-400 group-hover:-translate-x-1 transition-transform" />
+            <span>Kembali ke Halaman Utama</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+            title="Tutup & Kembali"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
         {/* Modal Title */}
         <div className="flex items-center gap-3 mb-4">
@@ -473,18 +488,26 @@ export default function CreateQuestModal({
             </div>
           </div>
 
-          {/* Submit Button */}
-          <div className="pt-2">
+          {/* Action Buttons: Cancel/Back & Submit */}
+          <div className="pt-3 border-t border-slate-800/80 flex flex-col-reverse sm:flex-row gap-2.5">
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full sm:w-2/5 py-2.5 px-4 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer border border-slate-700/80"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Tidak Jadi Memesan</span>
+            </button>
             <button
               type="submit"
-              className={`w-full py-3 rounded-xl font-bold text-sm text-slate-950 shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
+              className={`w-full sm:w-3/5 py-2.5 px-4 rounded-xl font-bold text-xs text-slate-950 shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 category === 'JASTAP'
                   ? 'bg-emerald-400 hover:bg-emerald-300 shadow-emerald-400/20'
                   : 'bg-violet-400 hover:bg-violet-300 shadow-violet-400/20'
               }`}
             >
               <CheckCircle className="w-4 h-4" />
-              <span>Publikasikan Quest ke Board Mahasiswa</span>
+              <span>Publikasikan ({category === 'JASTAP' ? 'JASTAP' : 'JARVIS'})</span>
             </button>
           </div>
         </form>

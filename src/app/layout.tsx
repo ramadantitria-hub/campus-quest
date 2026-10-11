@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CampusQuest - JASTAP & JARVIS On-Demand Kampus (inDrive Model)",
+  title: "CampusQuest UPI - JASTAP & JARVIS Mahasiswa Universitas Pendidikan Indonesia",
   description:
-    "Platform peer-to-peer bounty on-demand mahasiswa untuk jasa titip (JASTAP) dan servis perangkat (JARVIS) dengan penentuan harga bounty ala inDrive.",
+    "Platform peer-to-peer bounty on-demand khusus mahasiswa Universitas Pendidikan Indonesia (UPI) untuk jasa titip beli (JASTAP) dan servis gadget & hardware (JARVIS).",
   manifest: "/manifest.json",
   icons: {
     icon: "/icon-192.png",
