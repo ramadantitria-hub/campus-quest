@@ -341,7 +341,7 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     soundFX.pop();
     if (role === 'admin') {
       if (!isAuthorizedAdminNim(profile.nim)) {
-        setIsAdminAuthModalOpen(true);
+        // Tampilan admin tidak bisa dilihat dan diakses oleh runner dan customer
         return;
       }
     }
@@ -1014,6 +1014,17 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
       return { success: false, message: 'Nomor Induk Mahasiswa (NIM) wajib diisi.' };
     }
 
+    // Role Admin validation: Admin view is private to authorized admins only
+    if (targetRole === 'admin') {
+      if (!isAuthorizedAdminNim(cleanNim)) {
+        return {
+          success: false,
+          message: 'NIM ini bukan salah satu Administrator resmi (Airis, Tria, Abdu, Randi).'
+        };
+      }
+      return loginAsAdmin(cleanNim, cleanPassword);
+    }
+
     // 1. Check registered accounts list
     let registeredList: RegisteredAccount[] = [];
     try {
@@ -1238,7 +1249,7 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
       if (!adminData) {
         return {
           success: false,
-          message: 'NIM ini bukan salah satu dari 4 Administrator resmi BEM UPI (Airis, Tria, Abdu, Randi).'
+          message: 'NIM ini bukan salah satu dari 4 Administrator resmi (Airis, Tria, Abdu, Randi).'
         };
       }
 
@@ -1273,7 +1284,7 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
 
       return {
         success: true,
-        message: `Berhasil masuk sebagai Administrator BEM UPI: ${adminData.name}`
+        message: `Berhasil masuk sebagai Administrator: ${adminData.name}`
       };
     }
 
@@ -1291,7 +1302,7 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     setIsLoginModalOpen(false);
     setIsAdminAuthModalOpen(false);
     setActiveTab('home');
-    return { success: true, message: 'Selamat datang di Portal Administrator BEM UPI.' };
+    return { success: true, message: 'Selamat datang di Portal Admin.' };
   };
 
   const adminForceCompleteQuest = (questId: string) => {

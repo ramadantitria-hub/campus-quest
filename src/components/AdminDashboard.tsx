@@ -53,8 +53,29 @@ export default function AdminDashboard() {
     adminToggleUserStatus,
     adminDeleteQuest,
     switchRole,
-    resetToDefaultData
+    resetToDefaultData,
+    isCurrentUserAdmin,
+    activeRole
   } = useCampusQuest();
+
+  // PRIVASI & KEAMANAN: Tampilan Admin TIDAK BISA DILIHAT OLEH RUNNER DAN CUSTOMER!
+  if (!isCurrentUserAdmin || activeRole !== 'admin') {
+    return (
+      <div className="bg-white border border-[#E8DFD1] rounded-3xl p-8 text-center max-w-lg mx-auto my-12 shadow-sm">
+        <ShieldAlert className="w-12 h-12 text-[#7A1E34] mx-auto mb-3" />
+        <h3 className="text-lg font-bold text-[#2C2224]">Akses Administrator Dibatasi</h3>
+        <p className="text-xs text-[#6E6265] mt-1 mb-4">
+          Tampilan dan wewenang Administrator hanya dapat diakses oleh Administrator resmi terdaftar. Runner dan Customer tidak diizinkan mengakses panel ini.
+        </p>
+        <button
+          onClick={() => switchRole('customer')}
+          className="px-4 py-2 rounded-xl bg-[#7A1E34] text-white text-xs font-bold cursor-pointer"
+        >
+          Kembali ke Dashboard Utama
+        </button>
+      </div>
+    );
+  }
 
   const [activeAdminTab, setActiveAdminTab] = useState<'overview' | 'quests' | 'users' | 'finance' | 'settings'>('overview');
   
@@ -94,7 +115,7 @@ export default function AdminDashboard() {
 
   const handleForceCancelSubmit = () => {
     if (!cancelModalQuest) return;
-    const reason = cancelReasonInput.trim() || 'Dibatalkan oleh Pengawas BEM UPI';
+    const reason = cancelReasonInput.trim() || 'Dibatalkan oleh Administrator';
     const res = adminForceCancelQuest(cancelModalQuest.id, reason);
     setCancelModalQuest(null);
     setCancelReasonInput('');
@@ -148,7 +169,7 @@ export default function AdminDashboard() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-[#A5DDD3] text-xs font-bold mb-2">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>Pusat Kendali Administrator BEM UPI</span>
+              <span>Pusat Kendali Administrator</span>
             </div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight">
               Admin &amp; Oversight Hub
@@ -726,10 +747,10 @@ export default function AdminDashboard() {
 
             <div className="flex items-center gap-2">
               <button
-                onClick={() => alert(`Kas Platform sebesar Rp ${totalPlatformFee.toLocaleString('id-ID')} siap dialokasikan untuk kegiatan BEM REMA UPI atau beasiswa mahasiswa.`)}
+                onClick={() => alert(`Kas Platform sebesar Rp ${totalPlatformFee.toLocaleString('id-ID')} siap dialokasikan untuk pemeliharaan sistem atau program kemahasiswaan.`)}
                 className="px-4 py-2.5 rounded-2xl bg-[#7A1E34] hover:bg-[#6E1C2F] text-white text-xs font-extrabold shadow-md transition-all cursor-pointer"
               >
-                Alokasikan Kas BEM UPI
+                Alokasikan Kas Platform
               </button>
             </div>
           </div>
@@ -845,7 +866,7 @@ export default function AdminDashboard() {
                 <span className="font-bold text-[#2C2224] block">Kalkulasi Keuangan:</span>
                 <p>Bounty Jasa: Rp {selectedQuestForAudit.bounty_fee.toLocaleString('id-ID')}</p>
                 <p>Nota Belanja: Rp {(selectedQuestForAudit.item_cost || 0).toLocaleString('id-ID')}</p>
-                <p className="text-[#2D8D84] font-bold">Pajak Platform BEM (10%): Rp {Math.round(selectedQuestForAudit.bounty_fee * 0.1).toLocaleString('id-ID')}</p>
+                <p className="text-[#2D8D84] font-bold">Biaya Layanan Platform (10%): Rp {Math.round(selectedQuestForAudit.bounty_fee * 0.1).toLocaleString('id-ID')}</p>
                 <p className="text-[#7A1E34] font-bold">Net Runner (90% + Nota): Rp {(selectedQuestForAudit.bounty_fee * 0.9 + (selectedQuestForAudit.item_cost || 0)).toLocaleString('id-ID')}</p>
               </div>
 

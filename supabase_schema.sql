@@ -1,6 +1,6 @@
 -- =========================================================
 -- CAMPUS QUEST - DATABASE DDL (Supabase PostgreSQL)
--- Blueprint On-Demand Mahasiswa: JASTAP & JARVIS (inDrive Model)
+-- Blueprint On-Demand Mahasiswa: JASTAP & JARVIS (Peer-to-Peer Bounty)
 -- =========================================================
 --
 -- ⚡ QUICK MIGRATION (Jalankan ini di Supabase Dashboard -> SQL Editor jika database sudah ada):
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS public.quests (
   landmark_origin TEXT,
   landmark_destination TEXT,
   notes TEXT,
-  bounty_fee NUMERIC(10, 2) NOT NULL, -- Penawaran jasa dari customer (inDrive style)
+  bounty_fee NUMERIC(10, 2) NOT NULL, -- Penawaran jasa dari customer (penawaran mandiri)
   item_cost NUMERIC(10, 2) DEFAULT 0, -- Diinput runner untuk belanja/sparepart
   receipt_image_url TEXT,
   payment_proof_url TEXT,

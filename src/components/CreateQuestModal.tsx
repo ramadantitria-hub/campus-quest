@@ -152,7 +152,7 @@ export default function CreateQuestModal({
                 {category === 'JASTAP' ? 'Buat Titipan JASTAP' : 'Panggil Teknisi JARVIS'}
               </h3>
               <p className="text-[10px] text-[#7E7074] truncate">
-                Upah mandiri ala inDrive • Mahasiswa UPI
+                Penawaran Upah Mandiri • Mahasiswa UPI
               </p>
             </div>
           </div>
@@ -413,12 +413,12 @@ export default function CreateQuestModal({
               />
             </div>
 
-            {/* Bounty Fee (inDrive Style Price Suggestion) */}
+            {/* Bounty Fee */}
             <div className="bg-white p-4 rounded-3xl border border-[#E8DFD1] shadow-xs">
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-extrabold text-[#2C2224] flex items-center gap-1.5">
                   <Coins className="w-4 h-4 text-[#7A1E34]" />
-                  Penawaran Bounty Jasa Anda (inDrive Style)
+                  Penawaran Bounty Jasa Anda
                 </label>
                 <span className="text-[11px] text-[#7A1E34] font-black font-mono">
                   Rp {bountyFee.toLocaleString('id-ID')}

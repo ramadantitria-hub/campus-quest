@@ -1,6 +1,6 @@
 # 🎓 CampusQuest (JASTAP & JARVIS) — Web App On-Demand Kampus
 
-> **Platform On-Demand Ekosistem Mahasiswa berbasis Peer-to-Peer Bounty (inDrive Model)**  
+> **Platform On-Demand Ekosistem Mahasiswa berbasis Peer-to-Peer Bounty**  
 > Dibangun sesuai rancangan blueprint teknis: Next.js 16 (App Router), Tailwind CSS, Lucide Icons, Supabase Integration, dan PWA Support.
 
 ---
@@ -11,7 +11,7 @@
 - **Switcher Dinamis Instan**: Berganti peran kapan saja antara **Customer** (pemesan quest) dan **Runner** (eksekutor quest) melalui toggle di navbar.
 - **Customer Mode**:
   - Dashboard pemesanan dengan kartu shortcut **JASTAP** & **JARVIS**.
-  - Form pembuatan quest dengan **penentuan harga bounty sendiri ala inDrive**.
+  - Form pembuatan quest dengan **penentuan harga bounty mandiri**.
   - Timeline status progress interaktif (6 tahapan visual dinamis).
   - Pembayaran QRIS Statis & Bank Transfer dengan fitur upload bukti transfer otomatis.
   - Validasi OTP 6-digit untuk menyelesaikan transaksi.
@@ -104,7 +104,7 @@ techno/
 │   │   ├── BottomNav.tsx        # Navigasi bawah untuk perangkat mobile
 │   │   ├── CustomerDashboard.tsx# Dashboard pemesan (JASTAP & JARVIS)
 │   │   ├── RunnerDashboard.tsx  # Dashboard runner (Quest Board & eksekusi)
-│   │   ├── CreateQuestModal.tsx # Modal form quest + inDrive bounty slider
+│   │   ├── CreateQuestModal.tsx # Modal form quest + bounty slider
 │   │   ├── QuestDetailModal.tsx # Detail quest, stepper aksi, nota, bayar & OTP
 │   │   ├── LiveChatDrawer.tsx   # Live chat per-quest dengan kirim foto
 │   │   ├── CampusMap.tsx        # Radar peta kampus interaktif & Geolocation

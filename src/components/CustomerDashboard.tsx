@@ -115,7 +115,7 @@ export default function CustomerDashboard({
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 border border-white/30 text-[#D4EFEA] text-xs font-bold mb-2">
               <Sparkles className="w-3.5 h-3.5 text-[#A5DDD3]" />
-              <span>CampusQuest: inDrive Model untuk Mahasiswa UPI</span>
+              <span>CampusQuest untuk Mahasiswa UPI</span>
             </div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight">
               Halo, {profile.full_name}! 👋

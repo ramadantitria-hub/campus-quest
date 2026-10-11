@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useCampusQuest } from '@/context/CampusQuestContext';
-import { UPI_FACULTIES } from '@/lib/mock-data';
+import { UPI_FACULTIES, AUTHORIZED_ADMINS, ADMIN_PASSWORD } from '@/lib/mock-data';
 import { addKtmWatermark } from '@/lib/watermark';
 import { soundFX } from '@/lib/audio';
 import { UserRole } from '@/types/campus-quest';
@@ -39,12 +39,15 @@ interface KtmLoginModalProps {
   onClose: () => void;
 }
 
+type LoginSection = 'customer' | 'runner' | 'admin';
 type LoginTab = 'login' | 'register' | 'ocr_scan';
 type ScanSource = 'upload' | 'camera';
 
 export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
-  const { loginWithCredentials, registerAccount, loginWithKtm, isLoggedIn, loginAsAdmin, openAdminAuthModal } = useCampusQuest();
+  const { loginWithCredentials, registerAccount, loginWithKtm, isLoggedIn, loginAsAdmin } = useCampusQuest();
 
+  // 3 Bagian Utama Login: Customer, Runner, Admin
+  const [loginSection, setLoginSection] = useState<LoginSection>('customer');
   const [activeTab, setActiveTab] = useState<LoginTab>('login');
 
   // Login State
@@ -53,6 +56,13 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [loginRole, setLoginRole] = useState<UserRole>('customer');
   const [loginError, setLoginError] = useState<string | null>(null);
+
+  // Admin Login State
+  const [adminNim, setAdminNim] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
+  const [adminError, setAdminError] = useState<string | null>(null);
+  const [adminSuccess, setAdminSuccess] = useState<string | null>(null);
 
   // Register State
   const [regFullName, setRegFullName] = useState('');
@@ -229,6 +239,7 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
       return;
     }
 
+    const targetRole: UserRole = loginSection === 'runner' ? 'runner' : 'customer';
     loginWithKtm({
       fullName: cleanName,
       nim: cleanNim,
@@ -237,7 +248,7 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
       university: 'Universitas Pendidikan Indonesia (UPI)',
       ktmUrl: scannedKtmUrl || '',
       avatarUrl: scannedAvatarUrl || undefined,
-      role: scannedRole
+      role: targetRole
     });
     onClose();
   };
@@ -250,11 +261,55 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
       setLoginError('Masukkan Nomor Induk Mahasiswa (NIM) UPI Anda.');
       return;
     }
-    const res = loginWithCredentials(cleanNim, loginPassword, loginRole);
+    const targetRole: UserRole = loginSection === 'runner' ? 'runner' : 'customer';
+    const res = loginWithCredentials(cleanNim, loginPassword, targetRole);
     if (res.success) {
       onClose();
     } else {
       setLoginError(res.message);
+    }
+  };
+
+  const handleAdminSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAdminError(null);
+    setAdminSuccess(null);
+    const cleanNim = adminNim.trim();
+    const cleanPass = adminPassword.trim();
+    if (!cleanNim) {
+      setAdminError('Silakan pilih salah satu Administrator atau masukkan NIM Administrator.');
+      return;
+    }
+    if (!cleanPass) {
+      setAdminError('Masukkan password Administrator (default: 123).');
+      return;
+    }
+    const res = loginAsAdmin(cleanNim, cleanPass);
+    if (!res.success) {
+      setAdminError(res.message);
+    } else {
+      setAdminSuccess(res.message);
+      setTimeout(() => {
+        onClose();
+      }, 700);
+    }
+  };
+
+  const handleSelectAdmin = (nim: string) => {
+    setAdminNim(nim);
+    setAdminPassword(ADMIN_PASSWORD);
+    setAdminError(null);
+    soundFX.pop();
+  };
+
+  const handleQuickLogin = (nim: string, role: 'customer' | 'runner') => {
+    setLoginNim(nim);
+    setLoginPassword('upi123');
+    setLoginError(null);
+    soundFX.pop();
+    const res = loginWithCredentials(nim, 'upi123', role);
+    if (res.success) {
+      onClose();
     }
   };
 
@@ -297,7 +352,7 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
       faculty: regFaculty,
       university: 'Universitas Pendidikan Indonesia (UPI)',
       phone: cleanPhone,
-      role: regRole
+      role: loginSection === 'runner' ? 'runner' : 'customer'
     });
 
     if (res.success) {
@@ -345,61 +400,320 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
           </div>
         </div>
 
-        {/* Method Switcher Tabs (3 Tabs: Login, Register, OCR Scan) */}
-        <div className="grid grid-cols-3 p-1 bg-[#F2EBE0] border border-[#E8DFD1] rounded-2xl mb-6 text-xs font-semibold gap-1">
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('login');
-              stopCamera();
-              soundFX.pop();
-            }}
-            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl transition-all cursor-pointer ${
-              activeTab === 'login'
-                ? 'bg-[#7A1E34] text-white shadow-md shadow-[#7A1E34]/25'
-                : 'text-[#6E6265] hover:text-[#2C2224]'
-            }`}
-          >
-            <KeyRound className="w-3.5 h-3.5" />
-            <span className="truncate">Masuk</span>
-          </button>
+        {/* 3 BAGIAN UTAMA LOGIN: CUSTOMER, RUNNER, ADMIN */}
+        <div className="mb-4">
+          <label className="text-[11px] font-bold text-[#6E6265] mb-1.5 block">
+            Pilih Peran Masuk (3 Bagian):
+          </label>
+          <div className="grid grid-cols-3 p-1.5 bg-[#F2EBE0] border border-[#E8DFD1] rounded-2xl gap-1.5 shadow-inner">
+            {/* Bagian 1: Customer */}
+            <button
+              type="button"
+              onClick={() => {
+                setLoginSection('customer');
+                setLoginRole('customer');
+                setLoginError(null);
+                soundFX.pop();
+              }}
+              className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2 sm:py-2.5 px-2 rounded-xl transition-all cursor-pointer ${
+                loginSection === 'customer'
+                  ? 'bg-[#2D8D84] text-white shadow-md shadow-[#2D8D84]/30 font-bold'
+                  : 'text-[#6E6265] hover:text-[#2C2224] hover:bg-white/50 font-semibold'
+              }`}
+            >
+              <ShoppingBag className="w-4 h-4 shrink-0" />
+              <div className="text-center sm:text-left leading-tight">
+                <div className="text-xs font-black">1. Customer</div>
+                <div className="text-[10px] opacity-85 hidden sm:block">Titip Beli & Jasa</div>
+              </div>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('register');
-              stopCamera();
-              soundFX.pop();
-            }}
-            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl transition-all cursor-pointer ${
-              activeTab === 'register'
-                ? 'bg-[#7A1E34] text-white shadow-md shadow-[#7A1E34]/25'
-                : 'text-[#6E6265] hover:text-[#2C2224]'
-            }`}
-          >
-            <User className="w-3.5 h-3.5" />
-            <span className="truncate">Daftar</span>
-          </button>
+            {/* Bagian 2: Runner */}
+            <button
+              type="button"
+              onClick={() => {
+                setLoginSection('runner');
+                setLoginRole('runner');
+                setLoginError(null);
+                soundFX.pop();
+              }}
+              className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2 sm:py-2.5 px-2 rounded-xl transition-all cursor-pointer ${
+                loginSection === 'runner'
+                  ? 'bg-[#7A1E34] text-white shadow-md shadow-[#7A1E34]/30 font-bold'
+                  : 'text-[#6E6265] hover:text-[#2C2224] hover:bg-white/50 font-semibold'
+              }`}
+            >
+              <Zap className="w-4 h-4 shrink-0" />
+              <div className="text-center sm:text-left leading-tight">
+                <div className="text-xs font-black">2. Runner</div>
+                <div className="text-[10px] opacity-85 hidden sm:block">Mitra Eksekutor</div>
+              </div>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('ocr_scan');
-              soundFX.pop();
-            }}
-            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl transition-all cursor-pointer ${
-              activeTab === 'ocr_scan'
-                ? 'bg-[#7A1E34] text-white shadow-md shadow-[#7A1E34]/25'
-                : 'text-[#6E6265] hover:text-[#2C2224]'
-            }`}
-          >
-            <Camera className="w-3.5 h-3.5" />
-            <span className="truncate">Pindai KTM</span>
-          </button>
+            {/* Bagian 3: Admin */}
+            <button
+              type="button"
+              onClick={() => {
+                setLoginSection('admin');
+                setLoginRole('admin');
+                setAdminError(null);
+                soundFX.pop();
+              }}
+              className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2 sm:py-2.5 px-2 rounded-xl transition-all cursor-pointer ${
+                loginSection === 'admin'
+                  ? 'bg-[#2C2224] text-white shadow-md shadow-black/30 font-bold'
+                  : 'text-[#6E6265] hover:text-[#2C2224] hover:bg-white/50 font-semibold'
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4 shrink-0 text-amber-400" />
+              <div className="text-center sm:text-left leading-tight">
+                <div className="text-xs font-black">3. Admin</div>
+                <div className="text-[10px] opacity-85 hidden sm:block">Portal Admin</div>
+              </div>
+            </button>
+          </div>
         </div>
 
+        {/* ROLE BANNER FOR CUSTOMER / RUNNER */}
+        {loginSection === 'customer' && (
+          <div className="p-3 rounded-2xl bg-gradient-to-r from-[#E8F6F3] to-[#F2FBF9] border border-[#A5DDD3] mb-4 flex items-center justify-between shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-[#2D8D84] text-white flex items-center justify-center font-bold shadow-sm shadow-[#2D8D84]/20">
+                <ShoppingBag className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xs font-extrabold text-[#1F6F67]">Portal Masuk Customer UPI</h3>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white text-[#2D8D84] border border-[#A5DDD3]">
+                    Customer Mode
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#2D8D84] mt-0.5">
+                  Titip beli makanan/print & panggil Jarvis servis teknisi komputer
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {loginSection === 'runner' && (
+          <div className="p-3 rounded-2xl bg-gradient-to-r from-[#FBF0F2] to-[#FFF5F7] border border-[#F1CCD3] mb-4 flex items-center justify-between shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-[#7A1E34] text-white flex items-center justify-center font-bold shadow-sm shadow-[#7A1E34]/20">
+                <Zap className="w-4 h-4 text-amber-300" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xs font-extrabold text-[#7A1E34]">Portal Masuk Runner UPI</h3>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white text-[#7A1E34] border border-[#F1CCD3]">
+                    Runner Mode
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#9B2444] mt-0.5">
+                  Ambil pesanan mahasiswa lain di kampus & raih uang saku harian instan
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* METHOD SWITCHER TABS (HANYA UNTUK CUSTOMER & RUNNER) */}
+        {loginSection !== 'admin' && (
+          <div className="grid grid-cols-3 p-1 bg-[#F2EBE0] border border-[#E8DFD1] rounded-2xl mb-4 text-xs font-semibold gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('login');
+                stopCamera();
+                soundFX.pop();
+              }}
+              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl transition-all cursor-pointer ${
+                activeTab === 'login'
+                  ? 'bg-[#7A1E34] text-white shadow-md shadow-[#7A1E34]/25'
+                  : 'text-[#6E6265] hover:text-[#2C2224]'
+              }`}
+            >
+              <KeyRound className="w-3.5 h-3.5" />
+              <span className="truncate">Masuk</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('register');
+                stopCamera();
+                soundFX.pop();
+              }}
+              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl transition-all cursor-pointer ${
+                activeTab === 'register'
+                  ? 'bg-[#7A1E34] text-white shadow-md shadow-[#7A1E34]/25'
+                  : 'text-[#6E6265] hover:text-[#2C2224]'
+              }`}
+            >
+              <User className="w-3.5 h-3.5" />
+              <span className="truncate">Daftar</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('ocr_scan');
+                soundFX.pop();
+              }}
+              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl transition-all cursor-pointer ${
+                activeTab === 'ocr_scan'
+                  ? 'bg-[#7A1E34] text-white shadow-md shadow-[#7A1E34]/25'
+                  : 'text-[#6E6265] hover:text-[#2C2224]'
+              }`}
+            >
+              <Camera className="w-3.5 h-3.5" />
+              <span className="truncate">Pindai KTM</span>
+            </button>
+          </div>
+        )}
+
+        {/* BAGIAN 3: LOGIN KHUSUS ADMIN */}
+        {loginSection === 'admin' && (
+          <div className="space-y-4 animate-in fade-in">
+            <div className="p-3.5 rounded-2xl bg-[#2C2224] text-white border border-[#4A3D41] flex items-center justify-between shadow-xs">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#7A1E34] to-[#9B2444] text-white flex items-center justify-center font-bold shadow-sm">
+                  <ShieldCheck className="w-5 h-5 text-amber-400" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xs sm:text-sm font-extrabold text-white">Portal Admin</h3>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                      Khusus 4 Administrator
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#A5DDD3] mt-0.5">
+                    Audit transaksi, moderasi pesanan, & verifikasi akun mahasiswa
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Pilih salah satu 4 Admin Resmi */}
+            <div>
+              <label className="text-xs font-bold text-[#2C2224] mb-1.5 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-[#7A1E34]" />
+                  Pilih Akun Admin Resmi:
+                </span>
+                <span className="text-[10px] text-[#2D8D84] font-semibold bg-[#E8F6F3] px-2 py-0.5 rounded-md border border-[#A5DDD3]">
+                  Klik untuk Isi Otomatis
+                </span>
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {AUTHORIZED_ADMINS.map((admin) => {
+                  const isSelected = adminNim === admin.nim;
+                  return (
+                    <button
+                      key={admin.nim}
+                      type="button"
+                      onClick={() => handleSelectAdmin(admin.nim)}
+                      className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                        isSelected
+                          ? 'bg-[#E8F6F3] border-[#2D8D84] text-[#1F6F67] shadow-xs ring-2 ring-[#2D8D84]/20'
+                          : 'bg-white border-[#E8DFD1] hover:border-[#2D8D84] text-[#2C2224]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-xs font-black truncate">{admin.name}</span>
+                        <span className="text-[10px] font-mono font-bold text-[#7A1E34]">
+                          {admin.nim}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-[#8E7F83] truncate mt-0.5">
+                        {admin.major}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Form Login Admin */}
+            <form onSubmit={handleAdminSubmit} className="space-y-3.5 pt-1">
+              <div>
+                <label className="block text-xs font-bold text-[#2C2224] mb-1 flex items-center gap-1.5">
+                  <Hash className="w-3.5 h-3.5 text-[#7A1E34]" />
+                  Nomor Induk Mahasiswa (NIM) Administrator
+                </label>
+                <input
+                  type="text"
+                  value={adminNim}
+                  onChange={(e) => {
+                    setAdminNim(e.target.value);
+                    setAdminError(null);
+                  }}
+                  placeholder="Pilih di atas atau ketik NIM Admin..."
+                  required
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E8DFD1] text-xs font-mono font-bold text-[#2C2224] placeholder:font-sans placeholder:font-normal focus:outline-none focus:border-[#7A1E34]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#2C2224] mb-1 flex items-center gap-1.5">
+                  <KeyRound className="w-3.5 h-3.5 text-[#7A1E34]" />
+                  Password Administrator (Default: 123)
+                </label>
+                <div className="relative">
+                  <input
+                    type={showAdminPassword ? 'text' : 'password'}
+                    value={adminPassword}
+                    onChange={(e) => {
+                      setAdminPassword(e.target.value);
+                      setAdminError(null);
+                    }}
+                    placeholder="Masukkan password admin resmi..."
+                    required
+                    className="w-full px-3.5 py-2.5 pr-10 rounded-xl bg-white border border-[#E8DFD1] text-xs font-mono text-[#2C2224] focus:outline-none focus:border-[#7A1E34]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowAdminPassword(!showAdminPassword)}
+                    className="absolute right-3 top-2.5 text-[#6E6265] hover:text-[#2C2224]"
+                  >
+                    {showAdminPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#FAF7F2] border border-[#E8DFD1] text-[11px] text-[#6E6265] flex items-start gap-2">
+                <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                <span>
+                  <strong className="text-[#2C2224]">Privasi & Keamanan Ketat:</strong> Halaman dashboard dan audit Administrator tidak dapat diakses atau dilihat oleh akun Customer maupun Runner.
+                </span>
+              </div>
+
+              {adminError && (
+                <div className="p-3 rounded-xl bg-[#FBF0F2] border border-[#F1CCD3] text-[#7A1E34] text-xs flex items-center gap-2 font-medium">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{adminError}</span>
+                </div>
+              )}
+
+              {adminSuccess && (
+                <div className="p-3 rounded-xl bg-[#E8F6F3] border border-[#A5DDD3] text-[#1F6F67] text-xs flex items-center gap-2 font-medium">
+                  <CheckCircle className="w-4 h-4 shrink-0" />
+                  <span>{adminSuccess}</span>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="w-full py-2.5 rounded-xl bg-[#2C2224] hover:bg-[#1A1415] text-white font-bold text-xs transition-all shadow-md shadow-black/25 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <ShieldCheck className="w-4 h-4 text-amber-400" /> Masuk Sebagai Admin →
+              </button>
+            </form>
+          </div>
+        )}
+
         {/* TAB 1: OCR SCAN / UPLOAD KTM */}
-        {activeTab === 'ocr_scan' && (
+        {loginSection !== 'admin' && activeTab === 'ocr_scan' && (
           <div className="space-y-4">
             {!hasScannedResult && !isScanning && (
               <>
@@ -693,31 +1007,15 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
                   </div>
 
                   <div className="pt-2 border-t border-[#E8DFD1] flex items-center justify-between">
-                    <span className="text-xs text-[#2C2224] font-medium">Masuk sebagai mode awal:</span>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setScannedRole('customer')}
-                        className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
-                          scannedRole === 'customer'
-                            ? 'bg-[#FBF0F2] border-[#7A1E34] text-[#7A1E34] font-bold'
-                            : 'bg-white border-[#E8DFD1] text-[#6E6265] hover:text-[#2C2224]'
-                        }`}
-                      >
-                        <ShoppingBag className="w-3 h-3 inline mr-1" /> Customer
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setScannedRole('runner')}
-                        className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
-                          scannedRole === 'runner'
-                            ? 'bg-[#E8F6F3] border-[#2D8D84] text-[#2D8D84] font-bold'
-                            : 'bg-white border-[#E8DFD1] text-[#6E6265] hover:text-[#2C2224]'
-                        }`}
-                      >
-                        <Zap className="w-3 h-3 inline mr-1" /> Runner
-                      </button>
-                    </div>
+                    <span className="text-xs text-[#2C2224] font-medium">Masuk Sebagai Mode:</span>
+                    <span className={`px-3 py-1 rounded-lg text-xs font-bold border flex items-center gap-1.5 ${
+                      loginSection === 'runner'
+                        ? 'bg-[#E8F6F3] border-[#2D8D84] text-[#2D8D84]'
+                        : 'bg-[#FBF0F2] border-[#7A1E34] text-[#7A1E34]'
+                    }`}>
+                      {loginSection === 'runner' ? <Zap className="w-3.5 h-3.5 text-amber-500" /> : <ShoppingBag className="w-3.5 h-3.5" />}
+                      <span>{loginSection === 'runner' ? 'Runner Mahasiswa UPI' : 'Customer Mahasiswa UPI'}</span>
+                    </span>
                   </div>
                 </div>
 
@@ -746,7 +1044,7 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
         )}
 
         {/* TAB 2: FORM MASUK (LOGIN) */}
-        {activeTab === 'login' && (
+        {loginSection !== 'admin' && activeTab === 'login' && (
           <form onSubmit={handleLoginSubmit} className="space-y-4">
             {/* Input NIM UPI */}
             <div>
@@ -790,37 +1088,74 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
               </div>
             </div>
 
-            {/* Role Switcher Option during Login */}
-            <div>
-              <label className="block text-xs font-medium text-[#2C2224] mb-1.5">
-                Pilihan Halaman / Peran Masuk:
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setLoginRole('customer')}
-                  className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                    loginRole === 'customer'
-                      ? 'bg-[#FBF0F2] border-[#7A1E34] text-[#7A1E34] shadow-sm font-bold'
-                      : 'bg-white border-[#E8DFD1] text-[#6E6265] hover:text-[#2C2224]'
-                  }`}
-                >
-                  <ShoppingBag className="w-3.5 h-3.5" />
-                  <span>Customer Portal</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLoginRole('runner')}
-                  className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                    loginRole === 'runner'
-                      ? 'bg-[#E8F6F3] border-[#2D8D84] text-[#2D8D84] shadow-sm font-bold'
-                      : 'bg-white border-[#E8DFD1] text-[#6E6265] hover:text-[#2C2224]'
-                  }`}
-                >
-                  <Zap className="w-3.5 h-3.5" />
-                  <span>Runner Hub</span>
-                </button>
+            {/* Pilihan Akun Demo Cepat Customer / Runner */}
+            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-[#E8DFD1]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-bold text-[#2C2224] flex items-center gap-1.5">
+                  {loginSection === 'customer' ? (
+                    <>
+                      <ShoppingBag className="w-3.5 h-3.5 text-[#2D8D84]" />
+                      <span>Pilih Cepat Akun Demo Customer:</span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-3.5 h-3.5 text-[#7A1E34]" />
+                      <span>Pilih Cepat Akun Demo Runner:</span>
+                    </>
+                  )}
+                </span>
+                <span className="text-[10px] text-[#2D8D84] font-semibold bg-[#E8F6F3] px-2 py-0.5 rounded-full border border-[#A5DDD3]">
+                  1-Klik Masuk
+                </span>
               </div>
+
+              {loginSection === 'customer' ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickLogin('2201945', 'customer')}
+                    className="p-2 rounded-xl bg-white border border-[#A5DDD3] hover:bg-[#E8F6F3] text-left transition-colors cursor-pointer flex flex-col justify-between"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-[#1F6F67]">Bima Arya</span>
+                      <span className="text-[10px] font-mono text-[#2D8D84]">2201945</span>
+                    </div>
+                    <span className="text-[10px] text-[#6E6265] truncate mt-0.5">
+                      FPTK - Teknik Mesin
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickLogin('2304512', 'customer')}
+                    className="p-2 rounded-xl bg-white border border-[#A5DDD3] hover:bg-[#E8F6F3] text-left transition-colors cursor-pointer flex flex-col justify-between"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-[#1F6F67]">Nabila Putri</span>
+                      <span className="text-[10px] font-mono text-[#2D8D84]">2304512</span>
+                    </div>
+                    <span className="text-[10px] text-[#6E6265] truncate mt-0.5">
+                      FPEB - Manajemen Bisnis
+                    </span>
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleQuickLogin('2108765', 'runner')}
+                  className="w-full p-2.5 rounded-xl bg-white border border-[#F1CCD3] hover:bg-[#FBF0F2] text-left transition-colors cursor-pointer flex items-center justify-between"
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-[#7A1E34]">Reza Fachri (The Machinist)</span>
+                      <span className="text-[10px] font-mono font-bold text-[#7A1E34]">2108765</span>
+                    </div>
+                    <span className="text-[10px] text-[#6E6265] truncate mt-0.5 block">
+                      FPMIPA - Ilmu Komputer • Rating 4.98 ⭐
+                    </span>
+                  </div>
+                  <span className="text-xs font-extrabold text-[#7A1E34]">Masuk →</span>
+                </button>
+              )}
             </div>
 
             {loginError && (
@@ -832,9 +1167,14 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
 
             <button
               type="submit"
-              className="w-full py-2.5 rounded-xl bg-[#7A1E34] hover:bg-[#6E1C2F] text-white font-bold text-xs transition-all shadow-md shadow-[#7A1E34]/25 flex items-center justify-center gap-2 cursor-pointer"
+              className={`w-full py-2.5 rounded-xl text-white font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer ${
+                loginSection === 'runner'
+                  ? 'bg-[#7A1E34] hover:bg-[#6E1C2F] shadow-[#7A1E34]/25'
+                  : 'bg-[#2D8D84] hover:bg-[#247D75] shadow-[#2D8D84]/25'
+              }`}
             >
-              <KeyRound className="w-4 h-4" /> Masuk ke CampusQuest UPI →
+              {loginSection === 'runner' ? <Zap className="w-4 h-4 text-amber-300" /> : <ShoppingBag className="w-4 h-4" />}
+              <span>Masuk Sebagai {loginSection === 'runner' ? 'Runner' : 'Customer'} UPI →</span>
             </button>
 
             <div className="text-center pt-1">
@@ -943,46 +1283,29 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
               />
             </div>
 
-            {/* PILIHAN PERAN / ROLE PENDAFTARAN */}
-            <div>
-              <label className="block text-xs font-semibold text-[#2C2224] mb-1.5">
-                Daftar Sebagai Peran Utama:
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setRegRole('customer')}
-                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                    regRole === 'customer'
-                      ? 'bg-[#FBF0F2] border-[#7A1E34] text-[#2C2224] shadow-sm'
-                      : 'bg-white border-[#E8DFD1] text-[#6E6265] hover:text-[#2C2224]'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5 font-bold text-xs text-[#7A1E34]">
-                    <ShoppingBag className="w-4 h-4" /> Customer UPI
-                  </div>
-                  <p className="text-[10px] text-[#6E6265] mt-1 leading-tight">
-                    Titip beli makanan, print kilat, &amp; panggil servis teknisi.
-                  </p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setRegRole('runner')}
-                  className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                    regRole === 'runner'
-                      ? 'bg-[#E8F6F3] border-[#2D8D84] text-[#2C2224] shadow-sm'
-                      : 'bg-white border-[#E8DFD1] text-[#6E6265] hover:text-[#2C2224]'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5 font-bold text-xs text-[#2D8D84]">
-                    <Zap className="w-4 h-4" /> Runner UPI
-                  </div>
-                  <p className="text-[10px] text-[#6E6265] mt-1 leading-tight">
-                    Ambil quest pesanan mahasiswa lain &amp; dapatkan penghasilan instan.
-                  </p>
-                </button>
+            {/* Status Peran Pendaftaran */}
+            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-[#E8DFD1] flex items-center justify-between">
+              <div>
+                <span className="text-xs text-[#6E6265] block">Mendaftar Sebagai Akun:</span>
+                <span className="text-xs font-black text-[#2C2224] flex items-center gap-1.5 mt-0.5">
+                  {loginSection === 'runner' ? (
+                    <>
+                      <Zap className="w-4 h-4 text-[#7A1E34]" /> Runner Mahasiswa UPI
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingBag className="w-4 h-4 text-[#2D8D84]" /> Customer Mahasiswa UPI
+                    </>
+                  )}
+                </span>
               </div>
+              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-xl border ${
+                loginSection === 'runner'
+                  ? 'bg-[#FBF0F2] text-[#7A1E34] border-[#F1CCD3]'
+                  : 'bg-[#E8F6F3] text-[#1F6F67] border-[#A5DDD3]'
+              }`}>
+                {loginSection === 'runner' ? 'Mitra Eksekutor' : 'Pemesan Jasa'}
+              </span>
             </div>
 
             {/* Password & Konfirmasi Password */}
@@ -1031,9 +1354,13 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
 
             <button
               type="submit"
-              className="w-full py-2.5 rounded-xl bg-[#2D8D84] hover:bg-[#247D75] text-white font-bold text-xs transition-all shadow-md shadow-[#2D8D84]/25 flex items-center justify-center gap-2 cursor-pointer"
+              className={`w-full py-2.5 rounded-xl text-white font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer ${
+                loginSection === 'runner'
+                  ? 'bg-[#7A1E34] hover:bg-[#6E1C2F] shadow-[#7A1E34]/25'
+                  : 'bg-[#2D8D84] hover:bg-[#247D75] shadow-[#2D8D84]/25'
+              }`}
             >
-              <Check className="w-4 h-4" /> Daftar Akun {regRole === 'runner' ? 'Runner' : 'Customer'} UPI →
+              <Check className="w-4 h-4" /> Daftar Akun {loginSection === 'runner' ? 'Runner' : 'Customer'} UPI →
             </button>
 
             <div className="text-center pt-1">
@@ -1056,17 +1383,10 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
           </div>
 
           <div className="flex items-center gap-2 self-start sm:self-auto">
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                openAdminAuthModal();
-              }}
-              className="text-[#2C2224] hover:text-[#7A1E34] font-bold px-2.5 py-1 rounded-xl bg-[#FAF7F2] border border-[#E8DFD1] hover:bg-[#F2EBE0] cursor-pointer transition-colors flex items-center gap-1"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
-              <span>Login Admin BEM</span>
-            </button>
+            <div className="text-[11px] text-[#8E7F83] flex items-center gap-1.5 font-medium">
+              <Lock className="w-3.5 h-3.5 text-[#2D8D84]" />
+              <span>Tampilan admin terproteksi & privat</span>
+            </div>
             {!isLoggedIn && (
               <button
                 onClick={onClose}

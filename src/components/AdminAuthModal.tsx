@@ -73,10 +73,10 @@ export default function AdminAuthModal({ isOpen, onClose }: AdminAuthModalProps)
           </div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FBF0F2] border border-[#F1CCD3] text-[#7A1E34] text-[11px] font-black mb-1.5">
             <Lock className="w-3 h-3 text-[#7A1E34]" />
-            <span>Hak Akses Terbatas BEM UPI</span>
+            <span>Hak Akses Terbatas Admin</span>
           </div>
           <h2 className="text-lg sm:text-xl font-black text-[#2C2224]">
-            Portal Administrator BEM UPI
+            Portal Admin
           </h2>
           <p className="text-xs text-[#6E6265] mt-1">
             Hanya 4 Administrator Resmi yang Berhak Mengakses Pengawasan dan Moderasi Sistem.

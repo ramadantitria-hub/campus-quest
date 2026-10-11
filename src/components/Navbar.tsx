@@ -36,8 +36,7 @@ export default function Navbar({
     switchRole,
     resetToDefaultData,
     logout,
-    isCurrentUserAdmin,
-    openAdminAuthModal
+    isCurrentUserAdmin
   } = useCampusQuest();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -65,17 +64,9 @@ export default function Navbar({
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#39A99D] rounded-full border-2 border-[#FAF7F2] animate-pulse" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-base sm:text-lg text-[#2C2224] tracking-tight">
-                  Campus<span className="text-[#7A1E34]">Quest</span>
-                </span>
-                <span className="hidden sm:inline-flex text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-[#E8F6F3] border border-[#A5DDD3] text-[#1F6F67]">
-                  inDrive Model
-                </span>
-              </div>
-              <p className="text-[11px] text-[#7E7074] hidden sm:block">
-                JASTAP &amp; JARVIS On-Demand Kampus UPI
-              </p>
+              <span className="font-extrabold text-base sm:text-lg text-[#2C2224] tracking-tight">
+                Campus<span className="text-[#7A1E34]">Quest</span>
+              </span>
             </div>
           </div>
 
@@ -104,27 +95,21 @@ export default function Navbar({
                 <Zap className="w-3.5 h-3.5" />
                 <span>Runner</span>
               </button>
-              <button
-                onClick={() => {
-                  if (!isCurrentUserAdmin && activeRole !== 'admin') {
-                    openAdminAuthModal();
-                  } else {
-                    switchRole('admin');
-                  }
-                }}
-                className={`relative z-10 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ${
-                  activeRole === 'admin'
-                    ? 'bg-[#2C2224] text-white shadow-md shadow-black/30'
-                    : 'text-[#6E6265] hover:text-[#2C2224]'
-                }`}
-                title={isCurrentUserAdmin ? 'Portal Admin BEM UPI' : 'Masuk Portal Admin BEM UPI (Khusus 4 Administrator)'}
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-                <span>Admin</span>
-                {!isCurrentUserAdmin && activeRole !== 'admin' && (
-                  <Lock className="w-2.5 h-2.5 text-amber-500/80" />
-                )}
-              </button>
+              {/* Tombol Admin HANYA BISA DILIHAT OLEH ADMINISTRATOR RESMI (Tidak terlihat oleh Customer & Runner) */}
+              {(isCurrentUserAdmin || activeRole === 'admin') && (
+                <button
+                  onClick={() => switchRole('admin')}
+                  className={`relative z-10 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ${
+                    activeRole === 'admin'
+                      ? 'bg-[#2C2224] text-white shadow-md shadow-black/30'
+                      : 'text-[#6E6265] hover:text-[#2C2224]'
+                  }`}
+                  title="Portal Admin"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Admin</span>
+                </button>
+              )}
             </div>
           </div>
 

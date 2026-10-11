@@ -51,7 +51,9 @@ function CampusQuestApp() {
     isGuestMode,
     acceptQuest,
     isAdminAuthModalOpen,
-    closeAdminAuthModal
+    closeAdminAuthModal,
+    isCurrentUserAdmin,
+    switchRole
   } = useCampusQuest();
 
   // Modals state
@@ -190,7 +192,7 @@ function CampusQuestApp() {
                   : 'text-[#6E6265] hover:text-[#2C2224] hover:bg-[#F2EBE0]'
               }`}
             >
-              Beranda ({activeRole === 'admin' ? 'Admin' : activeRole === 'customer' ? 'Customer' : 'Runner'})
+              Beranda ({activeRole === 'admin' && isCurrentUserAdmin ? 'Admin' : activeRole === 'customer' ? 'Customer' : 'Runner'})
             </button>
             <button
               onClick={() => setActiveTab('quests')}
@@ -202,7 +204,7 @@ function CampusQuestApp() {
             >
               {activeRole === 'customer'
                 ? `Pesanan Saya (${myQuestsCount})`
-                : activeRole === 'admin'
+                : activeRole === 'admin' && isCurrentUserAdmin
                 ? `Semua Quest Kampus (${quests.length})`
                 : `Quest Terbaru (${openQuestsCount})`}
             </button>
@@ -267,7 +269,7 @@ function CampusQuestApp() {
         {/* VIEW: HOME */}
         {activeTab === 'home' && (
           <>
-            {activeRole === 'admin' ? (
+            {activeRole === 'admin' && isCurrentUserAdmin ? (
               <AdminDashboard />
             ) : activeRole === 'customer' ? (
               <CustomerDashboard
@@ -304,14 +306,14 @@ function CampusQuestApp() {
                     <Compass className="w-5 h-5 text-[#2D8D84]" />
                     {activeRole === 'customer'
                       ? 'Pesanan & Riwayat Saya'
-                      : activeRole === 'admin'
+                      : activeRole === 'admin' && isCurrentUserAdmin
                       ? 'Pengawasan Seluruh Quest'
                       : 'Quest Terbaru Tersedia'}
                   </h2>
                   <p className="text-xs text-[#6E6265]">
                     {activeRole === 'customer'
                       ? 'Daftar seluruh pesanan JASTAP & JARVIS milik akun Anda (Privat)'
-                      : activeRole === 'admin'
+                      : activeRole === 'admin' && isCurrentUserAdmin
                       ? 'Audit dan moderasi seluruh pesanan mahasiswa UPI secara terpusat'
                       : 'Daftar pesanan terbaru yang siap Anda ambil. Pesanan yang sedang diproses runner lain otomatis dialihkan ke pengawasan Admin.'}
                   </p>

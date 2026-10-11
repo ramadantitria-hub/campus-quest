@@ -62,7 +62,7 @@ export interface Quest {
   unit: string; // 'pcs' | 'bungkus' | 'lembar' | 'porsi' | 'perangkat'
   origin_address: string;
   destination_address: string;
-  bounty_fee: number; // Harga jasa dari customer (inDrive style)
+  bounty_fee: number; // Harga jasa dari customer (penawaran mandiri)
   item_cost: number; // Biaya belanja / sparepart yang diinput runner
   receipt_image_url?: string;
   status: QuestStatus;
