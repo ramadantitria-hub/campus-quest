@@ -38,7 +38,8 @@ import {
   Sparkles,
   Ban,
   Check,
-  X
+  X,
+  Database
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -801,6 +802,49 @@ export default function AdminDashboard() {
             <p className="text-xs text-[#6E6265] mt-0.5">
               Kelola status database, reset data demo, dan kontrol keamanan ekosistem
             </p>
+          </div>
+
+          {/* Supabase Cloud Live Integration Status */}
+          <div className="p-4 rounded-2xl bg-white border border-[#A5DDD3] shadow-xs space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#E8F6F3] text-[#2D8D84] flex items-center justify-center font-bold">
+                  <Database className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-[#2C2224] flex items-center gap-1.5">
+                    Supabase PostgreSQL Cloud
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Terhubung & Realtime Aktif
+                    </span>
+                  </h4>
+                  <p className="text-[11px] text-[#6E6265] mt-0.5">
+                    Sinkronisasi data multi-perangkat real-time untuk quest, live chat, dan profil pengguna.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 text-[11px]">
+              <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-[#E8DFD1]">
+                <span className="text-[#8E7F83] block text-[10px]">Project Endpoint</span>
+                <span className="font-mono font-bold text-[#2C2224] truncate block mt-0.5">
+                  uognivvjfvmkhswdeqle.supabase.co
+                </span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-[#E8DFD1]">
+                <span className="text-[#8E7F83] block text-[10px]">Tabel Terhubung</span>
+                <span className="font-bold text-[#2D8D84] block mt-0.5">
+                  profiles, quests, chat_messages, reviews
+                </span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-[#FAF7F2] border border-[#E8DFD1]">
+                <span className="text-[#8E7F83] block text-[10px]">Mode Sinkronisasi</span>
+                <span className="font-bold text-[#7A1E34] block mt-0.5">
+                  Postgres Realtime Changes (Live)
+                </span>
+              </div>
+            </div>
           </div>
 
           <div className="p-4 rounded-2xl bg-[#FAF7F2] border border-[#E8DFD1] flex items-center justify-between gap-3">

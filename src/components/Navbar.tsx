@@ -218,6 +218,10 @@ export default function Navbar({
                               Prodi: {profile.major}
                             </p>
                           )}
+                          <div className="flex items-center gap-1 text-[9px] text-[#2D8D84] pt-0.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>Supabase Realtime Cloud Aktif</span>
+                          </div>
                         </div>
                       </div>
 
