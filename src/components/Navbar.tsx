@@ -246,6 +246,16 @@ export default function Navbar({
                     </div>
                   )}
                 </div>
+
+                {/* Quick Logout / Ganti Akun button */}
+                <button
+                  onClick={logout}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-red-500/40 hover:bg-red-950/30 text-slate-400 hover:text-red-400 text-xs font-medium transition-all cursor-pointer"
+                  title="Keluar ke Menu Login / Ganti Akun"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span className="hidden xl:inline">Keluar</span>
+                </button>
               </>
             )}
 

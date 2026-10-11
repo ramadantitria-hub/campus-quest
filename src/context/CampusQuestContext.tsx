@@ -130,23 +130,28 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
   useEffect(() => {
     queueMicrotask(() => {
       try {
+        // Hapus flag login persisten agar setiap kali pengguna masuk/buka web,
+        // portal menu login (KTM Login / Register / OCR) selalu tampil pertama kali
+        localStorage.removeItem(STORAGE_KEYS.IS_LOGGED_IN);
+        localStorage.removeItem('cq_is_logged_in');
+
         const savedProfile = localStorage.getItem(STORAGE_KEYS.PROFILE);
-        const savedLogin = localStorage.getItem(STORAGE_KEYS.IS_LOGGED_IN);
         const savedQuests = localStorage.getItem(STORAGE_KEYS.QUESTS);
         const savedChats = localStorage.getItem(STORAGE_KEYS.CHATS);
         const savedReviews = localStorage.getItem(STORAGE_KEYS.REVIEWS);
 
         if (savedProfile) setProfile(JSON.parse(savedProfile));
-        if (savedLogin !== null) {
-          setIsLoggedIn(savedLogin === 'true');
-        } else {
-          setIsLoggedIn(false);
-        }
         if (savedQuests) setQuests(JSON.parse(savedQuests));
         if (savedChats) setChats(JSON.parse(savedChats));
         if (savedReviews) setReviews(JSON.parse(savedReviews));
+
+        // WAJIB: Setiap kali membuka / masuk ke aplikasi, selalu mulai dalam status belum login
+        // sehingga pengguna langsung disajikan Halaman Menu Login (KtmLoginScreen)
+        setIsLoggedIn(false);
+        setIsGuestMode(false);
       } catch {
         setIsLoggedIn(false);
+        setIsGuestMode(false);
       }
       setIsLoaded(true);
     });
@@ -218,19 +223,18 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     }
   }, []);
 
-  // Save to localStorage when state updates
+  // Save to localStorage when state updates (keep registered accounts, quests & chats)
   useEffect(() => {
     if (!isLoaded) return;
     try {
       localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(profile));
-      localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, String(isLoggedIn));
       localStorage.setItem(STORAGE_KEYS.QUESTS, JSON.stringify(quests));
       localStorage.setItem(STORAGE_KEYS.CHATS, JSON.stringify(chats));
       localStorage.setItem(STORAGE_KEYS.REVIEWS, JSON.stringify(reviews));
     } catch {
       // quota or private browsing
     }
-  }, [profile, isLoggedIn, quests, chats, reviews, isLoaded]);
+  }, [profile, quests, chats, reviews, isLoaded]);
 
   // Generate 6 digit OTP
   const generateOTP = () => {
@@ -1031,7 +1035,8 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     setIsLoggedIn(false);
     setIsGuestMode(false);
     setActiveTab('home');
-    localStorage.setItem(STORAGE_KEYS.IS_LOGGED_IN, 'false');
+    localStorage.removeItem(STORAGE_KEYS.IS_LOGGED_IN);
+    localStorage.removeItem('cq_is_logged_in');
   };
 
   const resetToDefaultData = () => {
