@@ -179,8 +179,11 @@ export default function QuestDetailModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-        <div className="bg-slate-900 border border-slate-700 max-w-2xl w-full rounded-2xl text-white shadow-2xl relative my-6 max-h-[92vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
+      <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-hidden">
+        <div className="bg-slate-900 border-t sm:border border-slate-700 max-w-2xl w-full rounded-t-3xl sm:rounded-2xl text-white shadow-2xl relative max-h-[88vh] sm:max-h-[92vh] flex flex-col animate-in slide-in-from-bottom-8 sm:zoom-in-95 duration-200">
+          {/* Mobile Drag Indicator Pill */}
+          <div className="w-12 h-1 bg-slate-700/80 rounded-full mx-auto my-2.5 sm:hidden shrink-0" />
+
           {/* Header */}
           <div className="p-4 sm:p-5 bg-slate-950/80 border-b border-slate-800 flex items-start justify-between shrink-0">
             <div className="flex items-start gap-3 min-w-0 pr-2">

@@ -232,12 +232,15 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-700/80 max-w-2xl w-full rounded-3xl p-5 sm:p-7 text-white shadow-2xl relative my-6 animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-hidden">
+      <div className="bg-slate-900 border-t sm:border border-slate-700/80 max-w-2xl w-full rounded-t-3xl sm:rounded-3xl p-4 sm:p-7 text-white shadow-2xl relative max-h-[88vh] sm:max-h-[92vh] flex flex-col overflow-y-auto animate-in slide-in-from-bottom-8 sm:zoom-in-95 duration-200">
+        {/* Mobile Drag Indicator Pill */}
+        <div className="w-12 h-1 bg-slate-700/80 rounded-full mx-auto mb-2.5 sm:hidden shrink-0" />
+
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white p-2 rounded-xl hover:bg-slate-800 transition-colors"
+          className="absolute top-4 right-4 text-slate-400 hover:text-white p-2 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
           title="Tutup"
         >
           <X className="w-5 h-5" />
