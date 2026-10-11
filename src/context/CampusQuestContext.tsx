@@ -18,7 +18,11 @@ import {
   INITIAL_CHATS,
   INITIAL_REVIEWS,
   DEMO_STUDENTS,
-  ADMIN_PROFILE
+  ADMIN_PROFILE,
+  AUTHORIZED_ADMINS,
+  ADMIN_PASSWORD,
+  isAuthorizedAdminNim,
+  getAuthorizedAdminByNim
 } from '@/lib/mock-data';
 import { soundFX } from '@/lib/audio';
 import { fireCelebrationConfetti } from '@/lib/confetti';
@@ -111,7 +115,11 @@ interface CampusQuestContextType {
   adminVerifyUser: (nim: string, isVerified: boolean) => void;
   adminToggleUserStatus: (nim: string, status: 'AKTIF' | 'CUTI' | 'LULUS') => void;
   adminDeleteQuest: (questId: string) => { success: boolean; message: string };
-  loginAsAdmin: () => void;
+  loginAsAdmin: (nim?: string, password?: string) => { success: boolean; message: string };
+  isAdminAuthModalOpen: boolean;
+  openAdminAuthModal: () => void;
+  closeAdminAuthModal: () => void;
+  isCurrentUserAdmin: boolean;
   registeredAccounts: RegisteredAccount[];
   totalPlatformFee: number;
 }
@@ -132,6 +140,10 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isAdminAuthModalOpen, setIsAdminAuthModalOpen] = useState(false);
+  const isCurrentUserAdmin = isAuthorizedAdminNim(profile.nim);
+  const openAdminAuthModal = () => setIsAdminAuthModalOpen(true);
+  const closeAdminAuthModal = () => setIsAdminAuthModalOpen(false);
   const [quests, setQuests] = useState<Quest[]>(INITIAL_QUESTS);
   const [chats, setChats] = useState<Record<string, ChatMessage[]>>(INITIAL_CHATS);
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
@@ -327,6 +339,12 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
 
   const switchRole = (role: UserRole) => {
     soundFX.pop();
+    if (role === 'admin') {
+      if (!isAuthorizedAdminNim(profile.nim)) {
+        setIsAdminAuthModalOpen(true);
+        return;
+      }
+    }
     setProfile((prev) => {
       const updated = {
         ...prev,
@@ -1200,15 +1218,80 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     .filter((q) => q.status === 'COMPLETED')
     .reduce((sum, q) => sum + Math.round(q.bounty_fee * 0.1), 0);
 
-  const loginAsAdmin = () => {
+  const loginAsAdmin = (
+    nim?: string,
+    password?: string
+  ): { success: boolean; message: string } => {
+    // If credentials provided (via AdminAuthModal)
+    if (nim !== undefined || password !== undefined) {
+      const cleanNim = (nim || '').trim();
+      const cleanPass = (password || '').trim();
+
+      if (cleanPass !== ADMIN_PASSWORD) {
+        return {
+          success: false,
+          message: 'Password administrator salah! Silakan gunakan password resmi (123).'
+        };
+      }
+
+      const adminData = getAuthorizedAdminByNim(cleanNim);
+      if (!adminData) {
+        return {
+          success: false,
+          message: 'NIM ini bukan salah satu dari 4 Administrator resmi BEM UPI (Airis, Tria, Abdu, Randi).'
+        };
+      }
+
+      const adminProfile: Profile = {
+        id: `usr-admin-${adminData.nim}`,
+        full_name: adminData.name,
+        nim: adminData.nim,
+        university: 'Universitas Pendidikan Indonesia (UPI)',
+        faculty: adminData.faculty,
+        major: adminData.major,
+        phone: adminData.phone,
+        avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+        is_verified: true,
+        active_mode: 'admin',
+        runner_specialty: ['JASTAP', 'JARVIS'],
+        rating: 5.0,
+        total_completed_orders: 150,
+        wallet_balance: 2500000,
+        points: 2500,
+        created_at: new Date(Date.now() - 90 * 86400000).toISOString()
+      };
+
+      soundFX.success();
+      fireCelebrationConfetti();
+      setProfile(adminProfile);
+      setIsLoggedIn(true);
+      setIsGuestMode(false);
+      setIsLoginModalOpen(false);
+      setIsAdminAuthModalOpen(false);
+      setActiveTab('home');
+      syncProfileToSupabase(adminProfile);
+
+      return {
+        success: true,
+        message: `Berhasil masuk sebagai Administrator BEM UPI: ${adminData.name}`
+      };
+    }
+
+    // If called without credentials (e.g. shortcut click), check if current profile is already admin
+    if (!isAuthorizedAdminNim(profile.nim)) {
+      setIsAdminAuthModalOpen(true);
+      return { success: false, message: 'Autentikasi administrator diperlukan.' };
+    }
+
     soundFX.success();
     fireCelebrationConfetti();
-    setProfile(ADMIN_PROFILE);
+    setProfile((prev) => ({ ...prev, active_mode: 'admin' }));
     setIsLoggedIn(true);
     setIsGuestMode(false);
     setIsLoginModalOpen(false);
+    setIsAdminAuthModalOpen(false);
     setActiveTab('home');
-    syncProfileToSupabase(ADMIN_PROFILE);
+    return { success: true, message: 'Selamat datang di Portal Administrator BEM UPI.' };
   };
 
   const adminForceCompleteQuest = (questId: string) => {
@@ -1434,6 +1517,10 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
         adminToggleUserStatus,
         adminDeleteQuest,
         loginAsAdmin,
+        isAdminAuthModalOpen,
+        openAdminAuthModal,
+        closeAdminAuthModal,
+        isCurrentUserAdmin,
         registeredAccounts,
         totalPlatformFee
       }}

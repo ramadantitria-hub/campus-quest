@@ -15,6 +15,7 @@ import KtmLoginScreen from '@/components/KtmLoginScreen';
 import WalletModal from '@/components/WalletModal';
 import CampusMap from '@/components/CampusMap';
 import AdminDashboard from '@/components/AdminDashboard';
+import AdminAuthModal from '@/components/AdminAuthModal';
 import PwaInstallBanner from '@/components/PwaInstallBanner';
 import { ServiceCategory } from '@/types/campus-quest';
 import {
@@ -48,7 +49,9 @@ function CampusQuestApp() {
     isLoggedIn,
     isLoaded,
     isGuestMode,
-    acceptQuest
+    acceptQuest,
+    isAdminAuthModalOpen,
+    closeAdminAuthModal
   } = useCampusQuest();
 
   // Modals state
@@ -94,40 +97,52 @@ function CampusQuestApp() {
     setActiveChatQuestId(id);
   };
 
-  // Filtered list for 'quests' tab with strict privacy check
-  const filteredQuests = quests.filter((q) => {
-    // PRIVASI & KEAMANAN: Customer lain TIDAK BOLEH melihat quest customer lain!
-    if (activeRole === 'customer') {
-      const isMine =
-        q.customer_id === profile.id ||
-        (Boolean(profile.nim) && q.customer_nim === profile.nim);
-      if (!isMine) return false;
-    }
+  // Filtered list for 'quests' tab with strict privacy check & runner filter
+  const filteredQuests = quests
+    .filter((q) => {
+      // PRIVASI & KEAMANAN: Customer lain TIDAK BOLEH melihat quest customer lain!
+      if (activeRole === 'customer') {
+        const isMine =
+          q.customer_id === profile.id ||
+          (Boolean(profile.nim) && q.customer_nim === profile.nim);
+        if (!isMine) return false;
+      }
 
-    const matchCat = filterCategory === 'ALL' || q.category === filterCategory;
-    const matchStatus =
-      filterStatus === 'ALL' ||
-      (filterStatus === 'OPEN' && q.status === 'OPEN') ||
-      (filterStatus === 'ACTIVE' &&
-        q.status !== 'OPEN' &&
-        q.status !== 'COMPLETED' &&
-        q.status !== 'CANCELLED') ||
-      (filterStatus === 'COMPLETED' && q.status === 'COMPLETED');
-    const matchSearch =
-      q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      q.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      q.origin_address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      q.destination_address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (Boolean(q.customer_name) && (q.customer_name ?? '').toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (Boolean(q.customer_nim) && (q.customer_nim ?? '').toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchCat && matchStatus && matchSearch;
-  });
+      // RUNNER FILTER: Menampilkan quest terbaru, jika quest sudah diterima/proses JANGAN ditampilkan di runners, tampilkan di admin aja!
+      if (activeRole === 'runner') {
+        const isAvailable = q.status === 'OPEN';
+        const isMineBeingRun = q.runner_id === profile.id;
+        // Sembunyikan quest yang telah diterima atau sedang diproses oleh runner lain!
+        if (!isAvailable && !isMineBeingRun) return false;
+      }
+
+      const matchCat = filterCategory === 'ALL' || q.category === filterCategory;
+      const matchStatus =
+        filterStatus === 'ALL' ||
+        (filterStatus === 'OPEN' && q.status === 'OPEN') ||
+        (filterStatus === 'ACTIVE' &&
+          q.status !== 'OPEN' &&
+          q.status !== 'COMPLETED' &&
+          q.status !== 'CANCELLED') ||
+        (filterStatus === 'COMPLETED' && q.status === 'COMPLETED');
+      const matchSearch =
+        q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        q.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        q.origin_address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        q.destination_address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (Boolean(q.customer_name) && (q.customer_name ?? '').toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (Boolean(q.customer_nim) && (q.customer_nim ?? '').toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchCat && matchStatus && matchSearch;
+    })
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   const myQuestsCount = quests.filter(
     (q) =>
       q.customer_id === profile.id ||
       (Boolean(profile.nim) && q.customer_nim === profile.nim)
   ).length;
+
+  const openQuestsCount = quests.filter((q) => q.status === 'OPEN').length;
 
   // Hydration state check
   if (!isLoaded) {
@@ -187,7 +202,9 @@ function CampusQuestApp() {
             >
               {activeRole === 'customer'
                 ? `Pesanan Saya (${myQuestsCount})`
-                : `Semua Quest Kampus (${quests.length})`}
+                : activeRole === 'admin'
+                ? `Semua Quest Kampus (${quests.length})`
+                : `Quest Terbaru (${openQuestsCount})`}
             </button>
             <button
               onClick={() => setActiveTab('map')}
@@ -289,14 +306,14 @@ function CampusQuestApp() {
                       ? 'Pesanan & Riwayat Saya'
                       : activeRole === 'admin'
                       ? 'Pengawasan Seluruh Quest'
-                      : 'Eksplorasi Seluruh Quest Kampus'}
+                      : 'Quest Terbaru Tersedia'}
                   </h2>
                   <p className="text-xs text-[#6E6265]">
                     {activeRole === 'customer'
                       ? 'Daftar seluruh pesanan JASTAP & JARVIS milik akun Anda (Privat)'
                       : activeRole === 'admin'
                       ? 'Audit dan moderasi seluruh pesanan mahasiswa UPI secara terpusat'
-                      : 'Daftar seluruh quest mahasiswa UPI di kampus (Tersedia untuk diambil, sedang berjalan, maupun riwayat)'}
+                      : 'Daftar pesanan terbaru yang siap Anda ambil. Pesanan yang sedang diproses runner lain otomatis dialihkan ke pengawasan Admin.'}
                   </p>
                 </div>
               </div>
@@ -644,6 +661,11 @@ function CampusQuestApp() {
       <WalletModal
         isOpen={isWalletModalOpen}
         onClose={() => setIsWalletModalOpen(false)}
+      />
+
+      <AdminAuthModal
+        isOpen={isAdminAuthModalOpen}
+        onClose={closeAdminAuthModal}
       />
 
       {/* PWA Install Banner */}

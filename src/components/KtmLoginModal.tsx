@@ -43,7 +43,7 @@ type LoginTab = 'login' | 'register' | 'ocr_scan';
 type ScanSource = 'upload' | 'camera';
 
 export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
-  const { loginWithCredentials, registerAccount, loginWithKtm, isLoggedIn, loginAsAdmin } = useCampusQuest();
+  const { loginWithCredentials, registerAccount, loginWithKtm, isLoggedIn, loginAsAdmin, openAdminAuthModal } = useCampusQuest();
 
   const [activeTab, setActiveTab] = useState<LoginTab>('login');
 
@@ -1069,8 +1069,8 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
             <button
               type="button"
               onClick={() => {
-                loginAsAdmin();
                 onClose();
+                openAdminAuthModal();
               }}
               className="text-[#2C2224] hover:text-[#7A1E34] font-bold px-2.5 py-1 rounded-xl bg-[#FAF7F2] border border-[#E8DFD1] hover:bg-[#F2EBE0] cursor-pointer transition-colors flex items-center gap-1"
             >

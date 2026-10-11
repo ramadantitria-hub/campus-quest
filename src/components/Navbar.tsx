@@ -14,7 +14,8 @@ import {
   User,
   ChevronDown,
   Camera,
-  GraduationCap
+  GraduationCap,
+  Lock
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -28,8 +29,16 @@ export default function Navbar({
   onOpenWalletModal,
   onOpenLoginModal
 }: NavbarProps) {
-  const { profile, isLoggedIn, activeRole, switchRole, resetToDefaultData, logout } =
-    useCampusQuest();
+  const {
+    profile,
+    isLoggedIn,
+    activeRole,
+    switchRole,
+    resetToDefaultData,
+    logout,
+    isCurrentUserAdmin,
+    openAdminAuthModal
+  } = useCampusQuest();
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -96,15 +105,25 @@ export default function Navbar({
                 <span>Runner</span>
               </button>
               <button
-                onClick={() => switchRole('admin')}
+                onClick={() => {
+                  if (!isCurrentUserAdmin && activeRole !== 'admin') {
+                    openAdminAuthModal();
+                  } else {
+                    switchRole('admin');
+                  }
+                }}
                 className={`relative z-10 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ${
                   activeRole === 'admin'
                     ? 'bg-[#2C2224] text-white shadow-md shadow-black/30'
                     : 'text-[#6E6265] hover:text-[#2C2224]'
                 }`}
+                title={isCurrentUserAdmin ? 'Portal Admin BEM UPI' : 'Masuk Portal Admin BEM UPI (Khusus 4 Administrator)'}
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
                 <span>Admin</span>
+                {!isCurrentUserAdmin && activeRole !== 'admin' && (
+                  <Lock className="w-2.5 h-2.5 text-amber-500/80" />
+                )}
               </button>
             </div>
           </div>

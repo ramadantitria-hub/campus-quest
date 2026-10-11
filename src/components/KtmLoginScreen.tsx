@@ -39,7 +39,7 @@ type LoginTab = 'login' | 'register' | 'ocr_scan';
 type ScanSource = 'upload' | 'camera';
 
 export default function KtmLoginScreen() {
-  const { loginWithCredentials, registerAccount, loginWithKtm, enterGuestMode, loginAsAdmin } = useCampusQuest();
+  const { loginWithCredentials, registerAccount, loginWithKtm, enterGuestMode, loginAsAdmin, openAdminAuthModal } = useCampusQuest();
 
   const [activeTab, setActiveTab] = useState<LoginTab>('login');
 
@@ -1194,7 +1194,7 @@ export default function KtmLoginScreen() {
 
                 <button
                   type="button"
-                  onClick={loginAsAdmin}
+                  onClick={openAdminAuthModal}
                   className="font-bold text-[#2C2224] hover:text-[#7A1E34] flex items-center gap-1.5 cursor-pointer transition-colors text-xs px-3 py-1.5 rounded-xl bg-[#FAF7F2] border border-[#E8DFD1] hover:bg-[#F2EBE0] shadow-xs"
                 >
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />

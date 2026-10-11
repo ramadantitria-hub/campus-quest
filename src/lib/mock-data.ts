@@ -165,14 +165,67 @@ export const DEMO_STUDENTS: Profile[] = [
   }
 ];
 
+export interface AuthorizedAdmin {
+  name: string;
+  nim: string;
+  major: string;
+  faculty: string;
+  phone: string;
+}
+
+export const AUTHORIZED_ADMINS: AuthorizedAdmin[] = [
+  {
+    name: 'AIRIS RAMEYZA ASRAFI',
+    nim: '2504773',
+    major: 'Mekatronika dan Kecerdasan Buatan (S1)',
+    faculty: 'FPTK UPI',
+    phone: '081220001111'
+  },
+  {
+    name: 'TRIA RAMADANTI',
+    nim: '2502895',
+    major: 'Pendidikan Teknik Mesin (S1)',
+    faculty: 'FPTK UPI',
+    phone: '081230002222'
+  },
+  {
+    name: 'ABDU MUSYAFFA',
+    nim: '2502537',
+    major: 'Teknik Elektro (S1)',
+    faculty: 'FPTK UPI',
+    phone: '081240003333'
+  },
+  {
+    name: 'RANDI PERDIANSYAH',
+    nim: '2521511',
+    major: 'Pendidikan Ilmu Komputer (S1)',
+    faculty: 'FPMIPA UPI',
+    phone: '081250004444'
+  }
+];
+
+export const ADMIN_PASSWORD = '123';
+
+export function isAuthorizedAdminNim(nim?: string): boolean {
+  if (!nim) return false;
+  const clean = nim.trim();
+  return AUTHORIZED_ADMINS.some((a) => a.nim === clean);
+}
+
+export function getAuthorizedAdminByNim(nim?: string): AuthorizedAdmin | undefined {
+  if (!nim) return undefined;
+  const clean = nim.trim();
+  return AUTHORIZED_ADMINS.find((a) => a.nim === clean);
+}
+
 export const ADMIN_PROFILE: Profile = {
   id: 'usr-admin-bem-001',
-  full_name: 'Biro Administrator BEM UPI',
-  nim: '1988012',
+  full_name: 'TRIA RAMADANTI',
+  nim: '2502895',
   university: 'Universitas Pendidikan Indonesia (UPI)',
-  faculty: 'Biro Kemahasiswaan & BEM REMA UPI',
-  major: 'Administrasi Ekosistem Kampus',
-  phone: '081122334455',
+  faculty: 'FPTK UPI',
+  major: 'Pendidikan Teknik Mesin (S1)',
+  phone: '081230002222',
   avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
   is_verified: true,
   active_mode: 'admin',
