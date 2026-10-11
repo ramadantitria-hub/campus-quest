@@ -2,6 +2,19 @@
 -- CAMPUS QUEST - DATABASE DDL (Supabase PostgreSQL)
 -- Blueprint On-Demand Mahasiswa: JASTAP & JARVIS (inDrive Model)
 -- =========================================================
+--
+-- ⚡ QUICK MIGRATION (Jalankan ini di Supabase Dashboard -> SQL Editor jika database sudah ada):
+--
+-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS university TEXT DEFAULT 'Universitas Pendidikan Indonesia (UPI)';
+-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS faculty TEXT DEFAULT 'Kampus UPI di Purwakarta';
+-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS major TEXT DEFAULT 'Mekatronika dan Kecerdasan Buatan (S1)';
+-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS student_status TEXT DEFAULT 'AKTIF';
+-- ALTER TABLE public.quests ADD COLUMN IF NOT EXISTS customer_nim TEXT;
+-- ALTER TABLE public.quests ADD COLUMN IF NOT EXISTS customer_phone TEXT;
+-- ALTER TABLE public.quests ADD COLUMN IF NOT EXISTS customer_major TEXT;
+-- ALTER TABLE public.quests ADD COLUMN IF NOT EXISTS runner_phone TEXT;
+--
+-- =========================================================
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -45,8 +58,12 @@ CREATE TABLE IF NOT EXISTS public.quests (
   customer_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   runner_id TEXT REFERENCES public.profiles(id) ON DELETE SET NULL,
   customer_name TEXT,
+  customer_nim TEXT,
+  customer_phone TEXT,
+  customer_major TEXT,
   customer_avatar TEXT,
   runner_name TEXT,
+  runner_phone TEXT,
   runner_avatar TEXT,
   category TEXT NOT NULL CHECK (category IN ('JASTAP', 'JARVIS')),
   title TEXT NOT NULL,
@@ -70,6 +87,12 @@ CREATE TABLE IF NOT EXISTS public.quests (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Idempotent column migrations for existing quests table
+ALTER TABLE public.quests ADD COLUMN IF NOT EXISTS customer_nim TEXT;
+ALTER TABLE public.quests ADD COLUMN IF NOT EXISTS customer_phone TEXT;
+ALTER TABLE public.quests ADD COLUMN IF NOT EXISTS customer_major TEXT;
+ALTER TABLE public.quests ADD COLUMN IF NOT EXISTS runner_phone TEXT;
 
 -- 3. Chat Messages Table
 CREATE TABLE IF NOT EXISTS public.chat_messages (

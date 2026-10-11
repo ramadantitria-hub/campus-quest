@@ -237,12 +237,62 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     return Math.floor(100000 + Math.random() * 900000).toString();
   };
 
+  const syncProfileToSupabase = async (p: Profile) => {
+    if (!supabase) return;
+    try {
+      const fullPayload = {
+        id: p.id,
+        full_name: p.full_name,
+        nim: p.nim,
+        phone: p.phone,
+        avatar_url: p.avatar_url,
+        ktm_url: p.ktm_url,
+        university: p.university,
+        faculty: p.faculty,
+        major: p.major,
+        student_status: p.student_status,
+        is_verified: p.is_verified,
+        active_mode: p.active_mode,
+        runner_specialty: p.runner_specialty,
+        rating: p.rating,
+        total_completed_orders: p.total_completed_orders,
+        wallet_balance: p.wallet_balance
+      };
+
+      const { error } = await supabase.from('profiles').upsert(fullPayload, { onConflict: 'id' });
+      if (error) {
+        // Fallback jika kolom baru belum dimigrasi di Supabase
+        const corePayload = {
+          id: p.id,
+          full_name: p.full_name,
+          nim: p.nim,
+          phone: p.phone,
+          avatar_url: p.avatar_url,
+          ktm_url: p.ktm_url,
+          is_verified: p.is_verified,
+          active_mode: p.active_mode,
+          runner_specialty: p.runner_specialty,
+          rating: p.rating,
+          total_completed_orders: p.total_completed_orders,
+          wallet_balance: p.wallet_balance
+        };
+        await supabase.from('profiles').upsert(corePayload, { onConflict: 'id' });
+      }
+    } catch (err) {
+      console.warn('syncProfileToSupabase warn:', err);
+    }
+  };
+
   const switchRole = (role: UserRole) => {
     soundFX.pop();
-    setProfile((prev) => ({
-      ...prev,
-      active_mode: role
-    }));
+    setProfile((prev) => {
+      const updated = {
+        ...prev,
+        active_mode: role
+      };
+      syncProfileToSupabase(updated);
+      return updated;
+    });
   };
 
   const createQuest = (data: {
@@ -290,10 +340,11 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     setQuests((prev) => [newQuest, ...prev]);
     soundFX.notification();
 
-    if (supabase) {
-      supabase
-        .from('quests')
-        .insert({
+    const client = supabase;
+    if (client) {
+      // Pastikan profil tersimpan di Supabase agar lolos relasi foreign key
+      syncProfileToSupabase(profile).then(() => {
+        const fullPayload = {
           id: newQuest.id,
           customer_id: newQuest.customer_id,
           customer_name: newQuest.customer_name,
@@ -319,10 +370,22 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
           payment_status: 'PENDING',
           created_at: newQuest.created_at,
           updated_at: newQuest.updated_at
-        })
-        .then(({ error }) => {
-          if (error) console.warn('Supabase insert quest warning:', error.message);
-        });
+        };
+
+        client
+          .from('quests')
+          .insert(fullPayload)
+          .then(async ({ error }) => {
+            if (error) {
+              console.warn('Supabase insert full payload warning (retrying core fields):', error.message);
+              const { customer_nim, customer_phone, customer_major, ...corePayload } = fullPayload;
+              const { error: fallbackErr } = await client.from('quests').insert(corePayload);
+              if (fallbackErr) {
+                console.warn('Supabase fallback insert quest warning:', fallbackErr.message);
+              }
+            }
+          });
+      });
     }
 
     return newQuest;
@@ -347,21 +410,30 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
       })
     );
 
-    if (supabase) {
-      supabase
-        .from('quests')
-        .update({
+    const client = supabase;
+    if (client) {
+      syncProfileToSupabase(profile).then(() => {
+        const updatePayload = {
           status: 'ACCEPTED',
           runner_id: profile.id,
           runner_name: profile.full_name,
           runner_phone: profile.phone,
           runner_avatar: profile.avatar_url,
           updated_at: new Date().toISOString()
-        })
-        .eq('id', questId)
-        .then(({ error }) => {
-          if (error) console.warn('Supabase acceptQuest warning:', error.message);
-        });
+        };
+
+        client
+          .from('quests')
+          .update(updatePayload)
+          .eq('id', questId)
+          .then(async ({ error }) => {
+            if (error) {
+              console.warn('Supabase acceptQuest warning (retrying core fields):', error.message);
+              const { runner_phone, ...coreUpdate } = updatePayload;
+              await client.from('quests').update(coreUpdate).eq('id', questId);
+            }
+          });
+      });
     }
   };
 
@@ -626,11 +698,7 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     soundFX.pop();
     setProfile((prev) => {
       const merged = { ...prev, ...updated };
-      if (supabase) {
-        supabase.from('profiles').upsert(merged).then(({ error }) => {
-          if (error) console.warn('Supabase updateProfile error:', error.message);
-        });
-      }
+      syncProfileToSupabase(merged);
       return merged;
     });
   };
@@ -750,11 +818,7 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     setIsLoginModalOpen(false);
     setActiveTab('home');
 
-    if (supabase) {
-      supabase.from('profiles').upsert(newProfile).then(({ error }) => {
-        if (error) console.warn('Supabase registerAccount upsert:', error.message);
-      });
-    }
+    syncProfileToSupabase(newProfile);
 
     return {
       success: true,
