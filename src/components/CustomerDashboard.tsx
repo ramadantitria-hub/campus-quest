@@ -120,9 +120,6 @@ export default function CustomerDashboard({
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight">
               Halo, {profile.full_name}! 👋
             </h1>
-            <p className="text-xs sm:text-sm text-stone-200 mt-1 max-w-xl">
-              Butuh titip beli makan, print berkas, atau laptop bermasalah? Tentukan sendiri upah jasamu dan mahasiswa UPI lain siap membantu!
-            </p>
           </div>
 
           <div className="flex items-center gap-3 shrink-0">

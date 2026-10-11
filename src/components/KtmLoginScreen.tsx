@@ -402,83 +402,9 @@ export default function KtmLoginScreen() {
       </header>
 
       {/* Main Gate Hero & Login Card */}
-      <main className="relative z-10 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-8 lg:py-12 flex-1 flex items-center">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-12 items-center w-full">
-          {/* Left Column: Campus Quest UPI Value Proposition */}
-          <div className="lg:col-span-5 space-y-3 sm:space-y-6">
-            <div className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-[#FBF0F2] border border-[#F1CCD3] text-[#7A1E34] text-[11px] sm:text-xs font-semibold max-w-full">
-              <GraduationCap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#7A1E34] shrink-0" />
-              <span className="truncate">Khusus Mahasiswa Universitas Pendidikan Indonesia</span>
-            </div>
-
-            <div>
-              <h1 className="text-xl sm:text-3xl lg:text-4xl font-extrabold text-[#2C2224] tracking-tight leading-tight break-words">
-                Satu Akses KTM UPI untuk Seluruh Kebutuhan Kampus.
-              </h1>
-            </div>
-
-            {/* Mobile Compact Feature Pills */}
-            <div className="flex lg:hidden items-center gap-1.5 flex-wrap pt-0.5">
-              <span className="px-2.5 py-1 rounded-xl bg-white border border-[#A5DDD3] text-[11px] text-[#2D8D84] flex items-center gap-1 font-medium shadow-sm">
-                <ShoppingBag className="w-3 h-3 text-[#2D8D84] shrink-0" /> JASTAP Titip Beli
-              </span>
-              <span className="px-2.5 py-1 rounded-xl bg-white border border-[#F1CCD3] text-[11px] text-[#7A1E34] flex items-center gap-1 font-medium shadow-sm">
-                <Wrench className="w-3 h-3 text-[#7A1E34] shrink-0" /> JARVIS Servis
-              </span>
-              <span className="px-2.5 py-1 rounded-xl bg-white border border-[#A5DDD3] text-[11px] text-[#2D8D84] flex items-center gap-1 font-medium shadow-sm">
-                <Lock className="w-3 h-3 text-[#2D8D84] shrink-0" /> Canvas Watermark
-              </span>
-            </div>
-
-            {/* Desktop Feature Cards Showcase */}
-            <div className="hidden lg:flex flex-col space-y-3 pt-2">
-              <div className="p-3.5 rounded-2xl bg-white border border-[#E8DFD1] flex items-start gap-3.5 hover:border-[#A5DDD3] transition-colors shadow-sm">
-                <div className="w-9 h-9 rounded-xl bg-[#E8F6F3] border border-[#A5DDD3] text-[#2D8D84] flex items-center justify-center shrink-0">
-                  <ShoppingBag className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-[#2C2224] flex items-center gap-1.5">
-                    JASTAP UPI (The Agent) <span className="text-[10px] text-[#2D8D84] font-normal">• Titip Beli Kampus</span>
-                  </h4>
-                  <p className="text-[11px] text-[#6E6265] mt-0.5">
-                    Titip makan Kantin Geugeut FPTK, print skripsi di Gegerkalong, antar pesanan ke Asrama Gedung A &amp; B UPI.
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-white border border-[#E8DFD1] flex items-start gap-3.5 hover:border-[#F1CCD3] transition-colors shadow-sm">
-                <div className="w-9 h-9 rounded-xl bg-[#FBF0F2] border border-[#F1CCD3] text-[#7A1E34] flex items-center justify-center shrink-0">
-                  <Wrench className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-[#2C2224] flex items-center gap-1.5">
-                    JARVIS UPI (The Machinist) <span className="text-[10px] text-[#7A1E34] font-normal">• Servis Hardware Mahasiswa</span>
-                  </h4>
-                  <p className="text-[11px] text-[#6E6265] mt-0.5">
-                    Servis laptop lemot/panas, ganti thermal paste, instalasi software praktikum lab FPMIPA &amp; bengkel FPTK UPI.
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-white border border-[#E8DFD1] flex items-start gap-3.5 hover:border-[#A5DDD3] transition-colors shadow-sm">
-                <div className="w-9 h-9 rounded-xl bg-[#E8F6F3] border border-[#A5DDD3] text-[#2D8D84] flex items-center justify-center shrink-0">
-                  <Lock className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-[#2C2224] flex items-center gap-1.5">
-                    Proteksi Watermark Canvas UPI <span className="text-[10px] text-[#2D8D84] font-normal">• Privasi Terjamin</span>
-                  </h4>
-                  <p className="text-[11px] text-[#6E6265] mt-0.5">
-                    Setiap KTM UPI otomatis dicap cap watermark resmi anti-fraud demi keamanan data mahasiswa.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: The Interactive Login Card */}
-          <div className="lg:col-span-7">
-            <div className="bg-white border border-[#E8DFD1] rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-xl relative">
+      <main className="relative z-10 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-8 lg:py-12 flex-1 flex items-center justify-center">
+        <div className="max-w-2xl mx-auto w-full">
+          <div className="bg-white border border-[#E8DFD1] rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-xl relative">
               {/* Card Header */}
               <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#E8DFD1]">
                 <div className="min-w-0 pr-2">
@@ -1502,7 +1428,6 @@ export default function KtmLoginScreen() {
               </div>
             </div>
           </div>
-        </div>
       </main>
 
       {/* Footer */}

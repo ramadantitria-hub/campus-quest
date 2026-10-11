@@ -103,9 +103,6 @@ export default function RunnerDashboard({
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight">
               Runner Hub: {profile.full_name}
             </h1>
-            <p className="text-xs sm:text-sm text-stone-200 mt-1 max-w-xl">
-              Pilih quest terbaru yang siap diambil di sekitarmu, terima langsung tanpa tawar-menawar, dan dapatkan penghasilan bersih 90% ke saldo!
-            </p>
           </div>
 
           {/* Quick Stats Pill */}
