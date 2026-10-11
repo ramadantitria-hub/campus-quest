@@ -247,6 +247,9 @@ export default function RunnerDashboard({
                       <span className="text-base font-black text-amber-400 font-mono">
                         Rp {quest.bounty_fee.toLocaleString('id-ID')}
                       </span>
+                      <span className="text-[10px] text-emerald-400 block font-mono">
+                        Bersih 90%: Rp {Math.round(quest.bounty_fee * 0.9).toLocaleString('id-ID')} • +{Math.floor(quest.bounty_fee / 1000)} Poin
+                      </span>
                     </div>
 
                     <div className="flex items-center gap-2">

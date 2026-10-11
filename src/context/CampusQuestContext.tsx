@@ -98,6 +98,8 @@ interface CampusQuestContextType {
   submitReview: (questId: string, rating: number, comment: string) => void;
   sendChatMessage: (questId: string, content: string, mediaUrl?: string) => void;
   updateKtm: (watermarkedKtmUrl: string) => void;
+  cancelQuest: (questId: string, reason?: string) => { success: boolean; message: string };
+  increaseBounty: (questId: string, addedAmount: number) => { success: boolean; message: string };
   updateProfile: (updated: Partial<Profile>) => void;
   withdrawWallet: (amount: number, method: string) => boolean;
   resetToDefaultData: () => void;
@@ -517,7 +519,17 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     // Success OTP completion
     soundFX.success();
 
-    const earning = quest.bounty_fee;
+    // =========================================================================
+    // ATURAN SALDO, PAJAK PLATFORM & POIN:
+    // 1. Pajak platform 10% HANYA dihitung dari upah ongkir/bounty jasa.
+    // 2. Biaya barang / belanjaan / servis tambahan (item_cost) 100% diganti utuh.
+    // 3. Poin loyalitas mahasiswa (CQ Points) dihitung dari ongkir (1 poin per Rp 1.000).
+    // =========================================================================
+    const platformFee = Math.round(quest.bounty_fee * 0.10);
+    const netBounty = quest.bounty_fee - platformFee; // 90% ongkir bersih runner
+    const itemCost = quest.item_cost || 0; // 100% penggantian nota belanja
+    const runnerEarnings = netBounty + itemCost;
+    const pointsEarned = Math.floor(quest.bounty_fee / 1000);
 
     setQuests((prev) =>
       prev.map((q) => {
@@ -533,15 +545,24 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
       })
     );
 
-    // If current profile is runner or customer, reward wallet
-    setProfile((prev) => ({
-      ...prev,
-      total_completed_orders: prev.total_completed_orders + 1,
-      wallet_balance: prev.wallet_balance + earning
-    }));
+    // Update profil: jika runner yang login atau eksekutor misi, tambahkan penghasilan & poin
+    setProfile((prev) => {
+      const isRunner = prev.active_mode === 'runner' || prev.id === quest.runner_id;
+      const updatedBalance = isRunner ? prev.wallet_balance + runnerEarnings : prev.wallet_balance;
+      const updatedPoints = (prev.points || 0) + pointsEarned;
+      const updated = {
+        ...prev,
+        total_completed_orders: prev.total_completed_orders + 1,
+        wallet_balance: updatedBalance,
+        points: updatedPoints
+      };
+      syncProfileToSupabase(updated);
+      return updated;
+    });
 
-    if (supabase) {
-      supabase
+    const client = supabase;
+    if (client) {
+      client
         .from('quests')
         .update({
           status: 'COMPLETED',
@@ -554,7 +575,104 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
         });
     }
 
-    return { success: true, message: 'Transaksi Terverifikasi! Quest Berhasil Diselesaikan.' };
+    return {
+      success: true,
+      message: `Transaksi Selesai! Runner menerima Rp ${runnerEarnings.toLocaleString('id-ID')} (Ongkir Bersih Rp ${netBounty.toLocaleString('id-ID')} + Penggantian Nota Rp ${itemCost.toLocaleString('id-ID')}). Pajak Platform: Rp ${platformFee.toLocaleString('id-ID')} (10% ongkir). Poin: +${pointsEarned} Poin.`
+    };
+  };
+
+  const cancelQuest = (questId: string, reason?: string) => {
+    const quest = quests.find((q) => q.id === questId);
+    if (!quest) {
+      return { success: false, message: 'Quest tidak ditemukan.' };
+    }
+
+    // CATATAN: Quest HANYA dapat dibatalkan jika BELUM diterima oleh runner!
+    if (quest.status !== 'OPEN' || quest.runner_id) {
+      return {
+        success: false,
+        message: 'Quest tidak dapat dibatalkan karena sudah diterima oleh runner dan sedang diproses.'
+      };
+    }
+
+    soundFX.pop();
+
+    setQuests((prev) =>
+      prev.map((q) => {
+        if (q.id === questId) {
+          return {
+            ...q,
+            status: 'CANCELLED',
+            notes: reason ? `${q.notes || ''} [Dibatalkan oleh pemesan: ${reason}]` : q.notes,
+            updated_at: new Date().toISOString()
+          };
+        }
+        return q;
+      })
+    );
+
+    const client = supabase;
+    if (client) {
+      client
+        .from('quests')
+        .update({
+          status: 'CANCELLED',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', questId)
+        .then(({ error }) => {
+          if (error) console.warn('Supabase cancelQuest warning:', error.message);
+        });
+    }
+
+    return {
+      success: true,
+      message: 'Quest berhasil dibatalkan. Pesanan telah dihapus dari antrean runner.'
+    };
+  };
+
+  const increaseBounty = (questId: string, addedAmount: number) => {
+    const quest = quests.find((q) => q.id === questId);
+    if (!quest) return { success: false, message: 'Quest tidak ditemukan.' };
+
+    if (quest.status !== 'OPEN') {
+      return { success: false, message: 'Hanya quest yang belum diambil yang dapat dinaikkan bounty-nya.' };
+    }
+
+    soundFX.notification();
+    const newBounty = quest.bounty_fee + addedAmount;
+
+    setQuests((prev) =>
+      prev.map((q) => {
+        if (q.id === questId) {
+          return {
+            ...q,
+            bounty_fee: newBounty,
+            updated_at: new Date().toISOString()
+          };
+        }
+        return q;
+      })
+    );
+
+    const client = supabase;
+    if (client) {
+      client
+        .from('quests')
+        .update({
+          bounty_fee: newBounty,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', questId)
+        .then(({ error }) => {
+          if (error) console.warn('Supabase increaseBounty warning:', error.message);
+        });
+    }
+
+    return {
+      success: true,
+      message: `Bounty berhasil dinaikkan menjadi Rp ${newBounty.toLocaleString('id-ID')} agar lebih cepat diambil runner!`
+    };
   };
 
   const submitPaymentProof = (questId: string, proofUrl: string, method: PaymentMethod) => {
@@ -1092,6 +1210,8 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
         submitReview,
         sendChatMessage,
         updateKtm,
+        cancelQuest,
+        increaseBounty,
         updateProfile,
         withdrawWallet,
         resetToDefaultData

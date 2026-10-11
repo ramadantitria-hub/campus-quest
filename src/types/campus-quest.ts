@@ -32,6 +32,7 @@ export interface Profile {
   rating: number;
   total_completed_orders: number;
   wallet_balance: number;
+  points?: number; // Poin Loyalitas Mahasiswa (dihitung dari nilai ongkir)
   created_at: string;
 }
 

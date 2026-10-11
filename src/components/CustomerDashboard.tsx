@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useCampusQuest } from '@/context/CampusQuestContext';
-import { ServiceCategory } from '@/types/campus-quest';
+import { ServiceCategory, Quest } from '@/types/campus-quest';
+import { soundFX } from '@/lib/audio';
 import {
   ShoppingBag,
   Wrench,
@@ -15,7 +16,12 @@ import {
   ArrowRight,
   TrendingUp,
   Receipt,
-  MessageSquare
+  MessageSquare,
+  Ban,
+  AlertTriangle,
+  Coins,
+  Bell,
+  X
 } from 'lucide-react';
 
 interface CustomerDashboardProps {
@@ -31,7 +37,12 @@ export default function CustomerDashboard({
   onOpenChat,
   onOpenMap
 }: CustomerDashboardProps) {
-  const { profile, quests } = useCampusQuest();
+  const { profile, quests, cancelQuest, increaseBounty } = useCampusQuest();
+
+  const [currentTime, setCurrentTime] = useState(Date.now());
+  const [actionFeedback, setActionFeedback] = useState<string | null>(null);
+  const [activeNotification, setActiveNotification] = useState<{ id: string; title: string; category: string } | null>(null);
+  const notifiedIdsRef = useRef<Set<string>>(new Set());
 
   // Quests belonging to this customer profile specifically
   const activeQuests = quests.filter(
@@ -40,6 +51,56 @@ export default function CustomerDashboard({
   const completedQuests = quests.filter(
     (q) => q.customer_id === profile.id && q.status === 'COMPLETED'
   );
+  const cancelledQuests = quests.filter(
+    (q) => q.customer_id === profile.id && q.status === 'CANCELLED'
+  );
+
+  // Interval timer for real-time countdown & timeout alert
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = Date.now();
+      setCurrentTime(now);
+
+      // Check for unclaimed timeout quests: 5 menit (JASTAP), 24 jam (JARVIS)
+      activeQuests.forEach((q) => {
+        if (q.status === 'OPEN' && !q.runner_id) {
+          const createdMs = new Date(q.created_at).getTime();
+          const elapsedMs = now - createdMs;
+          const limitMs = q.category === 'JASTAP' ? 5 * 60 * 1000 : 24 * 60 * 60 * 1000;
+
+          if (elapsedMs >= limitMs && !notifiedIdsRef.current.has(q.id)) {
+            notifiedIdsRef.current.add(q.id);
+            soundFX.notification();
+            setActiveNotification({
+              id: q.id,
+              title: q.title,
+              category: q.category
+            });
+          }
+        }
+      });
+    }, 4000);
+
+    return () => clearInterval(timer);
+  }, [activeQuests]);
+
+  const handleCancelQuest = (questId: string, questTitle: string) => {
+    if (confirm(`Apakah Anda yakin ingin membatalkan pesanan "${questTitle}"? Pesanan akan dihapus dari antrean runner.`)) {
+      const res = cancelQuest(questId);
+      if (res.success) {
+        setActionFeedback(res.message);
+        setTimeout(() => setActionFeedback(null), 3500);
+      } else {
+        alert(res.message);
+      }
+    }
+  };
+
+  const handleQuickIncreaseBounty = (questId: string) => {
+    const res = increaseBounty(questId, 2000);
+    setActionFeedback(res.message);
+    setTimeout(() => setActionFeedback(null), 3000);
+  };
 
   return (
     <div className="space-y-6">
@@ -78,6 +139,56 @@ export default function CustomerDashboard({
           </div>
         </div>
       </div>
+
+      {/* Active Notification Banner for 5 min (JASTAP) / 24 hr (JARVIS) timeout */}
+      {activeNotification && (
+        <div className="p-4 bg-gradient-to-r from-amber-950/80 via-slate-900 to-amber-950/80 border border-amber-500/50 rounded-2xl shadow-xl flex items-start justify-between gap-3 animate-fadeIn">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+              <Bell className="w-5 h-5 animate-bounce" />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider">
+                {activeNotification.category === 'JASTAP' ? '⏰ Notifikasi 5 Menit: Titipan JASTAP Belum Diambil' : '⏰ Notifikasi 24 Jam: Permintaan JARVIS Belum Diambil'}
+              </h4>
+              <p className="text-xs text-slate-200 mt-0.5">
+                Pesanan <strong>&ldquo;{activeNotification.title}&rdquo;</strong> belum ada yang mengambil. Anda dapat menaikkan bounty tawaran atau membatalkan pesanan.
+              </p>
+              <div className="flex items-center gap-2 mt-2">
+                <button
+                  onClick={() => handleQuickIncreaseBounty(activeNotification.id)}
+                  className="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[11px] flex items-center gap-1 cursor-pointer"
+                >
+                  <Coins className="w-3 h-3" />
+                  + Naikkan Bounty Rp 2.000
+                </button>
+                <button
+                  onClick={() => handleCancelQuest(activeNotification.id, activeNotification.title)}
+                  className="px-2.5 py-1 rounded-lg bg-rose-950/60 hover:bg-rose-900/60 text-rose-300 border border-rose-500/40 font-bold text-[11px] flex items-center gap-1 cursor-pointer"
+                >
+                  <Ban className="w-3 h-3" />
+                  Batalkan Pesanan
+                </button>
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => setActiveNotification(null)}
+            className="text-slate-400 hover:text-white p-1 cursor-pointer"
+            title="Tutup Notifikasi"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Action feedback toast banner */}
+      {actionFeedback && (
+        <div className="p-3 bg-emerald-950/80 border border-emerald-500/50 rounded-xl text-xs text-emerald-300 flex items-center gap-2">
+          <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{actionFeedback}</span>
+        </div>
+      )}
 
       {/* Two Core Services: JASTAP & JARVIS Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -165,68 +276,128 @@ export default function CustomerDashboard({
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            {activeQuests.map((quest) => (
-              <div
-                key={quest.id}
-                className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 transition-all shadow-lg flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        quest.category === 'JASTAP'
-                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                          : 'bg-violet-500/20 text-violet-300 border border-violet-500/30'
-                      }`}
-                    >
-                      {quest.category}
-                    </span>
-                    <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                      {quest.status}
-                    </span>
-                  </div>
+            {activeQuests.map((quest) => {
+              const isOpenUnclaimed = quest.status === 'OPEN' && !quest.runner_id;
+              const createdMs = new Date(quest.created_at).getTime();
+              const elapsedMs = Math.max(0, currentTime - createdMs);
+              const limitMs = quest.category === 'JASTAP' ? 5 * 60 * 1000 : 24 * 60 * 60 * 1000;
+              const isOverdue = elapsedMs >= limitMs;
+              const remainingMs = Math.max(0, limitMs - elapsedMs);
+              const remainingMins = Math.floor(remainingMs / 60000);
+              const remainingSecs = Math.floor((remainingMs % 60000) / 1000);
+              const remainingHours = Math.floor(remainingMs / 3600000);
 
-                  <h4 className="text-sm font-bold text-white line-clamp-2 break-words">{quest.title}</h4>
-                  <p className="text-xs text-slate-400 line-clamp-2 break-words mt-1">{quest.description}</p>
-
-                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 text-[11px] text-slate-400">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                      <span className="truncate">{quest.origin_address}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <MapPin className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                      <span className="truncate">{quest.destination_address}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+              return (
+                <div
+                  key={quest.id}
+                  className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 transition-all shadow-lg flex flex-col justify-between"
+                >
                   <div>
-                    <span className="text-[10px] text-slate-400 block font-semibold">Total Tagihan:</span>
-                    <span className="text-sm font-extrabold text-emerald-400 font-mono">
-                      Rp {(quest.bounty_fee + (quest.item_cost || 0)).toLocaleString('id-ID')}
-                    </span>
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          quest.category === 'JASTAP'
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                            : 'bg-violet-500/20 text-violet-300 border border-violet-500/30'
+                        }`}
+                      >
+                        {quest.category}
+                      </span>
+                      <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                        {quest.status}
+                      </span>
+                    </div>
+
+                    <h4 className="text-sm font-bold text-white line-clamp-2 break-words">{quest.title}</h4>
+                    <p className="text-xs text-slate-400 line-clamp-2 break-words mt-1">{quest.description}</p>
+
+                    <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 text-[11px] text-slate-400">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        <span className="truncate">{quest.origin_address}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <MapPin className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                        <span className="truncate">{quest.destination_address}</span>
+                      </div>
+                    </div>
+
+                    {/* Timeout Warning or Live Countdown for Unclaimed Quests */}
+                    {isOpenUnclaimed && (
+                      <div className="mt-3 space-y-2">
+                        {isOverdue ? (
+                          <div className="p-2.5 rounded-xl bg-amber-950/60 border border-amber-500/40 text-[11px] text-amber-300 flex items-start gap-2">
+                            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5 animate-pulse" />
+                            <div>
+                              <span className="font-bold block">
+                                {quest.category === 'JASTAP' ? 'Belum diambil (> 5 Menit)!' : 'Belum diambil (> 24 Jam)!'}
+                              </span>
+                              <span className="text-slate-300 text-[10px] block mt-0.5">
+                                Belum ada runner yang merespons. Naikkan bounty atau batalkan pesanan.
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="px-2.5 py-1.5 rounded-xl bg-slate-950/60 border border-slate-800 text-[11px] flex items-center justify-between text-slate-300">
+                            <div className="flex items-center gap-1.5 text-sky-300">
+                              <Clock className="w-3.5 h-3.5 text-sky-400 animate-spin" />
+                              <span>Mencari Runner...</span>
+                            </div>
+                            <span className="text-[10px] font-mono text-slate-400">
+                              Sisa waktu respons: {quest.category === 'JASTAP' ? `${remainingMins}m ${remainingSecs}s` : `${remainingHours}j ${remainingMins}m`}
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-2 pt-1">
+                          <button
+                            onClick={() => handleCancelQuest(quest.id, quest.title)}
+                            className="flex-1 py-1.5 px-2.5 rounded-lg bg-rose-950/50 hover:bg-rose-900/60 text-rose-300 border border-rose-500/40 text-[11px] font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                            title="Batalkan pesanan sebelum diambil runner"
+                          >
+                            <Ban className="w-3.5 h-3.5" />
+                            Batalkan Quest
+                          </button>
+                          <button
+                            onClick={() => handleQuickIncreaseBounty(quest.id)}
+                            className="flex-1 py-1.5 px-2.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                            title="Naikkan bounty Rp 2.000 agar cepat diambil"
+                          >
+                            <Coins className="w-3.5 h-3.5 text-amber-400" />
+                            + Rp 2.000 Bounty
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => onOpenChat(quest.id)}
-                      className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-400 transition-colors"
-                      title="Buka Chat"
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => onOpenQuestDetail(quest.id)}
-                      className="px-3 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs transition-colors cursor-pointer"
-                    >
-                      Pantau &amp; Detail
-                    </button>
+                  <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] text-slate-400 block font-semibold">Total Tagihan:</span>
+                      <span className="text-sm font-extrabold text-emerald-400 font-mono">
+                        Rp {(quest.bounty_fee + (quest.item_cost || 0)).toLocaleString('id-ID')}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => onOpenChat(quest.id)}
+                        className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-400 transition-colors"
+                        title="Buka Chat"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => onOpenQuestDetail(quest.id)}
+                        className="px-3 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs transition-colors cursor-pointer"
+                      >
+                        Pantau &amp; Detail
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -254,6 +425,36 @@ export default function CustomerDashboard({
                 </div>
                 <span className="text-emerald-400 font-semibold font-mono shrink-0 flex items-center gap-1">
                   <CheckCircle className="w-3.5 h-3.5" /> Selesai
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Cancelled Quests History */}
+      {cancelledQuests.length > 0 && (
+        <div className="space-y-3 pt-2">
+          <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+            <Ban className="w-4 h-4 text-rose-400" />
+            Riwayat Dibatalkan ({cancelledQuests.length})
+          </h2>
+
+          <div className="space-y-2">
+            {cancelledQuests.slice(0, 3).map((quest) => (
+              <div
+                key={quest.id}
+                onClick={() => onOpenQuestDetail(quest.id)}
+                className="p-3 bg-slate-900/40 hover:bg-slate-900 border border-slate-800/80 rounded-xl flex items-center justify-between text-xs cursor-pointer transition-colors opacity-75 hover:opacity-100"
+              >
+                <div className="min-w-0 pr-3">
+                  <p className="font-semibold text-slate-300 line-clamp-1">{quest.title}</p>
+                  <span className="text-[10px] text-slate-500">
+                    {quest.category} • Dibatalkan sebelum diterima runner
+                  </span>
+                </div>
+                <span className="text-rose-400 font-semibold text-[11px] shrink-0 flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-950/40 border border-rose-500/30">
+                  <Ban className="w-3 h-3" /> Dibatalkan
                 </span>
               </div>
             ))}

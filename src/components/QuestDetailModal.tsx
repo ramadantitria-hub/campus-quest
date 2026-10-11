@@ -29,7 +29,9 @@ import {
   User,
   Navigation,
   Send,
-  Check
+  Check,
+  Ban,
+  AlertCircle
 } from 'lucide-react';
 
 interface QuestDetailModalProps {
@@ -55,8 +57,14 @@ export default function QuestDetailModal({
     verifyOtpAndComplete,
     submitPaymentProof,
     confirmPaymentReceived,
-    submitReview
+    submitReview,
+    cancelQuest,
+    increaseBounty
   } = useCampusQuest();
+
+  // Cancel & Bounty Increase feedback
+  const [cancelFeedback, setCancelFeedback] = useState<string | null>(null);
+  const [bountyFeedback, setBountyFeedback] = useState<string | null>(null);
 
   // Item cost input for runner
   const [itemCostInput, setItemCostInput] = useState('');
@@ -466,41 +474,89 @@ export default function QuestDetailModal({
               <p className="text-slate-200 whitespace-pre-wrap leading-relaxed">{quest.description}</p>
             </div>
 
-            {/* Financial Breakdown (inDrive model) */}
+            {/* Financial Breakdown (Transparansi Saldo, Pajak 10% Ongkir & Poin) */}
             <div className="p-4 bg-gradient-to-br from-slate-950 to-slate-900 rounded-2xl border border-slate-800 space-y-3">
-              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <Receipt className="w-4 h-4 text-emerald-400" />
-                Rincian Biaya &amp; Total Tagihan
-              </h4>
-
-              <div className="space-y-2 text-xs">
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-slate-400 flex items-center gap-1 min-w-0">
-                    <Coins className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                    <span className="truncate sm:overflow-visible">Bounty Jasa Runner</span>
-                  </span>
-                  <span className="font-bold font-mono text-amber-300 shrink-0">
-                    Rp {quest.bounty_fee.toLocaleString('id-ID')}
-                  </span>
-                </div>
-
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-slate-400 flex items-center gap-1 min-w-0">
-                    <Receipt className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                    <span className="truncate sm:overflow-visible">Biaya Belanjaan / Sparepart Riil</span>
-                  </span>
-                  <span className="font-bold font-mono text-sky-300 shrink-0">
-                    Rp {(quest.item_cost || 0).toLocaleString('id-ID')}
-                  </span>
-                </div>
-
-                <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-sm">
-                  <span className="font-bold text-white">Total Tagihan Final:</span>
-                  <span className="text-base font-extrabold font-mono text-emerald-400">
-                    Rp {totalBill.toLocaleString('id-ID')}
-                  </span>
-                </div>
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Receipt className="w-4 h-4 text-emerald-400" />
+                  Rincian Biaya &amp; Total Tagihan
+                </h4>
+                <span className="text-[10px] text-amber-300 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full font-semibold">
+                  Pajak 10% dari Ongkir
+                </span>
               </div>
+
+              {(() => {
+                const platformFee = Math.round(quest.bounty_fee * 0.1);
+                const netBounty = quest.bounty_fee - platformFee;
+                const itemReimbursement = quest.item_cost || 0;
+                const runnerTotalPayout = netBounty + itemReimbursement;
+                const pointsEarned = Math.floor(quest.bounty_fee / 1000);
+
+                return (
+                  <div className="space-y-2.5 text-xs">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-slate-400 flex items-center gap-1 min-w-0">
+                        <Coins className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        <span className="truncate sm:overflow-visible">Ongkir / Upah Jasa (Bounty):</span>
+                      </span>
+                      <span className="font-bold font-mono text-amber-300 shrink-0">
+                        Rp {quest.bounty_fee.toLocaleString('id-ID')}
+                      </span>
+                    </div>
+
+                    {/* Breakdown Kotak Pajak 10% & Poin */}
+                    <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-1 text-[11px]">
+                      <div className="flex items-center justify-between text-slate-400">
+                        <span>• Pajak Platform (10% dari ongkir):</span>
+                        <span className="font-mono text-rose-400 font-semibold">
+                          -Rp {platformFee.toLocaleString('id-ID')}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-emerald-400">
+                        <span>• Hak Bersih Runner (90% ongkir):</span>
+                        <span className="font-mono font-bold">
+                          Rp {netBounty.toLocaleString('id-ID')}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-amber-300 pt-0.5 border-t border-slate-800/60">
+                        <span>• Reward Poin Mahasiswa:</span>
+                        <span className="font-mono font-bold">
+                          +{pointsEarned} CQ Poin
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-slate-400 flex items-center gap-1 min-w-0">
+                        <Receipt className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                        <div>
+                          <span className="truncate sm:overflow-visible block">Talangan Belanjaan / Nota Riil:</span>
+                          <span className="text-[10px] text-emerald-400/90 font-medium">100% Utuh Tanpa Potongan Pajak</span>
+                        </div>
+                      </span>
+                      <span className="font-bold font-mono text-sky-300 shrink-0">
+                        Rp {itemReimbursement.toLocaleString('id-ID')}
+                      </span>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-800 space-y-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-bold text-white">Total Tagihan Pemesan (Customer):</span>
+                        <span className="text-base font-extrabold font-mono text-emerald-400">
+                          Rp {totalBill.toLocaleString('id-ID')}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-slate-400">
+                        <span>Estimasi Masuk Saldo Runner:</span>
+                        <span className="font-mono font-semibold text-emerald-300">
+                          Rp {runnerTotalPayout.toLocaleString('id-ID')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Physical Receipt Photo if available */}
               {quest.receipt_image_url && (
@@ -713,6 +769,111 @@ export default function QuestDetailModal({
                     Mode Customer
                   </span>
                 </div>
+
+                {/* 1. Status Antrean, Timeout & Batalkan Quest (HANYA jika status OPEN dan belum diterima runner) */}
+                {quest.status === 'OPEN' && !quest.runner_id && (() => {
+                  const createdTime = new Date(quest.created_at).getTime();
+                  const elapsedMs = Math.max(0, Date.now() - createdTime);
+                  const isJastap = quest.category === 'JASTAP';
+                  const timeoutLimitMs = isJastap ? 5 * 60 * 1000 : 24 * 60 * 60 * 1000;
+                  const isTimeout = elapsedMs >= timeoutLimitMs;
+                  const remainingSec = Math.max(0, Math.floor((timeoutLimitMs - elapsedMs) / 1000));
+                  const remMin = Math.floor(remainingSec / 60);
+                  const remSec = remainingSec % 60;
+
+                  return (
+                    <div className="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-amber-400" />
+                          Status Antrean Menunggu Runner
+                        </span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          isTimeout 
+                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse'
+                            : 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
+                        }`}>
+                          {isTimeout ? '⚠️ Batas Waktu Terlewati' : `⏳ Sisa: ${remMin}m ${remSec < 10 ? '0' : ''}${remSec}s`}
+                        </span>
+                      </div>
+
+                      {/* Warning Banner if Timeout */}
+                      {isTimeout && (
+                        <div className="p-3 bg-amber-950/60 border border-amber-500/50 rounded-xl text-xs text-amber-200 space-y-1">
+                          <div className="font-bold flex items-center gap-1.5 text-amber-300">
+                            <AlertTriangle className="w-4 h-4 shrink-0" />
+                            <span>
+                              {isJastap 
+                                ? 'Pesanan JASTAP belum diambil setelah 5 menit!'
+                                : 'Pesanan JARVIS belum diambil setelah 24 jam!'}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-amber-300/80">
+                            Runner di sekitar Anda mungkin sedang sibuk. Anda dapat menaikkan upah bounty jasa agar lebih menarik, atau membatalkan pesanan.
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Feedback banner */}
+                      {cancelFeedback && (
+                        <div className="p-2.5 bg-emerald-950/70 border border-emerald-500/40 rounded-xl text-xs text-emerald-300 flex items-center gap-1.5">
+                          <CheckCircle className="w-4 h-4 text-emerald-400" />
+                          <span>{cancelFeedback}</span>
+                        </div>
+                      )}
+
+                      {bountyFeedback && (
+                        <div className="p-2.5 bg-amber-950/70 border border-amber-500/40 rounded-xl text-xs text-amber-300 flex items-center gap-1.5">
+                          <CheckCircle className="w-4 h-4 text-amber-400" />
+                          <span>{bountyFeedback}</span>
+                        </div>
+                      )}
+
+                      {/* Action Buttons: Batalkan Quest & Naikkan Bounty */}
+                      <div className="flex items-center gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (confirm('Batalkan quest ini sekarang? Pesanan akan dihapus dari antrean runner.')) {
+                              const res = cancelQuest(quest.id);
+                              if (res.success) {
+                                setCancelFeedback(res.message);
+                                setTimeout(() => onClose(), 1200);
+                              } else {
+                                alert(res.message);
+                              }
+                            }
+                          }}
+                          className="flex-1 py-2 px-3 rounded-xl bg-rose-950/50 hover:bg-rose-900/60 border border-rose-500/40 hover:border-rose-500 text-rose-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                        >
+                          <Ban className="w-3.5 h-3.5" />
+                          <span>Batalkan Quest</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const res = increaseBounty(quest.id, 2000);
+                            setBountyFeedback(res.message);
+                            setTimeout(() => setBountyFeedback(null), 3000);
+                          }}
+                          className="flex-1 py-2 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-md shadow-amber-400/20"
+                        >
+                          <Coins className="w-3.5 h-3.5" />
+                          <span>+ Naikkan Bounty Rp 2.000</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Info if Quest already CANCELLED */}
+                {quest.status === 'CANCELLED' && (
+                  <div className="p-3 bg-rose-950/40 border border-rose-500/40 rounded-xl text-xs text-rose-300 flex items-center gap-2">
+                    <Ban className="w-4 h-4 shrink-0 text-rose-400" />
+                    <span>Pesanan ini telah dibatalkan oleh pemesan dan tidak lagi aktif.</span>
+                  </div>
+                )}
 
                 {/* Payment Action */}
                 <div className="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-2.5">

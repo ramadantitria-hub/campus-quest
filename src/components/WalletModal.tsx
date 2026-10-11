@@ -112,23 +112,56 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
           </div>
         </div>
 
-        {/* Saldo Card */}
-        <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-emerald-500/30 rounded-2xl p-5 mb-5 shadow-inner relative overflow-hidden">
+        {/* Saldo & Points Dual Card */}
+        <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 mb-4 shadow-inner relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
-          <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">
-            Saldo Tersedia
-          </div>
-          <div className="text-3xl font-extrabold text-emerald-400 tracking-tight">
-            Rp {profile.wallet_balance.toLocaleString('id-ID')}
-          </div>
-          <div className="mt-3 flex items-center gap-4 text-xs text-slate-300 pt-3 border-t border-slate-800/80">
+          
+          <div className="flex items-start justify-between gap-3">
             <div>
-              <span className="text-slate-500 block text-[10px]">Total Quest Selesai</span>
-              <span className="font-semibold text-white">{profile.total_completed_orders} Transaksi</span>
+              <div className="text-[10px] sm:text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">
+                Saldo Tersedia
+              </div>
+              <div className="text-2xl sm:text-3xl font-extrabold text-emerald-400 tracking-tight font-mono">
+                Rp {profile.wallet_balance.toLocaleString('id-ID')}
+              </div>
             </div>
-            <div>
-              <span className="text-slate-500 block text-[10px]">Status Akun</span>
-              <span className="font-semibold text-emerald-400">Siap Ditarik (Instant)</span>
+
+            <div className="text-right bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-xl">
+              <span className="text-[10px] text-amber-300 font-bold block uppercase tracking-wider">
+                ⭐ Poin Ongkir
+              </span>
+              <span className="text-base sm:text-lg font-black text-amber-400 font-mono">
+                {profile.points || 0} <span className="text-xs text-amber-300">CQ Poin</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Aturan Pajak & Poin Transparansi */}
+          <div className="mt-3 pt-3 border-t border-slate-800/80 space-y-1.5 text-[11px] text-slate-300">
+            <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-[10px] space-y-1">
+              <div className="font-bold text-sky-300 flex items-center gap-1">
+                <span>💡 Aturan Pembagian Saldo &amp; Pajak Platform:</span>
+              </div>
+              <p className="text-slate-400 leading-relaxed">
+                • <strong>Pajak Platform 10%</strong> hanya dikenakan pada <strong>ongkir / upah jasa (bounty)</strong>, Runner menerima 90% bersih.
+              </p>
+              <p className="text-emerald-400 leading-relaxed">
+                • <strong>Talangan Belanja &amp; Servis Tambahan</strong> (harga barang nota) <strong>100% diganti utuh</strong> tanpa potongan sepeser pun.
+              </p>
+              <p className="text-amber-300 leading-relaxed">
+                • <strong>Poin Mahasiswa</strong> dihitung murni dari nilai ongkir (<strong>1 Poin per Rp 1.000 ongkir</strong>).
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between text-xs pt-1">
+              <div>
+                <span className="text-slate-500 block text-[10px]">Total Quest Selesai</span>
+                <span className="font-semibold text-white">{profile.total_completed_orders} Transaksi</span>
+              </div>
+              <div className="text-right">
+                <span className="text-slate-500 block text-[10px]">Status Penarikan</span>
+                <span className="font-semibold text-emerald-400">Siap Dicairkan (Instant)</span>
+              </div>
             </div>
           </div>
         </div>
@@ -262,24 +295,42 @@ export default function WalletModal({ isOpen, onClose }: WalletModalProps) {
             <History className="w-3.5 h-3.5" />
             <span>Riwayat Quest Selesai</span>
           </div>
-          <div className="max-h-36 overflow-y-auto space-y-2 pr-1">
+          <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
             {completedQuests.length > 0 ? (
-              completedQuests.map((q) => (
-                <div
-                  key={q.id}
-                  className="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 flex items-center justify-between text-xs"
-                >
-                  <div className="min-w-0 flex-1 pr-2">
-                    <p className="font-semibold text-slate-200 truncate">{q.title}</p>
-                    <span className="text-[10px] text-slate-500">
-                      Bounty Jasa • {new Date(q.updated_at).toLocaleDateString('id-ID')}
+              completedQuests.map((q) => {
+                const tax = Math.round(q.bounty_fee * 0.1);
+                const net = q.bounty_fee - tax;
+                const item = q.item_cost || 0;
+                const total = net + item;
+                const pts = Math.floor(q.bounty_fee / 1000);
+
+                return (
+                  <div
+                    key={q.id}
+                    className="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 flex items-center justify-between text-xs"
+                  >
+                    <div className="min-w-0 flex-1 pr-2">
+                      <p className="font-semibold text-slate-200 truncate">{q.title}</p>
+                      <div className="text-[10px] text-slate-400 flex items-center gap-1.5 flex-wrap mt-0.5">
+                        <span>Ongkir Bersih: Rp {net.toLocaleString('id-ID')}</span>
+                        <span className="text-slate-600">•</span>
+                        <span className="text-rose-400/80">Pajak 10%: -Rp {tax.toLocaleString('id-ID')}</span>
+                        {item > 0 && (
+                          <>
+                            <span className="text-slate-600">•</span>
+                            <span className="text-sky-300">Nota 100%: +Rp {item.toLocaleString('id-ID')}</span>
+                          </>
+                        )}
+                        <span className="text-slate-600">•</span>
+                        <span className="text-amber-400 font-semibold">+{pts} Poin</span>
+                      </div>
+                    </div>
+                    <span className="text-emerald-400 font-bold font-mono shrink-0 text-sm">
+                      +Rp {total.toLocaleString('id-ID')}
                     </span>
                   </div>
-                  <span className="text-emerald-400 font-bold font-mono shrink-0">
-                    +Rp {q.bounty_fee.toLocaleString('id-ID')}
-                  </span>
-                </div>
-              ))
+                );
+              })
             ) : (
               <p className="text-xs text-slate-500 text-center py-2">Belum ada riwayat quest selesai</p>
             )}
