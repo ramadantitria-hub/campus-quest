@@ -31,7 +31,8 @@ import {
   Send,
   Check,
   Ban,
-  AlertCircle
+  AlertCircle,
+  Info
 } from 'lucide-react';
 
 interface QuestDetailModalProps {
@@ -656,8 +657,21 @@ export default function QuestDetailModal({
                   </div>
                 )}
 
-                {/* Stepper Status Buttons when In-Progress */}
-                {quest.status !== 'OPEN' && quest.status !== 'COMPLETED' && (
+                {/* In Progress by ANOTHER Runner */}
+                {quest.status !== 'OPEN' && quest.status !== 'COMPLETED' && quest.runner_id && quest.runner_id !== profile.id && (
+                  <div className="bg-[#FAF7F2] p-4 rounded-xl border border-[#E8DFD1] space-y-2">
+                    <div className="flex items-center gap-2 text-xs font-bold text-[#7A1E34]">
+                      <Info className="w-4 h-4 text-[#2D8D84]" />
+                      <span>Quest Sedang Dikerjakan oleh Rekan Runner Lain</span>
+                    </div>
+                    <p className="text-xs text-[#6E6265]">
+                      Pesanan ini sedang dieksekusi oleh runner: <strong className="text-[#2C2224]">{quest.runner_name || 'Mahasiswa UPI'}</strong>. Seluruh detail misi dan rute pengantaran dapat Anda pantau secara transparan.
+                    </p>
+                  </div>
+                )}
+
+                {/* Stepper Status Buttons when In-Progress by THIS runner */}
+                {quest.status !== 'OPEN' && quest.status !== 'COMPLETED' && (quest.runner_id === profile.id || !quest.runner_id) && (
                   <div className="space-y-3">
                     <label className="text-xs font-semibold text-[#2C2224] block">
                       Perbarui Tahap Pengerjaan Anda (1-Klik Interaktif):

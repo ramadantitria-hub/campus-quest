@@ -66,7 +66,7 @@ export default function BottomNav({
         >
           <Compass className="w-4.5 h-4.5" />
           <span className="text-[10px]">
-            {activeRole === 'customer' ? 'Pesanan' : activeRole === 'admin' ? 'Semua Quest' : 'Quest Board'}
+            {activeRole === 'customer' ? 'Pesanan' : 'Semua Quest'}
           </span>
         </button>
 

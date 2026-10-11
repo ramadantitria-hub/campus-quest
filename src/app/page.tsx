@@ -47,7 +47,8 @@ function CampusQuestApp() {
     closeLoginModal,
     isLoggedIn,
     isLoaded,
-    isGuestMode
+    isGuestMode,
+    acceptQuest
   } = useCampusQuest();
 
   // Modals state
@@ -60,6 +61,7 @@ function CampusQuestApp() {
   // Search & filter in 'quests' tab
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<'ALL' | ServiceCategory>('ALL');
+  const [filterStatus, setFilterStatus] = useState<'ALL' | 'OPEN' | 'ACTIVE' | 'COMPLETED'>('ALL');
 
   // Register service worker for PWA
   useEffect(() => {
@@ -103,22 +105,28 @@ function CampusQuestApp() {
     }
 
     const matchCat = filterCategory === 'ALL' || q.category === filterCategory;
+    const matchStatus =
+      filterStatus === 'ALL' ||
+      (filterStatus === 'OPEN' && q.status === 'OPEN') ||
+      (filterStatus === 'ACTIVE' &&
+        q.status !== 'OPEN' &&
+        q.status !== 'COMPLETED' &&
+        q.status !== 'CANCELLED') ||
+      (filterStatus === 'COMPLETED' && q.status === 'COMPLETED');
     const matchSearch =
       q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       q.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       q.origin_address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      q.destination_address.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchCat && matchSearch;
+      q.destination_address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (Boolean(q.customer_name) && (q.customer_name ?? '').toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (Boolean(q.customer_nim) && (q.customer_nim ?? '').toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchCat && matchStatus && matchSearch;
   });
 
   const myQuestsCount = quests.filter(
     (q) =>
       q.customer_id === profile.id ||
       (Boolean(profile.nim) && q.customer_nim === profile.nim)
-  ).length;
-
-  const availableQuestsCount = quests.filter(
-    (q) => q.status === 'OPEN' || q.runner_id === profile.id
   ).length;
 
   // Hydration state check
@@ -179,9 +187,7 @@ function CampusQuestApp() {
             >
               {activeRole === 'customer'
                 ? `Pesanan Saya (${myQuestsCount})`
-                : activeRole === 'admin'
-                ? `Semua Quest Kampus (${quests.length})`
-                : `Quest Board (${availableQuestsCount})`}
+                : `Semua Quest Kampus (${quests.length})`}
             </button>
             <button
               onClick={() => setActiveTab('map')}
@@ -279,12 +285,18 @@ function CampusQuestApp() {
                 <div>
                   <h2 className="text-xl font-extrabold text-[#2C2224] flex items-center gap-2">
                     <Compass className="w-5 h-5 text-[#2D8D84]" />
-                    {activeRole === 'customer' ? 'Pesanan & Riwayat Saya' : 'Quest Board Mahasiswa'}
+                    {activeRole === 'customer'
+                      ? 'Pesanan & Riwayat Saya'
+                      : activeRole === 'admin'
+                      ? 'Pengawasan Seluruh Quest'
+                      : 'Eksplorasi Seluruh Quest Kampus'}
                   </h2>
                   <p className="text-xs text-[#6E6265]">
                     {activeRole === 'customer'
                       ? 'Daftar seluruh pesanan JASTAP & JARVIS milik akun Anda (Privat)'
-                      : 'Daftar permintaan JASTAP & JARVIS yang siap Anda ambil di lingkungan kampus UPI'}
+                      : activeRole === 'admin'
+                      ? 'Audit dan moderasi seluruh pesanan mahasiswa UPI secara terpusat'
+                      : 'Daftar seluruh quest mahasiswa UPI di kampus (Tersedia untuk diambil, sedang berjalan, maupun riwayat)'}
                   </p>
                 </div>
               </div>
@@ -310,49 +322,96 @@ function CampusQuestApp() {
             </div>
 
             {/* Search and Filters Bar */}
-            <div className="bg-white border border-[#E8DFD1] rounded-3xl p-3 shadow-sm flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between">
+            <div className="bg-white border border-[#E8DFD1] rounded-3xl p-3 shadow-sm flex flex-col lg:flex-row gap-2.5 items-stretch lg:items-center justify-between">
               <div className="relative flex-1">
                 <Search className="w-4 h-4 text-[#8E7F83] absolute left-3.5 top-3" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Cari makanan, print tugas, servis laptop, lokasi..."
+                  placeholder="Cari makanan, tugas, servis, pemesan, lokasi..."
                   className="w-full pl-10 pr-3 py-2 bg-[#F7F3EC] border border-[#E8DFD1] rounded-2xl text-xs text-[#2C2224] placeholder:text-[#8E7F83] focus:outline-none focus:border-[#7A1E34]"
                 />
               </div>
 
-              <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto">
-                <button
-                  onClick={() => setFilterCategory('ALL')}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                    filterCategory === 'ALL'
-                      ? 'bg-[#7A1E34] text-white shadow-xs'
-                      : 'text-[#6E6265] hover:text-[#2C2224] bg-[#F2EBE0]'
-                  }`}
-                >
-                  Semua
-                </button>
-                <button
-                  onClick={() => setFilterCategory('JASTAP')}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
-                    filterCategory === 'JASTAP'
-                      ? 'bg-[#2D8D84] text-white shadow-xs'
-                      : 'bg-[#E8F6F3] text-[#1F6F67] border border-[#A5DDD3]'
-                  }`}
-                >
-                  <ShoppingBag className="w-3.5 h-3.5" /> JASTAP
-                </button>
-                <button
-                  onClick={() => setFilterCategory('JARVIS')}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
-                    filterCategory === 'JARVIS'
-                      ? 'bg-[#7A1E34] text-white shadow-xs'
-                      : 'bg-[#FBF0F2] text-[#7A1E34] border border-[#F1CCD3]'
-                  }`}
-                >
-                  <Wrench className="w-3.5 h-3.5" /> JARVIS
-                </button>
+              <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                {/* Category filters */}
+                <div className="flex items-center gap-1 overflow-x-auto">
+                  <button
+                    onClick={() => setFilterCategory('ALL')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                      filterCategory === 'ALL'
+                        ? 'bg-[#7A1E34] text-white shadow-xs'
+                        : 'text-[#6E6265] hover:text-[#2C2224] bg-[#F2EBE0]'
+                    }`}
+                  >
+                    Semua
+                  </button>
+                  <button
+                    onClick={() => setFilterCategory('JASTAP')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                      filterCategory === 'JASTAP'
+                        ? 'bg-[#2D8D84] text-white shadow-xs'
+                        : 'bg-[#E8F6F3] text-[#1F6F67] border border-[#A5DDD3]'
+                    }`}
+                  >
+                    <ShoppingBag className="w-3.5 h-3.5" /> JASTAP
+                  </button>
+                  <button
+                    onClick={() => setFilterCategory('JARVIS')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                      filterCategory === 'JARVIS'
+                        ? 'bg-[#7A1E34] text-white shadow-xs'
+                        : 'bg-[#FBF0F2] text-[#7A1E34] border border-[#F1CCD3]'
+                    }`}
+                  >
+                    <Wrench className="w-3.5 h-3.5" /> JARVIS
+                  </button>
+                </div>
+
+                {/* Status filters */}
+                <div className="flex items-center gap-1 pl-2 border-l border-[#E8DFD1]">
+                  <button
+                    onClick={() => setFilterStatus('ALL')}
+                    className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      filterStatus === 'ALL'
+                        ? 'bg-[#2D8D84] text-white shadow-xs'
+                        : 'bg-[#F2EBE0] text-[#6E6265]'
+                    }`}
+                  >
+                    Semua Status
+                  </button>
+                  <button
+                    onClick={() => setFilterStatus('OPEN')}
+                    className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      filterStatus === 'OPEN'
+                        ? 'bg-[#2D8D84] text-white shadow-xs'
+                        : 'bg-[#E8F6F3] text-[#1F6F67] border border-[#A5DDD3]'
+                    }`}
+                  >
+                    Tersedia
+                  </button>
+                  <button
+                    onClick={() => setFilterStatus('ACTIVE')}
+                    className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      filterStatus === 'ACTIVE'
+                        ? 'bg-[#7A1E34] text-white shadow-xs'
+                        : 'bg-[#FBF0F2] text-[#7A1E34] border border-[#F1CCD3]'
+                    }`}
+                  >
+                    Berjalan
+                  </button>
+                  <button
+                    onClick={() => setFilterStatus('COMPLETED')}
+                    className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      filterStatus === 'COMPLETED'
+                        ? 'bg-[#2D8D84] text-white shadow-xs'
+                        : 'bg-[#FAF7F2] text-[#4A3D41] border border-[#E8DFD1]'
+                    }`}
+                  >
+                    Selesai
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -381,60 +440,107 @@ function CampusQuestApp() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredQuests.map((quest) => (
-                  <div
-                    key={quest.id}
-                    onClick={() => handleOpenQuestDetail(quest.id)}
-                    className="bg-white border border-[#E8DFD1] hover:border-[#2D8D84] rounded-3xl p-4.5 transition-all shadow-sm hover:shadow-md cursor-pointer flex flex-col justify-between group hover:-translate-y-0.5"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <span
-                          className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                            quest.category === 'JASTAP'
-                              ? 'bg-[#E8F6F3] text-[#1F6F67] border border-[#A5DDD3]'
-                              : 'bg-[#FBF0F2] text-[#7A1E34] border border-[#F1CCD3]'
-                          }`}
-                        >
-                          {quest.category}
-                        </span>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#F2EBE0] text-[#6E6265]">
-                          {quest.status}
-                        </span>
-                      </div>
+                {filteredQuests.map((quest) => {
+                  const isMyRun = quest.runner_id === profile.id;
 
-                      <h4 className="text-sm font-bold text-[#2C2224] group-hover:text-[#7A1E34] transition-colors line-clamp-2 break-words">
-                        {quest.title}
-                      </h4>
-                      <p className="text-xs text-[#6E6265] line-clamp-2 break-words mt-1">
-                        {quest.description}
-                      </p>
-
-                      <div className="mt-3 p-2.5 bg-[#FAF7F2] rounded-2xl border border-[#E8DFD1]/70 space-y-1.5 text-[11px] text-[#4A3D41]">
-                        <div className="flex items-start gap-1.5 min-w-0">
-                          <MapPin className="w-3.5 h-3.5 text-[#2D8D84] shrink-0 mt-0.5" />
-                          <span className="break-words line-clamp-1 min-w-0">{quest.origin_address}</span>
-                        </div>
-                        <div className="flex items-start gap-1.5 min-w-0">
-                          <MapPin className="w-3.5 h-3.5 text-[#7A1E34] shrink-0 mt-0.5" />
-                          <span className="break-words line-clamp-1 min-w-0">{quest.destination_address}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t border-[#E8DFD1] flex items-center justify-between">
+                  return (
+                    <div
+                      key={quest.id}
+                      className={`bg-white border rounded-3xl p-4.5 transition-all shadow-sm hover:shadow-md flex flex-col justify-between group hover:-translate-y-0.5 ${
+                        isMyRun ? 'border-[#2D8D84] ring-2 ring-[#2D8D84]/20' : 'border-[#E8DFD1] hover:border-[#2D8D84]'
+                      }`}
+                    >
                       <div>
-                        <span className="text-[10px] text-[#8E7F83] block font-semibold">Bounty Jasa</span>
-                        <span className="text-sm font-black text-[#7A1E34] font-mono">
-                          Rp {quest.bounty_fee.toLocaleString('id-ID')}
-                        </span>
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span
+                            className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
+                              quest.category === 'JASTAP'
+                                ? 'bg-[#E8F6F3] text-[#1F6F67] border border-[#A5DDD3]'
+                                : 'bg-[#FBF0F2] text-[#7A1E34] border border-[#F1CCD3]'
+                            }`}
+                          >
+                            {quest.category}
+                          </span>
+                          <span
+                            className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold ${
+                              quest.status === 'OPEN'
+                                ? 'bg-[#E8F6F3] text-[#1F6F67] border border-[#A5DDD3]'
+                                : quest.status === 'COMPLETED'
+                                ? 'bg-[#E8F6F3] text-[#2D8D84]'
+                                : 'bg-[#FBF0F2] text-[#7A1E34]'
+                            }`}
+                          >
+                            {quest.status} {isMyRun ? '(Tugas Saya)' : ''}
+                          </span>
+                        </div>
+
+                        <h4
+                          onClick={() => handleOpenQuestDetail(quest.id)}
+                          className="text-sm font-bold text-[#2C2224] group-hover:text-[#7A1E34] transition-colors line-clamp-2 break-words cursor-pointer"
+                        >
+                          {quest.title}
+                        </h4>
+                        <p className="text-xs text-[#6E6265] line-clamp-2 break-words mt-1">
+                          {quest.description}
+                        </p>
+
+                        {/* Customer Identity Preview */}
+                        <div className="mt-2.5 p-2 bg-[#FAF7F2] rounded-2xl border border-[#E8DFD1] text-[11px] text-[#4A3D41] flex items-center justify-between">
+                          <span className="truncate">Pemesan: <strong>{quest.customer_name}</strong></span>
+                          {quest.customer_nim && (
+                            <span className="font-mono text-[10px] text-[#7A1E34] shrink-0">({quest.customer_nim})</span>
+                          )}
+                        </div>
+
+                        <div className="mt-2.5 p-2.5 bg-[#FAF7F2] rounded-2xl border border-[#E8DFD1]/70 space-y-1.5 text-[11px] text-[#4A3D41]">
+                          <div className="flex items-start gap-1.5 min-w-0">
+                            <MapPin className="w-3.5 h-3.5 text-[#2D8D84] shrink-0 mt-0.5" />
+                            <span className="break-words line-clamp-1 min-w-0">{quest.origin_address}</span>
+                          </div>
+                          <div className="flex items-start gap-1.5 min-w-0">
+                            <MapPin className="w-3.5 h-3.5 text-[#7A1E34] shrink-0 mt-0.5" />
+                            <span className="break-words line-clamp-1 min-w-0">{quest.destination_address}</span>
+                          </div>
+                        </div>
                       </div>
-                      <span className="text-xs font-bold text-[#2D8D84] group-hover:translate-x-1 transition-transform">
-                        Detail →
-                      </span>
+
+                      <div className="mt-4 pt-3 border-t border-[#E8DFD1] flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] text-[#8E7F83] block font-semibold">Bounty Jasa</span>
+                          <span className="text-sm font-black text-[#7A1E34] font-mono">
+                            Rp {quest.bounty_fee.toLocaleString('id-ID')}
+                          </span>
+                          {activeRole === 'runner' && (
+                            <span className="text-[10px] text-[#2D8D84] block font-mono font-bold">
+                              Bersih: Rp {Math.round(quest.bounty_fee * 0.9).toLocaleString('id-ID')}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleOpenQuestDetail(quest.id)}
+                            className="px-3 py-1.5 rounded-xl bg-[#FAF7F2] hover:bg-[#F2EBE0] text-[#4A3D41] text-xs font-bold border border-[#E8DFD1] transition-colors cursor-pointer"
+                          >
+                            Detail
+                          </button>
+
+                          {activeRole === 'runner' && quest.status === 'OPEN' && (
+                            <button
+                              onClick={() => {
+                                acceptQuest(quest.id);
+                                handleOpenQuestDetail(quest.id);
+                              }}
+                              className="px-3.5 py-1.5 rounded-xl bg-[#2D8D84] hover:bg-[#247D75] text-white font-extrabold text-xs shadow-md shadow-[#2D8D84]/25 transition-all cursor-pointer"
+                            >
+                              Ambil
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
