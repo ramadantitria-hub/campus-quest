@@ -474,48 +474,7 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
           </div>
         </div>
 
-        {/* ROLE BANNER FOR CUSTOMER / RUNNER */}
-        {loginSection === 'customer' && (
-          <div className="p-3 rounded-2xl bg-gradient-to-r from-[#E8F6F3] to-[#F2FBF9] border border-[#A5DDD3] mb-4 flex items-center justify-between shadow-xs">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-[#2D8D84] text-white flex items-center justify-center font-bold shadow-sm shadow-[#2D8D84]/20">
-                <ShoppingBag className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-xs font-extrabold text-[#1F6F67]">Portal Masuk Customer UPI</h3>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white text-[#2D8D84] border border-[#A5DDD3]">
-                    Customer Mode
-                  </span>
-                </div>
-                <p className="text-[11px] text-[#2D8D84] mt-0.5">
-                  Titip beli makanan/print & panggil Jarvis servis teknisi komputer
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
-        {loginSection === 'runner' && (
-          <div className="p-3 rounded-2xl bg-gradient-to-r from-[#FBF0F2] to-[#FFF5F7] border border-[#F1CCD3] mb-4 flex items-center justify-between shadow-xs">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-[#7A1E34] text-white flex items-center justify-center font-bold shadow-sm shadow-[#7A1E34]/20">
-                <Zap className="w-4 h-4 text-amber-300" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-xs font-extrabold text-[#7A1E34]">Portal Masuk Runner UPI</h3>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white text-[#7A1E34] border border-[#F1CCD3]">
-                    Runner Mode
-                  </span>
-                </div>
-                <p className="text-[11px] text-[#9B2444] mt-0.5">
-                  Ambil pesanan mahasiswa lain di kampus & raih uang saku harian instan
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* METHOD SWITCHER TABS (HANYA UNTUK CUSTOMER & RUNNER) */}
         {loginSection !== 'admin' && (
@@ -1088,75 +1047,7 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
               </div>
             </div>
 
-            {/* Pilihan Akun Demo Cepat Customer / Runner */}
-            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-[#E8DFD1]">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-bold text-[#2C2224] flex items-center gap-1.5">
-                  {loginSection === 'customer' ? (
-                    <>
-                      <ShoppingBag className="w-3.5 h-3.5 text-[#2D8D84]" />
-                      <span>Pilih Cepat Akun Demo Customer:</span>
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-3.5 h-3.5 text-[#7A1E34]" />
-                      <span>Pilih Cepat Akun Demo Runner:</span>
-                    </>
-                  )}
-                </span>
-                <span className="text-[10px] text-[#2D8D84] font-semibold bg-[#E8F6F3] px-2 py-0.5 rounded-full border border-[#A5DDD3]">
-                  1-Klik Masuk
-                </span>
-              </div>
 
-              {loginSection === 'customer' ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleQuickLogin('2201945', 'customer')}
-                    className="p-2 rounded-xl bg-white border border-[#A5DDD3] hover:bg-[#E8F6F3] text-left transition-colors cursor-pointer flex flex-col justify-between"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#1F6F67]">Bima Arya</span>
-                      <span className="text-[10px] font-mono text-[#2D8D84]">2201945</span>
-                    </div>
-                    <span className="text-[10px] text-[#6E6265] truncate mt-0.5">
-                      FPTK - Teknik Mesin
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleQuickLogin('2304512', 'customer')}
-                    className="p-2 rounded-xl bg-white border border-[#A5DDD3] hover:bg-[#E8F6F3] text-left transition-colors cursor-pointer flex flex-col justify-between"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#1F6F67]">Nabila Putri</span>
-                      <span className="text-[10px] font-mono text-[#2D8D84]">2304512</span>
-                    </div>
-                    <span className="text-[10px] text-[#6E6265] truncate mt-0.5">
-                      FPEB - Manajemen Bisnis
-                    </span>
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => handleQuickLogin('2108765', 'runner')}
-                  className="w-full p-2.5 rounded-xl bg-white border border-[#F1CCD3] hover:bg-[#FBF0F2] text-left transition-colors cursor-pointer flex items-center justify-between"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-[#7A1E34]">Reza Fachri (The Machinist)</span>
-                      <span className="text-[10px] font-mono font-bold text-[#7A1E34]">2108765</span>
-                    </div>
-                    <span className="text-[10px] text-[#6E6265] truncate mt-0.5 block">
-                      FPMIPA - Ilmu Komputer • Rating 4.98 ⭐
-                    </span>
-                  </div>
-                  <span className="text-xs font-extrabold text-[#7A1E34]">Masuk →</span>
-                </button>
-              )}
-            </div>
 
             {loginError && (
               <div className="p-3 rounded-xl bg-[#FBF0F2] border border-[#F1CCD3] text-[#7A1E34] text-xs flex items-center gap-2 font-medium">
