@@ -1,8 +1,13 @@
-const CACHE_NAME = 'campusquest-v1';
+const CACHE_NAME = 'campusquest-v2-upi';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
-  '/favicon.ico'
+  '/icon-192.png',
+  '/icon-512.png',
+  '/icon-maskable-192.png',
+  '/icon-maskable-512.png',
+  '/apple-touch-icon.png',
+  '/favicon.png'
 ];
 
 self.addEventListener('install', (event) => {

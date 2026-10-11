@@ -75,26 +75,29 @@ export default function PwaInstallBanner() {
 
   return (
     <>
-      <div className="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:max-w-md z-40 bg-slate-900/95 backdrop-blur-md border border-sky-500/30 text-white rounded-2xl p-4 shadow-2xl shadow-sky-500/10 transition-all animate-in fade-in slide-in-from-bottom-4 duration-300">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shrink-0 shadow-md shadow-sky-500/25">
-            <Smartphone className="w-5 h-5 text-white" />
-          </div>
+      <div className="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:max-w-md z-40 bg-slate-900/95 backdrop-blur-md border border-rose-500/30 text-white rounded-2xl p-4 shadow-2xl shadow-rose-950/40 transition-all animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="flex items-start gap-3.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/icon-192.png"
+            alt="CampusQuest UPI App Icon"
+            className="w-12 h-12 rounded-2xl shadow-lg border border-rose-500/40 shrink-0 object-cover"
+          />
           <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-semibold text-white flex items-center gap-1.5">
-              Install CampusQuest
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-mono">PWA</span>
+            <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+              Install CampusQuest UPI
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-rose-500/20 text-rose-300 font-mono font-bold">App</span>
             </h4>
             <p className="text-xs text-slate-300 mt-0.5">
-              Pasang di layar utama HP untuk akses kilat &amp; notifikasi quest real-time!
+              Pasang ikon di layar utama HP untuk akses instan &amp; pengalaman aplikasi native!
             </p>
             <div className="flex items-center gap-2 mt-2.5">
               <button
                 onClick={handleInstallClick}
-                className="px-3.5 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm shadow-sky-400/20"
+                className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-rose-900/30"
               >
                 <Download className="w-3.5 h-3.5" />
-                Pasang Sekarang
+                Pasang ke Layar Utama
               </button>
               <button
                 onClick={() => setShowBanner(false)}
@@ -106,7 +109,7 @@ export default function PwaInstallBanner() {
           </div>
           <button
             onClick={() => setShowBanner(false)}
-            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+            className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -116,19 +119,29 @@ export default function PwaInstallBanner() {
       {/* iOS Safari Installation Guide Modal */}
       {showIosGuide && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 max-w-sm w-full rounded-2xl p-6 text-white shadow-2xl relative">
+          <div className="bg-slate-900 border border-slate-700 max-w-sm w-full rounded-2xl p-6 text-white shadow-2xl relative animate-in fade-in zoom-in-95">
             <button
               onClick={() => setShowIosGuide(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white"
+              className="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
-            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-              <Smartphone className="w-5 h-5 text-sky-400" />
-              Cara Install di iOS (Safari)
-            </h3>
+            <div className="flex items-center gap-3 mb-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/icon-192.png"
+                alt="CampusQuest UPI Icon"
+                className="w-12 h-12 rounded-2xl border border-rose-500/40 shadow-md object-cover"
+              />
+              <div>
+                <h3 className="text-base font-bold text-white">
+                  Pasang ke Layar Utama (iOS)
+                </h3>
+                <p className="text-[11px] text-slate-400">CampusQuest UPI App</p>
+              </div>
+            </div>
             <p className="text-xs text-slate-300 mb-4">
-              Apple Safari memerlukan 2 langkah mudah untuk memasang aplikasi ke Home Screen:
+              Apple Safari memerlukan 2 langkah mudah agar ikon muncul di Homescreen HP Anda:
             </p>
             <ol className="space-y-3 text-xs text-slate-200">
               <li className="flex items-start gap-2.5 bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">

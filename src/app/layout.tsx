@@ -18,18 +18,25 @@ export const metadata: Metadata = {
     "Platform peer-to-peer bounty on-demand khusus mahasiswa Universitas Pendidikan Indonesia (UPI) untuk jasa titip beli (JASTAP) dan servis gadget & hardware (JARVIS).",
   manifest: "/manifest.json",
   icons: {
-    icon: "/icon-192.png",
-    apple: "/icon-192.png"
+    icon: [
+      { url: "/favicon.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" }
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" }
+    ]
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "CampusQuest"
+    title: "CampusQuest UPI"
   }
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0ea5e9",
+  themeColor: "#e11d48",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -48,7 +55,15 @@ export default function RootLayout({
     >
       <head>
         <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="CampusQuest" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="application-name" content="CampusQuest" />
+        <meta name="theme-color" content="#e11d48" />
       </head>
       <body className="min-h-full flex flex-col bg-slate-950 text-slate-100 selection:bg-sky-500 selection:text-slate-950">
         {children}
