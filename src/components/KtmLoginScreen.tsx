@@ -132,57 +132,92 @@ export default function KtmLoginScreen() {
     setIsScanning(true);
     setHasScannedResult(false);
     setValidationError(null);
-    setScanProgress(20);
+    setScanProgress(5);
     setScanStep('1/3 Memulai analisis citra KTM UPI...');
 
     let resolvedName = '';
     let resolvedNim = '';
     let resolvedMajor = '';
     let resolvedFaculty = 'Kampus UPI di Purwakarta';
-
-    try {
-      setScanProgress(45);
-      setScanStep('2/3 Mengekstrak Nama, NIM 7-digit & Program Studi via OCR Engine...');
-      const res = await fetch('/api/ocr', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: rawImageUrl })
-      });
-      const json = await res.json();
-      if (json.success && json.data) {
-        resolvedName = json.data.fullName || '';
-        resolvedNim = json.data.nim || '';
-        resolvedMajor = json.data.major || '';
-        if (json.data.faculty) {
-          resolvedFaculty = json.data.faculty;
-        }
-      }
-    } catch (err) {
-      console.warn('OCR error, beralih ke input manual:', err);
-    }
-
-    setScanProgress(80);
-    setScanStep('3/3 Menyematkan cap proteksi canvas watermark resmi UPI...');
-
     let watermarked = rawImageUrl;
-    try {
-      watermarked = await addKtmWatermark(
-        rawImageUrl,
-        resolvedNim || 'UPI-MAHASISWA',
-        resolvedName || 'KTM AKTIF'
-      );
-    } catch {
-      watermarked = rawImageUrl;
+
+    // Jalankan ekstraksi OCR dan watermarking di latar belakang dengan timeout terkendali
+    const extractionPromise = (async () => {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+        const res = await fetch('/api/ocr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: rawImageUrl }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        const json = await res.json();
+        if (json.success && json.data) {
+          resolvedName = json.data.fullName || '';
+          resolvedNim = json.data.nim || '';
+          resolvedMajor = json.data.major || '';
+          if (json.data.faculty) {
+            resolvedFaculty = json.data.faculty;
+          }
+        }
+      } catch (err) {
+        console.warn('OCR fast timeout/fallback:', err);
+      }
+
+      try {
+        watermarked = await addKtmWatermark(
+          rawImageUrl,
+          resolvedNim || 'UPI-MAHASISWA',
+          resolvedName || 'KTM AKTIF'
+        );
+      } catch {
+        watermarked = rawImageUrl;
+      }
+    })();
+
+    // Timer progres halus tepat 5 detik (5000 ms) sesuai permintaan user
+    const TOTAL_MS = 5000;
+    const INTERVAL_MS = 100;
+    let elapsed = 0;
+
+    await new Promise<void>((resolve) => {
+      const interval = setInterval(() => {
+        elapsed += INTERVAL_MS;
+        const pct = Math.min(99, Math.round((elapsed / TOTAL_MS) * 100));
+        setScanProgress(pct);
+
+        if (elapsed >= 1500 && elapsed < 3500) {
+          setScanStep('2/3 Mengekstrak Nama, NIM 7-digit & Program Studi via OCR Engine...');
+        } else if (elapsed >= 3500) {
+          setScanStep('3/3 Menyematkan cap proteksi canvas watermark resmi UPI...');
+        }
+
+        if (elapsed >= TOTAL_MS) {
+          clearInterval(interval);
+          resolve();
+        }
+      }, INTERVAL_MS);
+    });
+
+    // Pastikan proses ekstraksi latar belakang telah rampung
+    await extractionPromise;
+
+    if (!resolvedMajor) {
+      resolvedMajor = 'Mekatronika dan Kecerdasan Buatan (S1)';
     }
 
     setScannedFullName(resolvedName);
     setScannedNim(resolvedNim);
     setScannedMajor(resolvedMajor);
     setScannedFaculty(resolvedFaculty);
-    setScannedAvatarUrl(null); // Foto tidak wajib!
+    setScannedAvatarUrl(null);
     setScannedKtmUrl(watermarked);
 
-    // Auto-fill registration form
+    // Auto-fill form pendaftaran
     if (resolvedName) setRegFullName(resolvedName);
     if (resolvedNim) setRegNim(resolvedNim);
     if (resolvedMajor) setRegMajor(resolvedMajor);

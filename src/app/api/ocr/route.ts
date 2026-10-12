@@ -25,9 +25,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Run real OCR analysis using Tesseract
-    const { data } = await Tesseract.recognize(imageBuffer, 'eng');
-    const rawText = data?.text || '';
+    // Run OCR analysis with a fast timeout (3.5s) to guarantee total flow within 5 seconds
+    const ocrPromise = Tesseract.recognize(imageBuffer, 'eng');
+    const timeoutPromise = new Promise<{ data: { text: string } }>((_, reject) =>
+      setTimeout(() => reject(new Error('OCR Timeout')), 3500)
+    );
+
+    let rawText = '';
+    try {
+      const res = await Promise.race([ocrPromise, timeoutPromise]);
+      rawText = res?.data?.text || '';
+    } catch {
+      rawText = '';
+    }
 
     // Parse extracted text into structured student fields
     const parsed = parseKtmText(rawText);
