@@ -156,7 +156,7 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
       nim: s.nim,
       password: 'upi123',
       full_name: s.full_name,
-      major: s.major || 'Pendidikan Teknik Mesin (S1)',
+      major: s.major || 'Mekatronika dan Kecerdasan Buatan (S1)',
       faculty: s.faculty || 'FPTK UPI',
       university: s.university || 'Universitas Pendidikan Indonesia (UPI)',
       phone: s.phone,
@@ -1236,7 +1236,7 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
       if (cleanPass !== ADMIN_PASSWORD) {
         return {
           success: false,
-          message: 'Password administrator salah! Silakan gunakan password resmi (123).'
+          message: 'Password administrator salah!'
         };
       }
 
@@ -1244,7 +1244,7 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
       if (!adminData) {
         return {
           success: false,
-          message: 'NIM ini bukan salah satu dari 4 Administrator resmi (Airis, Tria, Abdu, Randi).'
+          message: 'NIM ini tidak terdaftar sebagai Administrator resmi.'
         };
       }
 

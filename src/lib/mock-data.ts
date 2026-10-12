@@ -300,22 +300,22 @@ export const AUTHORIZED_ADMINS: AuthorizedAdmin[] = [
   {
     name: 'TRIA RAMADANTI',
     nim: '2502895',
-    major: 'Pendidikan Teknik Mesin (S1)',
+    major: 'Mekatronika dan Kecerdasan Buatan (S1)',
     faculty: 'FPTK UPI',
     phone: '081230002222'
   },
   {
     name: 'ABDU MUSYAFFA',
     nim: '2502537',
-    major: 'Teknik Elektro (S1)',
+    major: 'Mekatronika dan Kecerdasan Buatan (S1)',
     faculty: 'FPTK UPI',
     phone: '081240003333'
   },
   {
     name: 'RANDI PERDIANSYAH',
     nim: '2521511',
-    major: 'Pendidikan Ilmu Komputer (S1)',
-    faculty: 'FPMIPA UPI',
+    major: 'Mekatronika dan Kecerdasan Buatan (S1)',
+    faculty: 'FPTK UPI',
     phone: '081250004444'
   }
 ];
@@ -340,7 +340,7 @@ export const ADMIN_PROFILE: Profile = {
   nim: '2502895',
   university: 'Universitas Pendidikan Indonesia (UPI)',
   faculty: 'FPTK UPI',
-  major: 'Pendidikan Teknik Mesin (S1)',
+  major: 'Mekatronika dan Kecerdasan Buatan (S1)',
   phone: '081230002222',
   avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
   is_verified: true,

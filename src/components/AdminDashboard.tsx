@@ -689,7 +689,7 @@ export default function AdminDashboard() {
                   <div className="mt-3 p-2.5 rounded-2xl bg-[#FAF7F2] border border-[#E8DFD1]/70 space-y-1 text-[11px] text-[#4A3D41]">
                     <p className="flex items-center gap-1.5">
                       <GraduationCap className="w-3.5 h-3.5 text-[#7A1E34]" />
-                      <span>{user.major || 'Pendidikan Teknik Mesin (S1)'}</span>
+                      <span>{user.major || 'Mekatronika dan Kecerdasan Buatan (S1)'}</span>
                     </p>
                     <p className="flex items-center gap-1.5">
                       <Phone className="w-3.5 h-3.5 text-[#2D8D84]" />

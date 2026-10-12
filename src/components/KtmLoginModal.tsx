@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useCampusQuest } from '@/context/CampusQuestContext';
-import { UPI_FACULTIES, AUTHORIZED_ADMINS, ADMIN_PASSWORD } from '@/lib/mock-data';
+import { UPI_FACULTIES } from '@/lib/mock-data';
 import { addKtmWatermark } from '@/lib/watermark';
 import { soundFX } from '@/lib/audio';
 import { UserRole } from '@/types/campus-quest';
@@ -297,11 +297,11 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
     const cleanNim = adminNim.trim();
     const cleanPass = adminPassword.trim();
     if (!cleanNim) {
-      setAdminError('Silakan pilih salah satu Administrator atau masukkan NIM Administrator.');
+      setAdminError('Masukkan NIM Administrator.');
       return;
     }
     if (!cleanPass) {
-      setAdminError('Masukkan password Administrator (default: 123).');
+      setAdminError('Masukkan password Administrator.');
       return;
     }
     const res = loginAsAdmin(cleanNim, cleanPass);
@@ -313,13 +313,6 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
         onClose();
       }, 700);
     }
-  };
-
-  const handleSelectAdmin = (nim: string) => {
-    setAdminNim(nim);
-    setAdminPassword(ADMIN_PASSWORD);
-    setAdminError(null);
-    soundFX.pop();
   };
 
   const handleQuickLogin = (nim: string, role: 'customer' | 'runner') => {
@@ -562,53 +555,13 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
                   <div className="flex items-center gap-2">
                     <h3 className="text-xs sm:text-sm font-extrabold text-white">Portal Admin</h3>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                      Khusus 4 Administrator
+                      Khusus Administrator
                     </span>
                   </div>
                   <p className="text-[11px] text-[#A5DDD3] mt-0.5">
                     Audit transaksi, moderasi pesanan, & verifikasi akun mahasiswa
                   </p>
                 </div>
-              </div>
-            </div>
-
-            {/* Pilih salah satu 4 Admin Resmi */}
-            <div>
-              <label className="text-xs font-bold text-[#2C2224] mb-1.5 flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-[#7A1E34]" />
-                  Pilih Akun Admin Resmi:
-                </span>
-                <span className="text-[10px] text-[#2D8D84] font-semibold bg-[#E8F6F3] px-2 py-0.5 rounded-md border border-[#A5DDD3]">
-                  Klik untuk Isi Otomatis
-                </span>
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {AUTHORIZED_ADMINS.map((admin) => {
-                  const isSelected = adminNim === admin.nim;
-                  return (
-                    <button
-                      key={admin.nim}
-                      type="button"
-                      onClick={() => handleSelectAdmin(admin.nim)}
-                      className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                        isSelected
-                          ? 'bg-[#E8F6F3] border-[#2D8D84] text-[#1F6F67] shadow-xs ring-2 ring-[#2D8D84]/20'
-                          : 'bg-white border-[#E8DFD1] hover:border-[#2D8D84] text-[#2C2224]'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-xs font-black truncate">{admin.name}</span>
-                        <span className="text-[10px] font-mono font-bold text-[#7A1E34]">
-                          {admin.nim}
-                        </span>
-                      </div>
-                      <span className="text-[10px] text-[#8E7F83] truncate mt-0.5">
-                        {admin.major}
-                      </span>
-                    </button>
-                  );
-                })}
               </div>
             </div>
 
@@ -626,7 +579,7 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
                     setAdminNim(e.target.value);
                     setAdminError(null);
                   }}
-                  placeholder="Pilih di atas atau ketik NIM Admin..."
+                  placeholder="Masukkan NIM Administrator..."
                   required
                   className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E8DFD1] text-xs font-mono font-bold text-[#2C2224] placeholder:font-sans placeholder:font-normal focus:outline-none focus:border-[#7A1E34]"
                 />
@@ -635,7 +588,7 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
               <div>
                 <label className="block text-xs font-bold text-[#2C2224] mb-1 flex items-center gap-1.5">
                   <KeyRound className="w-3.5 h-3.5 text-[#7A1E34]" />
-                  Password Administrator (Default: 123)
+                  Password Administrator
                 </label>
                 <div className="relative">
                   <input
@@ -645,7 +598,7 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
                       setAdminPassword(e.target.value);
                       setAdminError(null);
                     }}
-                    placeholder="Masukkan password admin resmi..."
+                    placeholder="Masukkan password Administrator..."
                     required
                     className="w-full px-3.5 py-2.5 pr-10 rounded-xl bg-white border border-[#E8DFD1] text-xs font-mono text-[#2C2224] focus:outline-none focus:border-[#7A1E34]"
                   />

@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useCampusQuest } from '@/context/CampusQuestContext';
-import { AUTHORIZED_ADMINS } from '@/lib/mock-data';
 import {
   ShieldCheck,
   Lock,
@@ -31,11 +30,6 @@ export default function AdminAuthModal({ isOpen, onClose }: AdminAuthModalProps)
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   if (!isOpen) return null;
-
-  const handleSelectAdmin = (nim: string) => {
-    setNimInput(nim);
-    setErrorMsg(null);
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,42 +73,8 @@ export default function AdminAuthModal({ isOpen, onClose }: AdminAuthModalProps)
             Portal Admin
           </h2>
           <p className="text-xs text-[#6E6265] mt-1">
-            Hanya 4 Administrator Resmi yang Berhak Mengakses Pengawasan dan Moderasi Sistem.
+            Hanya Administrator Resmi yang Berhak Mengakses Pengawasan dan Moderasi Sistem.
           </p>
-        </div>
-
-        {/* List of 4 Authorized Admins Quick Selection */}
-        <div className="mb-4">
-          <label className="text-[11px] font-bold text-[#6E6265] mb-1.5 block">
-            Pilih Salah Satu Akun Administrator Resmi:
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-            {AUTHORIZED_ADMINS.map((admin) => {
-              const isSelected = nimInput === admin.nim;
-              return (
-                <button
-                  key={admin.nim}
-                  type="button"
-                  onClick={() => handleSelectAdmin(admin.nim)}
-                  className={`p-2.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                    isSelected
-                      ? 'bg-[#E8F6F3] border-[#2D8D84] text-[#1F6F67] shadow-xs'
-                      : 'bg-white border-[#E8DFD1] hover:border-[#2D8D84] text-[#2C2224]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-1">
-                    <span className="text-xs font-black truncate">{admin.name}</span>
-                    <span className="text-[10px] font-mono font-bold text-[#7A1E34]">
-                      {admin.nim}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-[#8E7F83] truncate mt-0.5">
-                    {admin.major}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
         </div>
 
         {/* Error / Success Feedback */}
@@ -167,7 +127,7 @@ export default function AdminAuthModal({ isOpen, onClose }: AdminAuthModalProps)
                   setPasswordInput(e.target.value);
                   setErrorMsg(null);
                 }}
-                placeholder="Masukkan password admin (123)"
+                placeholder="Masukkan password admin..."
                 required
                 className="w-full pl-9 pr-10 py-2.5 bg-white border border-[#E8DFD1] rounded-2xl text-xs font-mono text-[#2C2224] placeholder:text-[#8E7F83] focus:outline-none focus:border-[#7A1E34]"
               />
