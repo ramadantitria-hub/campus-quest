@@ -1098,16 +1098,11 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
       };
     }
 
-    // If not found at all, auto-create this distinct account with the given password & role!
-    return registerAccount({
-      fullName: `Mahasiswa UPI (${cleanNim})`,
-      nim: cleanNim,
-      password: cleanPassword || '123456',
-      role: targetRole || 'customer',
-      major: 'Mekatronika dan Kecerdasan Buatan (S1)',
-      faculty: 'Kampus UPI di Purwakarta',
-      university: 'Universitas Pendidikan Indonesia (UPI)'
-    });
+    // If not found in registered accounts or demo accounts, do not allow login without prior registration
+    return {
+      success: false,
+      message: 'Akun dengan NIM ini belum terdaftar. Mahasiswa UPI wajib mendaftar dan memindai KTM resmi pada menu "Daftar".'
+    };
   };
 
   const loginWithKtm = (data: {

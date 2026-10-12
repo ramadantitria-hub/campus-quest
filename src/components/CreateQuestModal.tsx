@@ -17,7 +17,6 @@ import {
   CreditCard,
   QrCode,
   DollarSign,
-  Sparkles,
   HelpCircle,
   CheckCircle,
   Edit3
@@ -64,49 +63,6 @@ export default function CreateQuestModal({
   const [serviceIssue, setServiceIssue] = useState('');
 
   if (!isOpen) return null;
-
-  // Preset suggestions for rapid filling
-  const loadPreset = (presetType: string) => {
-    setOriginType('preset');
-    setDestinationType('preset');
-    if (presetType === 'makan') {
-      setTitle('Nasi Ayam Geprek Sambal Bawang Serba 10k + Es Jeruk');
-      setQuantity(1);
-      setUnit('porsi');
-      setOriginAddress('Serba Sepuluh Ribu');
-      setDestinationAddress('Gedung Kuliah 4 (Smart Classroom)');
-      setNotes('Sambal level 3 dipisah tolong ya. Nanti ketemu di lobi Smart Classroom.');
-      setBountyFee(12000);
-    } else if (presetType === 'print') {
-      setTitle('Print Tugas Makalah 25 Lembar & Jilid di Depan Kampus');
-      setQuantity(25);
-      setUnit('lembar');
-      setOriginAddress('Kantin Depan Kampus / Jalan');
-      setDestinationAddress('Gedung Layanan Administrasi / Rektorat');
-      setNotes('File PDF dikirim lewat chat ya. Butuh jam 13:00 untuk kumpul tugas.');
-      setBountyFee(15000);
-    } else if (presetType === 'windows') {
-      setTitle('Install Ulang Windows 11 + Software Praktikum UPI Purwakarta');
-      setQuantity(1);
-      setUnit('perangkat');
-      setDeviceSpecs('Laptop Lenovo ThinkPad E14 Gen 4');
-      setServiceIssue('Windows lambat dan sering blue screen setelah update');
-      setOriginAddress('Kemuning (Purwakarta)');
-      setDestinationAddress('Gedung Laboratorium Terpadu');
-      setNotes('Jemput laptop di kost Kemuning, mohon backup folder Dokumen di drive D');
-      setBountyFee(65000);
-    } else if (presetType === 'thermal') {
-      setTitle('Bersihkan Debu Kipas Laptop & Ganti Thermal Paste Asus');
-      setQuantity(1);
-      setUnit('perangkat');
-      setDeviceSpecs('Asus TUF Gaming FX505');
-      setServiceIssue('Suhu GPU sampai 92 derajat saat rendering tugas akhir');
-      setOriginAddress('Mawar (Purwakarta)');
-      setDestinationAddress('Gedung Laboratorium Terpadu');
-      setNotes('Bawa pasta pendingin kualitas bagus ya bro, jemput di Jl. Mawar');
-      setBountyFee(55000);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -236,50 +192,6 @@ export default function CreateQuestModal({
                 <Wrench className="w-3.5 h-3.5" />
                 <span>JARVIS (The Machinist)</span>
               </button>
-            </div>
-
-            {/* Quick Template Chips */}
-            <div>
-              <span className="text-[10px] sm:text-[11px] text-[#7E7074] block mb-1.5 flex items-center gap-1 font-bold">
-                <Sparkles className="w-3 h-3 text-[#2D8D84]" /> Contoh Cepat 1-Klik:
-              </span>
-              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
-                {category === 'JASTAP' ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => loadPreset('makan')}
-                      className="px-2.5 py-1 rounded-xl bg-white hover:bg-[#FAF7F2] text-[11px] text-[#4A3D41] border border-[#E8DFD1] shrink-0 whitespace-nowrap cursor-pointer transition-colors shadow-2xs font-medium"
-                    >
-                      🍗 Ayam Geprek &amp; Es Teh
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => loadPreset('print')}
-                      className="px-2.5 py-1 rounded-xl bg-white hover:bg-[#FAF7F2] text-[11px] text-[#4A3D41] border border-[#E8DFD1] shrink-0 whitespace-nowrap cursor-pointer transition-colors shadow-2xs font-medium"
-                    >
-                      🖨️ Print Tugas &amp; Jilid
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => loadPreset('windows')}
-                      className="px-2.5 py-1 rounded-xl bg-white hover:bg-[#FAF7F2] text-[11px] text-[#4A3D41] border border-[#E8DFD1] shrink-0 whitespace-nowrap cursor-pointer transition-colors shadow-2xs font-medium"
-                    >
-                      💻 Install Windows &amp; Office
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => loadPreset('thermal')}
-                      className="px-2.5 py-1 rounded-xl bg-white hover:bg-[#FAF7F2] text-[11px] text-[#4A3D41] border border-[#E8DFD1] shrink-0 whitespace-nowrap cursor-pointer transition-colors shadow-2xs font-medium"
-                    >
-                      ❄️ Bersih Kipas + Ganti Pasta
-                    </button>
-                  </>
-                )}
-              </div>
             </div>
 
             {category === 'JASTAP' ? (

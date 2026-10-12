@@ -40,7 +40,7 @@ interface KtmLoginModalProps {
 }
 
 type LoginSection = 'customer' | 'runner' | 'admin';
-type LoginTab = 'login' | 'register' | 'ocr_scan';
+type LoginTab = 'login' | 'register';
 type ScanSource = 'upload' | 'camera';
 
 export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
@@ -79,6 +79,7 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
 
   // OCR Scan State
   const [scanSource, setScanSource] = useState<ScanSource>('upload');
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const [isScanning, setIsScanning] = useState(false);
   const [scanStep, setScanStep] = useState<string>('');
   const [scanProgress, setScanProgress] = useState(0);
@@ -114,11 +115,13 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
     };
   }, []);
 
-  const startCamera = async () => {
+  const startCamera = async (overrideFacing?: 'environment' | 'user') => {
     setCameraError(null);
+    stopCamera();
+    const mode = overrideFacing || facingMode;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+        video: { facingMode: mode, width: { ideal: 1280 }, height: { ideal: 720 } }
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -128,6 +131,12 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
     } catch {
       setCameraError('Kamera tidak dapat diakses. Silakan berikan izin browser atau gunakan opsi Upload Berkas Foto KTM UPI.');
     }
+  };
+
+  const toggleFacingMode = () => {
+    const nextMode = facingMode === 'environment' ? 'user' : 'environment';
+    setFacingMode(nextMode);
+    startCamera(nextMode);
   };
 
   const runOcrAnalysis = async (rawImageUrl: string) => {
@@ -183,6 +192,12 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
     setScannedFaculty(resolvedFaculty);
     setScannedAvatarUrl(null); // Foto tidak wajib!
     setScannedKtmUrl(watermarked);
+
+    // Auto-fill registration form
+    if (resolvedName) setRegFullName(resolvedName);
+    if (resolvedNim) setRegNim(resolvedNim);
+    if (resolvedMajor) setRegMajor(resolvedMajor);
+    if (resolvedFaculty) setRegFaculty(resolvedFaculty);
 
     setScanProgress(100);
     setIsScanning(false);
@@ -257,12 +272,17 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
     e.preventDefault();
     setLoginError(null);
     const cleanNim = loginNim.trim();
+    const cleanPassword = loginPassword.trim();
     if (!cleanNim) {
       setLoginError('Masukkan Nomor Induk Mahasiswa (NIM) UPI Anda.');
       return;
     }
+    if (!cleanPassword) {
+      setLoginError('Masukkan kata sandi / password akun Anda.');
+      return;
+    }
     const targetRole: UserRole = loginSection === 'runner' ? 'runner' : 'customer';
-    const res = loginWithCredentials(cleanNim, loginPassword, targetRole);
+    const res = loginWithCredentials(cleanNim, cleanPassword, targetRole);
     if (res.success) {
       onClose();
     } else {
@@ -318,8 +338,16 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
     setRegError(null);
     setRegSuccess(null);
 
-    const cleanName = regFullName.trim();
-    const cleanNim = regNim.trim();
+    // KTM scan is strictly mandatory during registration
+    if (!hasScannedResult || !scannedKtmUrl) {
+      setRegError('Pindai atau unggah foto KTM UPI wajib dilakukan saat mendaftar akun baru.');
+      return;
+    }
+
+    const cleanName = (regFullName || scannedFullName).trim();
+    const cleanNim = (regNim || scannedNim).trim();
+    const cleanMajor = (regMajor || scannedMajor).trim();
+    const cleanFaculty = regFaculty || scannedFaculty || 'Kampus UPI di Purwakarta';
     const cleanPhone = regPhone.trim();
     const cleanPassword = regPassword.trim();
 
@@ -331,12 +359,16 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
       setRegError('NIM UPI harus terdiri dari minimal 5 digit angka.');
       return;
     }
-    if (!cleanPhone) {
-      setRegError('Nomor WhatsApp / HP aktif wajib diisi.');
+    if (!cleanMajor) {
+      setRegError('Program studi / jurusan mahasiswa UPI wajib diisi.');
       return;
     }
-    if (!cleanPassword) {
-      setRegError('Password akun wajib diisi.');
+    if (!cleanPhone) {
+      setRegError('Nomor WhatsApp / HP aktif wajib diisi agar pesanan dapat dikonfirmasi.');
+      return;
+    }
+    if (!cleanPassword || cleanPassword.length < 5) {
+      setRegError('Password akun minimal 5 karakter.');
       return;
     }
     if (cleanPassword !== regConfirmPassword.trim()) {
@@ -344,15 +376,18 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
       return;
     }
 
+    const targetRole: UserRole = loginSection === 'runner' ? 'runner' : 'customer';
+
     const res = registerAccount({
       fullName: cleanName,
       nim: cleanNim,
       password: cleanPassword,
-      major: regMajor,
-      faculty: regFaculty,
+      major: cleanMajor,
+      faculty: cleanFaculty,
       university: 'Universitas Pendidikan Indonesia (UPI)',
       phone: cleanPhone,
-      role: loginSection === 'runner' ? 'runner' : 'customer'
+      role: targetRole,
+      ktmUrl: scannedKtmUrl
     });
 
     if (res.success) {
@@ -478,7 +513,7 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
 
         {/* METHOD SWITCHER TABS (HANYA UNTUK CUSTOMER & RUNNER) */}
         {loginSection !== 'admin' && (
-          <div className="grid grid-cols-3 p-1 bg-[#F2EBE0] border border-[#E8DFD1] rounded-2xl mb-4 text-xs font-semibold gap-1">
+          <div className="grid grid-cols-2 p-1 bg-[#F2EBE0] border border-[#E8DFD1] rounded-2xl mb-4 text-xs font-semibold gap-1">
             <button
               type="button"
               onClick={() => {
@@ -493,7 +528,7 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
               }`}
             >
               <KeyRound className="w-3.5 h-3.5" />
-              <span className="truncate">Masuk</span>
+              <span className="truncate">Masuk (NIM & Sandi)</span>
             </button>
 
             <button
@@ -509,24 +544,8 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
                   : 'text-[#6E6265] hover:text-[#2C2224]'
               }`}
             >
-              <User className="w-3.5 h-3.5" />
-              <span className="truncate">Daftar</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setActiveTab('ocr_scan');
-                soundFX.pop();
-              }}
-              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl transition-all cursor-pointer ${
-                activeTab === 'ocr_scan'
-                  ? 'bg-[#7A1E34] text-white shadow-md shadow-[#7A1E34]/25'
-                  : 'text-[#6E6265] hover:text-[#2C2224]'
-              }`}
-            >
               <Camera className="w-3.5 h-3.5" />
-              <span className="truncate">Pindai KTM</span>
+              <span className="truncate">Daftar (Pindai KTM Wajib)</span>
             </button>
           </div>
         )}
@@ -671,343 +690,24 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
           </div>
         )}
 
-        {/* TAB 1: OCR SCAN / UPLOAD KTM */}
-        {loginSection !== 'admin' && activeTab === 'ocr_scan' && (
-          <div className="space-y-4">
-            {!hasScannedResult && !isScanning && (
-              <>
-                {/* Source options: Upload / Camera */}
-                <div className="flex items-center gap-2 mb-3">
-                  <button
-                    onClick={() => {
-                      setScanSource('upload');
-                      stopCamera();
-                    }}
-                    className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                      scanSource === 'upload'
-                        ? 'bg-[#FBF0F2] border-[#F1CCD3] text-[#7A1E34]'
-                        : 'bg-white border-[#E8DFD1] text-[#6E6265] hover:text-[#2C2224]'
-                    }`}
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Upload Foto KTM UPI</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setScanSource('camera');
-                      startCamera();
-                    }}
-                    className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                      scanSource === 'camera'
-                        ? 'bg-[#FBF0F2] border-[#F1CCD3] text-[#7A1E34]'
-                        : 'bg-white border-[#E8DFD1] text-[#6E6265] hover:text-[#2C2224]'
-                    }`}
-                  >
-                    <Camera className="w-3.5 h-3.5" />
-                    <span>Kamera Live Pemindai</span>
-                  </button>
-                </div>
-
-                {/* MODE 1: UPLOAD PHOTO */}
-                {scanSource === 'upload' && (
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-[#E8DFD1] hover:border-[#7A1E34]/50 rounded-2xl p-7 text-center cursor-pointer transition-all bg-[#FAF7F2] hover:bg-white group"
-                  >
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
-                    <div className="w-12 h-12 rounded-2xl bg-[#FBF0F2] border border-[#F1CCD3] text-[#7A1E34] flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform shadow-sm">
-                      <Upload className="w-6 h-6" />
-                    </div>
-                    <p className="text-sm font-bold text-[#2C2224]">Klik atau Tarik Foto KTM UPI ke Sini</p>
-                    <p className="text-xs text-[#6E6265] mt-1">
-                      Format JPG, PNG, WEBP • Otomatis deteksi OCR Nama, NIM 7-digit, dan Fakultas UPI Anda
-                    </p>
-                  </div>
-                )}
-
-                {/* MODE 2: LIVE CAMERA */}
-                {scanSource === 'camera' && (
-                  <div className="relative rounded-2xl overflow-hidden bg-black border border-[#E8DFD1] aspect-video flex items-center justify-center">
-                    {cameraError ? (
-                      <div className="p-4 text-center">
-                        <AlertCircle className="w-8 h-8 text-amber-500 mx-auto mb-2" />
-                        <p className="text-xs text-white">{cameraError}</p>
-                        <button
-                          onClick={startCamera}
-                          className="mt-3 px-3 py-1.5 rounded-lg bg-white/20 text-xs font-semibold text-white hover:bg-white/30"
-                        >
-                          Coba Lagi
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <video ref={videoRef} playsInline autoPlay className="w-full h-full object-cover" />
-
-                        <div className="absolute inset-4 sm:inset-6 border-2 border-[#7A1E34]/80 rounded-2xl pointer-events-none flex flex-col justify-between p-3">
-                          <div className="flex justify-between items-center text-[10px] text-white font-mono bg-black/60 px-2 py-0.5 rounded-md w-fit backdrop-blur-sm">
-                            <ScanLine className="w-3 h-3 mr-1 animate-pulse" />
-                            KOTAK PEMINDAI KTM UPI
-                          </div>
-
-                          <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-[#7A1E34] to-transparent shadow-[0_0_12px_#7A1E34] animate-pulse" />
-
-                          <div className="text-[10px] text-center text-white bg-black/60 py-1 rounded-md backdrop-blur-sm">
-                            Arahkan KTM UPI Anda ke dalam kotak pemindai
-                          </div>
-                        </div>
-
-                        <div className="absolute bottom-3">
-                          <button
-                            onClick={handleCapturePhoto}
-                            className="px-5 py-2 rounded-full bg-[#7A1E34] hover:bg-[#6E1C2F] text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-[#7A1E34]/40 cursor-pointer"
-                          >
-                            <Camera className="w-4 h-4" /> Ambil Foto &amp; Pindai KTM UPI
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* SCANNING PROGRESS OVERLAY */}
-            {isScanning && (
-              <div className="p-7 rounded-2xl bg-[#FAF7F2] border border-[#F1CCD3] text-center space-y-4 animate-in fade-in">
-                <div className="relative w-16 h-16 mx-auto flex items-center justify-center">
-                  <div className="absolute inset-0 rounded-full border-4 border-[#E8DFD1]" />
-                  <div className="absolute inset-0 rounded-full border-4 border-[#7A1E34] border-t-transparent animate-spin" />
-                  <ScanLine className="w-6 h-6 text-[#7A1E34] animate-pulse" />
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-bold text-[#2C2224]">Memproses Verifikasi OCR KTM UPI...</h4>
-                  <p className="text-xs text-[#7A1E34] font-mono mt-1 font-semibold">{scanStep}</p>
-                </div>
-
-                <div className="w-full bg-[#E8DFD1] rounded-full h-2 overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-[#7A1E34] to-[#2D8D84] h-full transition-all duration-300"
-                    style={{ width: `${scanProgress}%` }}
-                  />
-                </div>
+        {/* TAB 1: FORM MASUK (LOGIN) */}
+        {activeTab === 'login' && loginSection !== 'admin' && (
+          <form onSubmit={handleLoginSubmit} className="space-y-4 animate-in fade-in">
+            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-[#E8DFD1] text-xs text-[#2C2224] flex items-start gap-2.5 shadow-sm">
+              <KeyRound className="w-4 h-4 text-[#7A1E34] shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-[#2C2224]">
+                  Masuk Akun {loginSection === 'runner' ? 'Runner' : 'Customer'} Mahasiswa UPI
+                </p>
+                <p className="text-[11px] text-[#6E6265] mt-0.5">
+                  Gunakan NIM dan kata sandi akun Anda yang telah terverifikasi KTM.
+                </p>
               </div>
-            )}
+            </div>
 
-            {/* SCANNED RESULT & CONFIRMATION */}
-            {hasScannedResult && !isScanning && (
-              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <div className="flex items-center justify-between p-3 rounded-xl bg-[#E8F6F3] border border-[#A5DDD3] text-[#1F6F67] text-xs font-semibold">
-                  <span className="flex items-center gap-1.5 font-bold">
-                    <CheckCircle className="w-4 h-4 text-[#2D8D84]" />
-                    KTM UPI Terverifikasi Aktif!
-                  </span>
-                  <span className="text-[10px] font-mono bg-white px-2 py-0.5 rounded-full border border-[#A5DDD3] text-[#2D8D84]">
-                    UPI Active Student
-                  </span>
-                </div>
-
-                {scannedKtmUrl && (
-                  <div className="relative rounded-2xl overflow-hidden border border-[#E8DFD1] shadow-md max-h-48 flex items-center justify-center bg-black">
-                    <img
-                      src={scannedKtmUrl}
-                      alt="Watermarked KTM UPI"
-                      className="w-full h-auto object-contain max-h-48"
-                    />
-                    <div className="absolute bottom-2 left-2 right-2 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg border border-[#E8DFD1] flex items-center justify-between text-[10px] text-[#2C2224]">
-                      <span className="flex items-center gap-1 font-semibold text-[#7A1E34]">
-                        <Lock className="w-3 h-3 text-[#7A1E34]" /> Cap Canvas Watermark Mahasiswa UPI Terpasang
-                      </span>
-                      <span className="text-[#6E6265] font-mono font-bold">{scannedNim}</span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-[#E8DFD1] space-y-3">
-                  <div className="flex items-center justify-between border-b border-[#E8DFD1] pb-2">
-                    <span className="text-xs font-bold text-[#2C2224]">Data Terverifikasi Mahasiswa UPI</span>
-                    <span className="text-[10px] text-[#6E6265]">Dapat disesuaikan jika perlu</span>
-                  </div>
-
-                  {/* Banner Ketentuan Wajib & Opsional */}
-                  <div className="p-2.5 rounded-xl bg-white border border-[#E8DFD1] text-[11px] text-[#2C2224] flex items-start gap-2 shadow-sm">
-                    <CheckCircle className="w-4 h-4 text-[#2D8D84] shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-semibold text-[#2C2224]">Ketentuan Validasi: </span>
-                      Wajib ada <strong className="text-[#7A1E34]">Nama</strong>, <strong className="text-[#7A1E34]">NIM</strong>, dan <strong className="text-[#7A1E34]">Jurusan</strong>. Foto profil/wajah <span className="text-[#2D8D84] font-semibold">tidak wajib</span> (otomatis dibuatkan dari inisial).
-                    </div>
-                  </div>
-
-                  {validationError && (
-                    <div className="p-2.5 rounded-xl bg-[#FBF0F2] border border-[#F1CCD3] text-[#7A1E34] text-xs flex items-center gap-2 font-medium">
-                      <AlertCircle className="w-4 h-4 text-[#7A1E34] shrink-0" />
-                      <span>{validationError}</span>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    {/* 1. NAMA MAHASISWA (WAJIB) */}
-                    <div>
-                      <label className="text-[#2C2224] block mb-1 flex items-center justify-between font-medium">
-                        <span className="flex items-center gap-1">
-                          <User className="w-3 h-3 text-[#7A1E34]" /> Nama Mahasiswa:
-                        </span>
-                        <span className="text-[10px] text-[#7A1E34] font-bold">* Wajib</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={scannedFullName}
-                        onChange={(e) => {
-                          setScannedFullName(e.target.value);
-                          if (validationError) setValidationError(null);
-                        }}
-                        placeholder="Contoh: TRIA RAMADANTI"
-                        className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8DFD1] text-[#2C2224] font-semibold focus:outline-none focus:border-[#7A1E34]"
-                      />
-                    </div>
-
-                    {/* 2. NIM UPI (WAJIB) */}
-                    <div>
-                      <label className="text-[#2C2224] block mb-1 flex items-center justify-between font-medium">
-                        <span className="flex items-center gap-1">
-                          <Hash className="w-3 h-3 text-[#7A1E34]" /> Nomor Induk Mahasiswa (NIM UPI):
-                        </span>
-                        <span className="text-[10px] text-[#7A1E34] font-bold">* Wajib</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={scannedNim}
-                        onChange={(e) => {
-                          setScannedNim(e.target.value);
-                          if (validationError) setValidationError(null);
-                        }}
-                        placeholder="7 digit, contoh: 2502895"
-                        className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8DFD1] text-[#2C2224] font-mono font-bold focus:outline-none focus:border-[#7A1E34]"
-                      />
-                    </div>
-
-                    {/* 3. JURUSAN / PROGRAM STUDI (WAJIB) */}
-                    <div className="sm:col-span-2">
-                      <label className="text-[#2C2224] block mb-1 flex items-center justify-between font-medium">
-                        <span className="flex items-center gap-1">
-                          <BookOpen className="w-3 h-3 text-[#7A1E34]" /> Jurusan / Program Studi:
-                        </span>
-                        <span className="text-[10px] text-[#7A1E34] font-bold">* Wajib</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={scannedMajor}
-                        onChange={(e) => {
-                          setScannedMajor(e.target.value);
-                          if (validationError) setValidationError(null);
-                        }}
-                        placeholder="Contoh: Mekatronika dan Kecerdasan Buatan (S1)"
-                        className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8DFD1] text-[#2C2224] font-semibold focus:outline-none focus:border-[#7A1E34]"
-                      />
-                    </div>
-
-                    {/* 4. PERGURUAN TINGGI */}
-                    <div>
-                      <label className="text-[#6E6265] block mb-1 flex items-center gap-1 font-medium">
-                        <Building className="w-3 h-3 text-[#7A1E34]" /> Perguruan Tinggi:
-                      </label>
-                      <div className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8DFD1] text-[#2C2224] text-xs font-semibold flex items-center justify-between">
-                        <span>Universitas Pendidikan Indonesia (UPI)</span>
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#FBF0F2] text-[#7A1E34] border border-[#F1CCD3] font-bold">Terkunci</span>
-                      </div>
-                    </div>
-
-                    {/* 5. FAKULTAS / KAMPUS DAERAH */}
-                    <div>
-                      <label className="text-[#2C2224] block mb-1 flex items-center justify-between font-medium">
-                        <span className="flex items-center gap-1">
-                          <GraduationCap className="w-3 h-3 text-[#7A1E34]" /> Fakultas / Kampus Daerah:
-                        </span>
-                        <span className="text-[10px] text-[#7A1E34] font-bold">* Wajib</span>
-                      </label>
-                      <select
-                        value={scannedFaculty}
-                        onChange={(e) => setScannedFaculty(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8DFD1] text-[#2C2224] text-xs focus:outline-none focus:border-[#7A1E34]"
-                      >
-                        {UPI_FACULTIES.map((fac, idx) => (
-                          <option key={idx} value={fac}>
-                            {fac}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* 6. FOTO MAHASISWA (TIDAK WAJIB / OPSIONAL) */}
-                    <div className="sm:col-span-2 p-2.5 rounded-xl bg-white border border-[#E8DFD1] flex items-center justify-between gap-3 shadow-sm">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-9 h-9 rounded-full bg-[#FBF0F2] border border-[#F1CCD3] flex items-center justify-center text-xs font-bold text-[#7A1E34] shrink-0">
-                          {scannedFullName ? scannedFullName.charAt(0).toUpperCase() : 'U'}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-[#2C2224] flex items-center gap-1">
-                            <span>Foto Mahasiswa</span>
-                            <span className="text-[10px] font-normal text-[#2D8D84] bg-[#E8F6F3] px-1.5 py-0.2 rounded border border-[#A5DDD3] font-semibold">
-                              Tidak Wajib (Opsional)
-                            </span>
-                          </p>
-                          <p className="text-[11px] text-[#6E6265] truncate">
-                            Foto mah tidak wajib. Sistem otomatis memakai inisial nama Anda.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 border-t border-[#E8DFD1] flex items-center justify-between">
-                    <span className="text-xs text-[#2C2224] font-medium">Masuk Sebagai Mode:</span>
-                    <span className={`px-3 py-1 rounded-lg text-xs font-bold border flex items-center gap-1.5 ${
-                      loginSection === 'runner'
-                        ? 'bg-[#E8F6F3] border-[#2D8D84] text-[#2D8D84]'
-                        : 'bg-[#FBF0F2] border-[#7A1E34] text-[#7A1E34]'
-                    }`}>
-                      {loginSection === 'runner' ? <Zap className="w-3.5 h-3.5 text-amber-500" /> : <ShoppingBag className="w-3.5 h-3.5" />}
-                      <span>{loginSection === 'runner' ? 'Runner Mahasiswa UPI' : 'Customer Mahasiswa UPI'}</span>
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-2">
-                  <button
-                    onClick={() => {
-                      setHasScannedResult(false);
-                      setScannedKtmUrl(null);
-                    }}
-                    className="w-full sm:flex-1 py-2.5 rounded-xl bg-white hover:bg-[#F2EBE0] text-[#6E6265] hover:text-[#2C2224] border border-[#E8DFD1] text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5" /> Scan Ulang
-                  </button>
-
-                  <button
-                    onClick={handleConfirmKtmLogin}
-                    className="w-full sm:flex-2 py-2.5 rounded-xl bg-[#2D8D84] hover:bg-[#247D75] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-md shadow-[#2D8D84]/25 cursor-pointer"
-                  >
-                    <Check className="w-4 h-4 shrink-0" />
-                    <span className="truncate">Masuk Sebagai Mahasiswa UPI ({scannedFullName.split(' ')[0]}) →</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* TAB 2: FORM MASUK (LOGIN) */}
-        {loginSection !== 'admin' && activeTab === 'login' && (
-          <form onSubmit={handleLoginSubmit} className="space-y-4">
             {/* Input NIM UPI */}
             <div>
-              <label className="block text-xs font-medium text-[#2C2224] mb-1 flex items-center justify-between">
+              <label className="block text-xs font-bold text-[#2C2224] mb-1 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
                   <Hash className="w-3.5 h-3.5 text-[#7A1E34]" />
                   Nomor Induk Mahasiswa (NIM UPI)
@@ -1017,7 +717,10 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
               <input
                 type="text"
                 value={loginNim}
-                onChange={(e) => setLoginNim(e.target.value)}
+                onChange={(e) => {
+                  setLoginNim(e.target.value);
+                  setLoginError(null);
+                }}
                 placeholder="Contoh: 2201945 atau 2108765"
                 className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] font-mono placeholder:font-sans focus:outline-none focus:border-[#7A1E34]"
               />
@@ -1025,7 +728,7 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
 
             {/* Input Password */}
             <div>
-              <label className="block text-xs font-medium text-[#2C2224] mb-1 flex items-center gap-1.5">
+              <label className="block text-xs font-bold text-[#2C2224] mb-1 flex items-center gap-1.5">
                 <Lock className="w-3.5 h-3.5 text-[#7A1E34]" />
                 Kata Sandi / Password Akun
               </label>
@@ -1033,7 +736,10 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
                 <input
                   type={showLoginPassword ? 'text' : 'password'}
                   value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
+                  onChange={(e) => {
+                    setLoginPassword(e.target.value);
+                    setLoginError(null);
+                  }}
                   placeholder="Masukkan password akun Anda..."
                   className="w-full px-3.5 py-2.5 pr-10 rounded-xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] focus:outline-none focus:border-[#7A1E34]"
                 />
@@ -1046,8 +752,6 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
                 </button>
               </div>
             </div>
-
-
 
             {loginError && (
               <div className="p-3 rounded-xl bg-[#FBF0F2] border border-[#F1CCD3] text-[#7A1E34] text-xs flex items-center gap-2 font-medium">
@@ -1068,202 +772,448 @@ export default function KtmLoginModal({ isOpen, onClose }: KtmLoginModalProps) {
               <span>Masuk Sebagai {loginSection === 'runner' ? 'Runner' : 'Customer'} UPI →</span>
             </button>
 
+            {/* Fast Demo Logins */}
+            <div className="pt-2 border-t border-[#E8DFD1] text-center">
+              <span className="text-[10px] text-[#7E7074] block mb-1.5 font-bold">
+                Akun Uji Coba Cepat (1-Klik):
+              </span>
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleQuickLogin('2201945', loginSection === 'runner' ? 'runner' : 'customer')}
+                  className="px-2.5 py-1 rounded-xl bg-[#FAF7F2] hover:bg-white text-[11px] text-[#4A3D41] border border-[#E8DFD1] cursor-pointer transition-colors shadow-2xs font-medium"
+                >
+                  👤 Farhan (2201945)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickLogin('2108765', loginSection === 'runner' ? 'runner' : 'customer')}
+                  className="px-2.5 py-1 rounded-xl bg-[#FAF7F2] hover:bg-white text-[11px] text-[#4A3D41] border border-[#E8DFD1] cursor-pointer transition-colors shadow-2xs font-medium"
+                >
+                  👤 Sarah (2108765)
+                </button>
+              </div>
+            </div>
+
             <div className="text-center pt-1">
               <button
                 type="button"
                 onClick={() => setActiveTab('register')}
                 className="text-xs text-[#7A1E34] hover:underline font-semibold cursor-pointer"
               >
-                Belum punya akun? Daftar Akun Mahasiswa Baru di sini →
+                Belum punya akun? Daftar Akun Mahasiswa Baru (Wajib Pindai KTM) →
               </button>
             </div>
           </form>
         )}
 
-        {/* TAB 3: FORM DAFTAR AKUN BARU (REGISTER) */}
-        {activeTab === 'register' && (
-          <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
+        {/* TAB 2: FORM DAFTAR AKUN BARU (PINDAI KTM WAJIB) */}
+        {activeTab === 'register' && loginSection !== 'admin' && (
+          <div className="space-y-4 animate-in fade-in">
             <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-[#E8DFD1] text-xs text-[#2C2224] flex items-start gap-2.5 shadow-sm">
-              <User className="w-4 h-4 text-[#2D8D84] shrink-0 mt-0.5" />
+              <ShieldCheck className="w-4 h-4 text-[#7A1E34] shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-[#2C2224]">Pendaftaran Akun Baru Mahasiswa UPI</p>
+                <p className="font-bold text-[#2C2224]">Pendaftaran Akun Mahasiswa UPI</p>
                 <p className="text-[11px] text-[#6E6265] mt-0.5">
-                  Setiap akun memiliki data tersendiri. Anda dapat mendaftar dengan NIM yang sama namun password berbeda untuk menguji akun Runner vs Customer secara terpisah.
+                  Pemindaian KTM UPI <strong>wajib dilakukan</strong> saat pendaftaran untuk memastikan validitas civitas akademika dan melindungi komunitas.
                 </p>
               </div>
             </div>
 
-            {/* Input Nama Lengkap */}
-            <div>
-              <label className="block text-xs font-medium text-[#2C2224] mb-1 flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-[#7A1E34]" />
-                Nama Lengkap Mahasiswa UPI
-              </label>
-              <input
-                type="text"
-                value={regFullName}
-                onChange={(e) => setRegFullName(e.target.value)}
-                placeholder="Contoh: Farhan Ramadhan atau Sarah Putri"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] placeholder:text-[#8C7E81] focus:outline-none focus:border-[#7A1E34]"
-              />
-            </div>
+            {/* LANGKAH 1: PINDAI / UNGGAH FOTO KTM (WAJIB) */}
+            {!hasScannedResult && !isScanning && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#2C2224] flex items-center gap-1.5">
+                    <Camera className="w-3.5 h-3.5 text-[#7A1E34]" />
+                    Langkah 1: Pindai / Unggah Foto KTM UPI (Wajib)
+                  </span>
+                  <span className="text-[10px] font-bold text-[#7A1E34] bg-[#FBF0F2] px-2 py-0.5 rounded-full border border-[#F1CCD3]">
+                    * Wajib Dilakukan
+                  </span>
+                </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {/* Input NIM UPI */}
-              <div>
-                <label className="block text-xs font-medium text-[#2C2224] mb-1 flex items-center gap-1.5">
-                  <Hash className="w-3.5 h-3.5 text-[#7A1E34]" />
-                  NIM UPI (7-Digit)
-                </label>
-                <input
-                  type="text"
-                  value={regNim}
-                  onChange={(e) => setRegNim(e.target.value)}
-                  placeholder="Contoh: 2201945"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] font-mono placeholder:font-sans focus:outline-none focus:border-[#7A1E34]"
-                />
-              </div>
+                {/* Sub-tabs: Upload / Camera */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setScanSource('upload');
+                      stopCamera();
+                    }}
+                    className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      scanSource === 'upload'
+                        ? 'bg-[#FBF0F2] border-[#F1CCD3] text-[#7A1E34]'
+                        : 'bg-white border-[#E8DFD1] text-[#6E6265] hover:text-[#2C2224]'
+                    }`}
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Unggah Berkas Foto KTM</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setScanSource('camera');
+                      startCamera();
+                    }}
+                    className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      scanSource === 'camera'
+                        ? 'bg-[#FBF0F2] border-[#F1CCD3] text-[#7A1E34]'
+                        : 'bg-white border-[#E8DFD1] text-[#6E6265] hover:text-[#2C2224]'
+                    }`}
+                  >
+                    <Camera className="w-3.5 h-3.5" />
+                    <span>Kamera Pemindai Live</span>
+                  </button>
+                </div>
 
-              {/* Input No HP / WhatsApp */}
-              <div>
-                <label className="block text-xs font-medium text-[#2C2224] mb-1 flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-[#7A1E34]" />
-                  Nomor WhatsApp / HP Aktif
-                </label>
-                <input
-                  type="tel"
-                  value={regPhone}
-                  onChange={(e) => setRegPhone(e.target.value)}
-                  placeholder="Contoh: 081234567890"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] font-mono placeholder:font-sans focus:outline-none focus:border-[#7A1E34]"
-                />
-              </div>
-            </div>
+                {/* MODE 1: UPLOAD PHOTO */}
+                {scanSource === 'upload' && (
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="border-2 border-dashed border-[#E8DFD1] hover:border-[#7A1E34]/50 rounded-2xl p-7 text-center cursor-pointer transition-all bg-[#FAF7F2] hover:bg-white group"
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                    <div className="w-12 h-12 rounded-2xl bg-[#FBF0F2] border border-[#F1CCD3] text-[#7A1E34] flex items-center justify-center mx-auto mb-2.5 group-hover:scale-110 transition-transform shadow-sm">
+                      <Upload className="w-6 h-6" />
+                    </div>
+                    <p className="text-xs sm:text-sm font-bold text-[#2C2224]">Klik atau Tarik Foto KTM UPI ke Sini</p>
+                    <p className="text-[11px] text-[#6E6265] mt-1">
+                      Format JPG, PNG, WEBP • Sistem OCR otomatis mengekstrak Nama & NIM 7-digit Anda
+                    </p>
+                    <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-[#E8DFD1] text-[10px] text-[#6E6265]">
+                      <Lock className="w-3 h-3 text-[#2D8D84]" />
+                      Otomatis disematkan cap watermark proteksi resmi UPI
+                    </div>
+                  </div>
+                )}
 
-            {/* Fakultas UPI Dropdown */}
-            <div>
-              <label className="block text-xs font-medium text-[#2C2224] mb-1 flex items-center gap-1.5">
-                <GraduationCap className="w-3.5 h-3.5 text-[#7A1E34]" />
-                Fakultas / Kampus Daerah UPI
-              </label>
-              <select
-                value={regFaculty}
-                onChange={(e) => setRegFaculty(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] focus:outline-none focus:border-[#7A1E34]"
-              >
-                {UPI_FACULTIES.map((fac, idx) => (
-                  <option key={idx} value={fac}>
-                    {fac}
-                  </option>
-                ))}
-              </select>
-            </div>
+                {/* MODE 2: LIVE CAMERA VIEW */}
+                {scanSource === 'camera' && (
+                  <div className="relative rounded-2xl overflow-hidden bg-black border border-[#E8DFD1] aspect-video flex items-center justify-center">
+                    {cameraError ? (
+                      <div className="p-4 text-center">
+                        <AlertCircle className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+                        <p className="text-xs text-white">{cameraError}</p>
+                        <button
+                          type="button"
+                          onClick={() => startCamera()}
+                          className="mt-3 px-3 py-1.5 rounded-lg bg-white/20 text-xs font-semibold text-white hover:bg-white/30 cursor-pointer"
+                        >
+                          Coba Lagi
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <video ref={videoRef} playsInline autoPlay className="w-full h-full object-cover" />
 
-            {/* Program Studi / Jurusan */}
-            <div>
-              <label className="block text-xs font-medium text-[#2C2224] mb-1 flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5 text-[#7A1E34]" />
-                Program Studi / Jurusan
-              </label>
-              <input
-                type="text"
-                value={regMajor}
-                onChange={(e) => setRegMajor(e.target.value)}
-                placeholder="Contoh: Pendidikan Ilmu Komputer (S1)"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] focus:outline-none focus:border-[#7A1E34]"
-              />
-            </div>
+                        <div className="absolute inset-3 sm:inset-5 border-2 border-[#7A1E34]/80 rounded-2xl pointer-events-none flex flex-col justify-between p-3">
+                          <div className="flex justify-between items-center text-[10px] text-white font-mono bg-black/60 px-2 py-0.5 rounded-md w-fit backdrop-blur-sm">
+                            <ScanLine className="w-3 h-3 mr-1 animate-pulse" />
+                            KOTAK PEMINDAI KTM UPI
+                          </div>
 
-            {/* Status Peran Pendaftaran */}
-            <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-[#E8DFD1] flex items-center justify-between">
-              <div>
-                <span className="text-xs text-[#6E6265] block">Mendaftar Sebagai Akun:</span>
-                <span className="text-xs font-black text-[#2C2224] flex items-center gap-1.5 mt-0.5">
-                  {loginSection === 'runner' ? (
-                    <>
-                      <Zap className="w-4 h-4 text-[#7A1E34]" /> Runner Mahasiswa UPI
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingBag className="w-4 h-4 text-[#2D8D84]" /> Customer Mahasiswa UPI
-                    </>
-                  )}
-                </span>
-              </div>
-              <span className={`text-[10px] font-bold px-2.5 py-1 rounded-xl border ${
-                loginSection === 'runner'
-                  ? 'bg-[#FBF0F2] text-[#7A1E34] border-[#F1CCD3]'
-                  : 'bg-[#E8F6F3] text-[#1F6F67] border-[#A5DDD3]'
-              }`}>
-                {loginSection === 'runner' ? 'Mitra Eksekutor' : 'Pemesan Jasa'}
-              </span>
-            </div>
+                          <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-[#7A1E34] to-transparent shadow-[0_0_12px_#7A1E34] animate-pulse" />
 
-            {/* Password & Konfirmasi Password */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-[#2C2224] mb-1 flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 text-[#7A1E34]" />
-                  Password Akun
-                </label>
-                <input
-                  type={showRegPassword ? 'text' : 'password'}
-                  value={regPassword}
-                  onChange={(e) => setRegPassword(e.target.value)}
-                  placeholder="Minimal 6 karakter..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] focus:outline-none focus:border-[#7A1E34]"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-[#2C2224] mb-1 flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 text-[#7A1E34]" />
-                  Konfirmasi Password
-                </label>
-                <input
-                  type={showRegPassword ? 'text' : 'password'}
-                  value={regConfirmPassword}
-                  onChange={(e) => setRegConfirmPassword(e.target.value)}
-                  placeholder="Ulangi password..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] focus:outline-none focus:border-[#7A1E34]"
-                />
-              </div>
-            </div>
+                          <div className="text-[10px] text-center text-white bg-black/60 py-1 rounded-md backdrop-blur-sm">
+                            Posisikan Kartu Tanda Mahasiswa UPI Anda di dalam kotak pemindai
+                          </div>
+                        </div>
 
-            {regError && (
-              <div className="p-3 rounded-xl bg-[#FBF0F2] border border-[#F1CCD3] text-[#7A1E34] text-xs flex items-center gap-2 font-medium">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{regError}</span>
+                        <div className="absolute bottom-3 flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={toggleFacingMode}
+                            className="p-2 rounded-full bg-white/80 hover:bg-white text-[#2C2224] border border-[#E8DFD1] backdrop-blur-sm cursor-pointer transition-colors shadow"
+                            title="Putar Kamera"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCapturePhoto}
+                            className="px-4 py-2 rounded-full bg-[#7A1E34] hover:bg-[#6E1C2F] text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-[#7A1E34]/40 cursor-pointer"
+                          >
+                            <Camera className="w-4 h-4" /> Ambil Foto &amp; Pindai KTM
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
-            {regSuccess && (
-              <div className="p-3 rounded-xl bg-[#E8F6F3] border border-[#A5DDD3] text-[#2D8D84] text-xs flex items-center gap-2 font-medium">
-                <CheckCircle className="w-4 h-4 shrink-0" />
-                <span>{regSuccess}</span>
+            {/* SCANNING PROGRESS OVERLAY */}
+            {isScanning && (
+              <div className="p-7 rounded-2xl bg-[#FAF7F2] border border-[#F1CCD3] text-center space-y-4 animate-in fade-in">
+                <div className="relative w-16 h-16 mx-auto flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full border-4 border-[#E8DFD1]" />
+                  <div
+                    className="absolute inset-0 rounded-full border-4 border-[#7A1E34] border-t-transparent animate-spin"
+                  />
+                  <ScanLine className="w-6 h-6 text-[#7A1E34] animate-pulse" />
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-bold text-[#2C2224]">Memproses Validasi OCR KTM UPI...</h4>
+                  <p className="text-xs text-[#7A1E34] font-mono mt-1 font-semibold">{scanStep}</p>
+                </div>
+
+                <div className="w-full bg-[#E8DFD1] rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-[#7A1E34] to-[#2D8D84] h-full transition-all duration-300"
+                    style={{ width: `${scanProgress}%` }}
+                  />
+                </div>
               </div>
             )}
 
-            <button
-              type="submit"
-              className={`w-full py-2.5 rounded-xl text-white font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer ${
-                loginSection === 'runner'
-                  ? 'bg-[#7A1E34] hover:bg-[#6E1C2F] shadow-[#7A1E34]/25'
-                  : 'bg-[#2D8D84] hover:bg-[#247D75] shadow-[#2D8D84]/25'
-              }`}
-            >
-              <Check className="w-4 h-4" /> Daftar Akun {loginSection === 'runner' ? 'Runner' : 'Customer'} UPI →
-            </button>
+            {/* LANGKAH 2: FORM LENGKAP PENDAFTARAN SETELAH KTM TERPINDAI */}
+            {hasScannedResult && !isScanning && (
+              <form onSubmit={handleRegisterSubmit} className="space-y-3.5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                {/* Success & Watermarked Preview Banner */}
+                <div className="flex items-center justify-between p-3 rounded-xl bg-[#E8F6F3] border border-[#A5DDD3] text-[#1F6F67] text-xs">
+                  <span className="flex items-center gap-1.5 font-bold">
+                    <CheckCircle className="w-4 h-4 text-[#2D8D84]" />
+                    KTM UPI Berhasil Dipindai &amp; Terverifikasi!
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setHasScannedResult(false);
+                      setScannedKtmUrl(null);
+                    }}
+                    className="text-[11px] font-bold text-[#7A1E34] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" /> Pindai Ulang
+                  </button>
+                </div>
 
-            <div className="text-center pt-1">
-              <button
-                type="button"
-                onClick={() => setActiveTab('login')}
-                className="text-xs text-[#7A1E34] hover:underline font-semibold cursor-pointer"
-              >
-                Sudah punya akun? Masuk langsung di sini →
-              </button>
-            </div>
-          </form>
+                {scannedKtmUrl && (
+                  <div className="relative rounded-2xl overflow-hidden border border-[#E8DFD1] shadow-md max-h-44 flex items-center justify-center bg-black">
+                    <img
+                      src={scannedKtmUrl}
+                      alt="Watermarked KTM UPI"
+                      className="w-full h-auto object-contain max-h-44"
+                    />
+                    <div className="absolute bottom-2 left-2 right-2 bg-white/95 backdrop-blur-md px-3 py-1 rounded-lg border border-[#E8DFD1] flex items-center justify-between text-[10px] text-[#2C2224]">
+                      <span className="flex items-center gap-1 font-semibold text-[#7A1E34]">
+                        <Lock className="w-3 h-3 text-[#7A1E34]" /> Watermark Mahasiswa UPI Aktif
+                      </span>
+                      <span className="text-[#6E6265] font-mono font-bold">NIM: {regNim || scannedNim}</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="bg-[#FAF7F2] p-3.5 rounded-2xl border border-[#E8DFD1] space-y-3">
+                  <div className="flex items-center justify-between border-b border-[#E8DFD1] pb-2">
+                    <span className="text-xs font-bold text-[#2C2224]">Langkah 2: Lengkapi Data Akun</span>
+                    <span className="text-[10px] text-[#6E6265]">Dapat diedit bila perlu penyesuaian</span>
+                  </div>
+
+                  {/* Input Nama Lengkap */}
+                  <div>
+                    <label className="text-[#2C2224] block mb-1 text-xs font-medium flex items-center justify-between">
+                      <span className="flex items-center gap-1">
+                        <User className="w-3 h-3 text-[#7A1E34]" /> Nama Lengkap Mahasiswa UPI:
+                      </span>
+                      <span className="text-[10px] text-[#7A1E34] font-bold">* Wajib</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={regFullName}
+                      onChange={(e) => setRegFullName(e.target.value)}
+                      placeholder="Contoh: TRIA RAMADANTI"
+                      required
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] font-semibold focus:outline-none focus:border-[#7A1E34]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    {/* Input NIM UPI */}
+                    <div>
+                      <label className="text-[#2C2224] block mb-1 font-medium flex items-center justify-between">
+                        <span className="flex items-center gap-1">
+                          <Hash className="w-3 h-3 text-[#7A1E34]" /> NIM UPI (7-Digit):
+                        </span>
+                        <span className="text-[10px] text-[#7A1E34] font-bold">* Wajib</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={regNim}
+                        onChange={(e) => setRegNim(e.target.value)}
+                        placeholder="Contoh: 2502895"
+                        required
+                        className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] font-mono font-bold focus:outline-none focus:border-[#7A1E34]"
+                      />
+                    </div>
+
+                    {/* Input Nomor HP */}
+                    <div>
+                      <label className="text-[#2C2224] block mb-1 font-medium flex items-center justify-between">
+                        <span className="flex items-center gap-1">
+                          <User className="w-3 h-3 text-[#7A1E34]" /> WhatsApp / HP Aktif:
+                        </span>
+                        <span className="text-[10px] text-[#7A1E34] font-bold">* Wajib</span>
+                      </label>
+                      <input
+                        type="tel"
+                        value={regPhone}
+                        onChange={(e) => setRegPhone(e.target.value)}
+                        placeholder="Contoh: 081234567890"
+                        required
+                        className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] font-mono focus:outline-none focus:border-[#7A1E34]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Jurusan / Program Studi */}
+                  <div>
+                    <label className="text-[#2C2224] block mb-1 text-xs font-medium flex items-center justify-between">
+                      <span className="flex items-center gap-1">
+                        <BookOpen className="w-3 h-3 text-[#7A1E34]" /> Program Studi / Jurusan:
+                      </span>
+                      <span className="text-[10px] text-[#7A1E34] font-bold">* Wajib</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={regMajor}
+                      onChange={(e) => setRegMajor(e.target.value)}
+                      placeholder="Contoh: Mekatronika dan Kecerdasan Buatan (S1)"
+                      required
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] font-semibold focus:outline-none focus:border-[#7A1E34]"
+                    />
+                  </div>
+
+                  {/* Fakultas / Kampus Daerah */}
+                  <div>
+                    <label className="text-[#2C2224] block mb-1 text-xs font-medium flex items-center gap-1">
+                      <GraduationCap className="w-3 h-3 text-[#7A1E34]" /> Fakultas / Kampus Daerah UPI:
+                    </label>
+                    <select
+                      value={regFaculty}
+                      onChange={(e) => setRegFaculty(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] focus:outline-none focus:border-[#7A1E34]"
+                    >
+                      {UPI_FACULTIES.map((fac, idx) => (
+                        <option key={idx} value={fac}>
+                          {fac}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Status Peran Pendaftaran */}
+                  <div className="p-2.5 rounded-xl bg-white border border-[#E8DFD1] flex items-center justify-between">
+                    <div>
+                      <span className="text-[11px] text-[#6E6265] block">Mendaftar Sebagai:</span>
+                      <span className="text-xs font-black text-[#2C2224] flex items-center gap-1.5 mt-0.5">
+                        {loginSection === 'runner' ? (
+                          <>
+                            <Zap className="w-3.5 h-3.5 text-[#7A1E34]" /> Runner Mahasiswa UPI
+                          </>
+                        ) : (
+                          <>
+                            <ShoppingBag className="w-3.5 h-3.5 text-[#2D8D84]" /> Customer Mahasiswa UPI
+                          </>
+                        )}
+                      </span>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2.5 py-1 rounded-xl border ${
+                      loginSection === 'runner'
+                        ? 'bg-[#FBF0F2] text-[#7A1E34] border-[#F1CCD3]'
+                        : 'bg-[#E8F6F3] text-[#1F6F67] border-[#A5DDD3]'
+                    }`}>
+                      {loginSection === 'runner' ? 'Mitra Eksekutor' : 'Pemesan Jasa'}
+                    </span>
+                  </div>
+
+                  {/* Password & Konfirmasi Password */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <label className="block font-medium text-[#2C2224] mb-1 flex items-center gap-1.5">
+                        <Lock className="w-3.5 h-3.5 text-[#7A1E34]" />
+                        Kata Sandi Akun
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showRegPassword ? 'text' : 'password'}
+                          value={regPassword}
+                          onChange={(e) => setRegPassword(e.target.value)}
+                          placeholder="Minimal 5 karakter..."
+                          required
+                          className="w-full px-3 py-2 pr-9 rounded-xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] focus:outline-none focus:border-[#7A1E34]"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowRegPassword(!showRegPassword)}
+                          className="absolute right-2.5 top-2 text-[#6E6265] hover:text-[#2C2224]"
+                        >
+                          {showRegPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block font-medium text-[#2C2224] mb-1 flex items-center gap-1.5">
+                        <Lock className="w-3.5 h-3.5 text-[#7A1E34]" />
+                        Konfirmasi Kata Sandi
+                      </label>
+                      <input
+                        type={showRegPassword ? 'text' : 'password'}
+                        value={regConfirmPassword}
+                        onChange={(e) => setRegConfirmPassword(e.target.value)}
+                        placeholder="Ulangi kata sandi..."
+                        required
+                        className="w-full px-3 py-2 rounded-xl bg-white border border-[#E8DFD1] text-xs text-[#2C2224] focus:outline-none focus:border-[#7A1E34]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {regError && (
+                  <div className="p-3 rounded-xl bg-[#FBF0F2] border border-[#F1CCD3] text-[#7A1E34] text-xs flex items-center gap-2 font-medium">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{regError}</span>
+                  </div>
+                )}
+
+                {regSuccess && (
+                  <div className="p-3 rounded-xl bg-[#E8F6F3] border border-[#A5DDD3] text-[#2D8D84] text-xs flex items-center gap-2 font-medium">
+                    <CheckCircle className="w-4 h-4 shrink-0" />
+                    <span>{regSuccess}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className={`w-full py-2.5 rounded-xl text-white font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer ${
+                    loginSection === 'runner'
+                      ? 'bg-[#7A1E34] hover:bg-[#6E1C2F] shadow-[#7A1E34]/25'
+                      : 'bg-[#2D8D84] hover:bg-[#247D75] shadow-[#2D8D84]/25'
+                  }`}
+                >
+                  <Check className="w-4 h-4" /> Daftar &amp; Masuk Sebagai {loginSection === 'runner' ? 'Runner' : 'Customer'} UPI →
+                </button>
+
+                <div className="text-center pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('login')}
+                    className="text-xs text-[#7A1E34] hover:underline font-semibold cursor-pointer"
+                  >
+                    Sudah punya akun? Masuk langsung di sini →
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
         )}
 
         {/* Modal Footer Security Guarantee & Admin Access */}
