@@ -15,7 +15,7 @@ export default function BottomNav({
   onOpenWalletModal,
   onOpenLoginModal
 }: BottomNavProps) {
-  const { activeTab, setActiveTab, activeRole, isLoggedIn } = useCampusQuest();
+  const { activeTab, setActiveTab, activeRole, isLoggedIn, isCurrentUserAdmin } = useCampusQuest();
 
   const handleTabClick = (tab: 'home' | 'quests' | 'map' | 'wallet' | 'profile') => {
     if (tab === 'wallet') {
@@ -40,7 +40,7 @@ export default function BottomNav({
           onClick={() => handleTabClick('home')}
           className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all cursor-pointer ${
             activeTab === 'home'
-              ? activeRole === 'admin'
+              ? activeRole === 'admin' && isCurrentUserAdmin
                 ? 'text-[#2C2224] font-black bg-[#F2EBE0]'
                 : activeRole === 'customer'
                 ? 'text-[#2D8D84] font-extrabold bg-[#E8F6F3]'
@@ -49,14 +49,14 @@ export default function BottomNav({
           }`}
         >
           <Home className="w-4.5 h-4.5" />
-          <span className="text-[10px]">{activeRole === 'admin' ? 'Admin' : 'Beranda'}</span>
+          <span className="text-[10px]">{activeRole === 'admin' && isCurrentUserAdmin ? 'Admin' : 'Beranda'}</span>
         </button>
 
         <button
           onClick={() => handleTabClick('quests')}
           className={`flex flex-col items-center gap-0.5 py-1 px-3 rounded-2xl transition-all cursor-pointer ${
             activeTab === 'quests'
-              ? activeRole === 'admin'
+              ? activeRole === 'admin' && isCurrentUserAdmin
                 ? 'text-[#2C2224] font-black bg-[#F2EBE0]'
                 : activeRole === 'customer'
                 ? 'text-[#2D8D84] font-extrabold bg-[#E8F6F3]'
@@ -68,7 +68,7 @@ export default function BottomNav({
           <span className="text-[10px]">
             {activeRole === 'customer'
               ? 'Pesanan'
-              : activeRole === 'admin'
+              : activeRole === 'admin' && isCurrentUserAdmin
               ? 'Semua Quest'
               : 'Quest Baru'}
           </span>

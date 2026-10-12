@@ -96,7 +96,7 @@ export default function Navbar({
                 <span>Runner</span>
               </button>
               {/* Tombol Admin HANYA BISA DILIHAT OLEH ADMINISTRATOR RESMI (Tidak terlihat oleh Customer & Runner) */}
-              {(isCurrentUserAdmin || activeRole === 'admin') && (
+              {isCurrentUserAdmin && (
                 <button
                   onClick={() => switchRole('admin')}
                   className={`relative z-10 flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ${

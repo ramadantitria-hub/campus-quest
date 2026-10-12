@@ -40,7 +40,7 @@ type LoginTab = 'login' | 'register';
 type ScanSource = 'upload' | 'camera';
 
 export default function KtmLoginScreen() {
-  const { loginWithCredentials, registerAccount, loginWithKtm, enterGuestMode, loginAsAdmin } = useCampusQuest();
+  const { loginWithCredentials, registerAccount, loginWithKtm, enterGuestMode, openAdminAuthModal } = useCampusQuest();
 
   // 3 Bagian Login Utama: Customer, Runner, Admin
   const [loginSection, setLoginSection] = useState<LoginSection>('customer');
@@ -52,13 +52,6 @@ export default function KtmLoginScreen() {
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [loginRole, setLoginRole] = useState<UserRole>('customer');
   const [loginError, setLoginError] = useState<string | null>(null);
-
-  // Admin Login State
-  const [adminNim, setAdminNim] = useState('');
-  const [adminPassword, setAdminPassword] = useState('');
-  const [showAdminPassword, setShowAdminPassword] = useState(false);
-  const [adminError, setAdminError] = useState<string | null>(null);
-  const [adminSuccess, setAdminSuccess] = useState<string | null>(null);
 
   // Register State
   const [regFullName, setRegFullName] = useState('');
@@ -283,28 +276,6 @@ export default function KtmLoginScreen() {
     }
   };
 
-  const handleAdminSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setAdminError(null);
-    setAdminSuccess(null);
-    const cleanNim = adminNim.trim();
-    const cleanPass = adminPassword.trim();
-    if (!cleanNim) {
-      setAdminError('Masukkan NIM Administrator.');
-      return;
-    }
-    if (!cleanPass) {
-      setAdminError('Masukkan password Administrator.');
-      return;
-    }
-    const res = loginAsAdmin(cleanNim, cleanPass);
-    if (!res.success) {
-      setAdminError(res.message);
-    } else {
-      setAdminSuccess(res.message);
-    }
-  };
-
   const handleQuickLogin = (nim: string, role: 'customer' | 'runner') => {
     setLoginNim(nim);
     setLoginPassword('upi123');
@@ -440,12 +411,12 @@ export default function KtmLoginScreen() {
                 </span>
               </div>
 
-              {/* 3 BAGIAN UTAMA LOGIN: CUSTOMER, RUNNER, ADMIN */}
+              {/* 2 PILIHAN PERAN MASUK MAHASISWA: CUSTOMER & RUNNER */}
               <div className="mb-4">
                 <label className="text-[11px] font-bold text-[#6E6265] mb-1.5 block">
-                  Pilih Peran Masuk (3 Bagian):
+                  Pilih Peran Masuk Mahasiswa:
                 </label>
-                <div className="grid grid-cols-3 p-1.5 bg-[#F2EBE0] border border-[#E8DFD1] rounded-2xl gap-1.5 shadow-inner">
+                <div className="grid grid-cols-2 p-1.5 bg-[#F2EBE0] border border-[#E8DFD1] rounded-2xl gap-1.5 shadow-inner">
                   {/* Bagian 1: Customer */}
                   <button
                     type="button"
@@ -489,174 +460,48 @@ export default function KtmLoginScreen() {
                       <div className="text-[10px] opacity-85 hidden sm:block">Mitra Eksekutor</div>
                     </div>
                   </button>
-
-                  {/* Bagian 3: Admin */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLoginSection('admin');
-                      setLoginRole('admin');
-                      setAdminError(null);
-                      soundFX.pop();
-                    }}
-                    className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl transition-all cursor-pointer ${
-                      loginSection === 'admin'
-                        ? 'bg-[#2C2224] text-white shadow-md shadow-black/30 font-bold'
-                        : 'text-[#6E6265] hover:text-[#2C2224] hover:bg-white/50 font-semibold'
-                    }`}
-                  >
-                    <ShieldCheck className="w-4 h-4 shrink-0 text-amber-400" />
-                    <div className="text-center sm:text-left leading-tight">
-                      <div className="text-xs font-black">3. Admin</div>
-                      <div className="text-[10px] opacity-85 hidden sm:block">Portal Admin</div>
-                    </div>
-                  </button>
                 </div>
               </div>
 
+              {/* METHOD SWITCHER TABS */}
+              <div className="grid grid-cols-2 p-1 bg-[#F2EBE0] border border-[#E8DFD1] rounded-2xl mb-4 text-xs font-semibold gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('login');
+                    stopCamera();
+                    soundFX.pop();
+                  }}
+                  className={`flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-xl transition-all cursor-pointer text-xs ${
+                    activeTab === 'login'
+                      ? 'bg-[#7A1E34] text-white shadow-md shadow-[#7A1E34]/25'
+                      : 'text-[#6E6265] hover:text-[#2C2224]'
+                  }`}
+                >
+                  <KeyRound className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Masuk (NIM & Sandi)</span>
+                </button>
 
-
-              {/* METHOD SWITCHER TABS (HANYA UNTUK CUSTOMER & RUNNER) */}
-              {loginSection !== 'admin' && (
-                <div className="grid grid-cols-2 p-1 bg-[#F2EBE0] border border-[#E8DFD1] rounded-2xl mb-4 text-xs font-semibold gap-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTab('login');
-                      stopCamera();
-                      soundFX.pop();
-                    }}
-                    className={`flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-xl transition-all cursor-pointer text-xs ${
-                      activeTab === 'login'
-                        ? 'bg-[#7A1E34] text-white shadow-md shadow-[#7A1E34]/25'
-                        : 'text-[#6E6265] hover:text-[#2C2224]'
-                    }`}
-                  >
-                    <KeyRound className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">Masuk (NIM & Sandi)</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTab('register');
-                      stopCamera();
-                      soundFX.pop();
-                    }}
-                    className={`flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-xl transition-all cursor-pointer text-xs ${
-                      activeTab === 'register'
-                        ? 'bg-[#7A1E34] text-white shadow-md shadow-[#7A1E34]/25'
-                        : 'text-[#6E6265] hover:text-[#2C2224]'
-                    }`}
-                  >
-                    <Camera className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">Daftar (Pindai KTM Wajib)</span>
-                  </button>
-                </div>
-              )}
-
-              {/* BAGIAN 3: LOGIN KHUSUS ADMIN */}
-              {loginSection === 'admin' && (
-                <div className="space-y-4 animate-in fade-in">
-                  <div className="p-3.5 rounded-2xl bg-[#2C2224] text-white border border-[#4A3D41] flex items-center justify-between shadow-xs">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#7A1E34] to-[#9B2444] text-white flex items-center justify-center font-bold shadow-sm">
-                        <ShieldCheck className="w-5 h-5 text-amber-400" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-xs sm:text-sm font-extrabold text-white">Portal Admin</h3>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                            Khusus Administrator
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-[#A5DDD3] mt-0.5">
-                          Audit seluruh transaksi, moderasi pesanan, & verifikasi akun mahasiswa
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Form Login Admin */}
-                  <form onSubmit={handleAdminSubmit} className="space-y-3.5 pt-1">
-                    <div>
-                      <label className="block text-xs font-bold text-[#2C2224] mb-1 flex items-center gap-1.5">
-                        <Hash className="w-3.5 h-3.5 text-[#7A1E34]" />
-                        Nomor Induk Mahasiswa (NIM) Administrator
-                      </label>
-                      <input
-                        type="text"
-                        value={adminNim}
-                        onChange={(e) => {
-                          setAdminNim(e.target.value);
-                          setAdminError(null);
-                        }}
-                        placeholder="Masukkan NIM Administrator..."
-                        required
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E8DFD1] text-xs font-mono font-bold text-[#2C2224] placeholder:font-sans placeholder:font-normal focus:outline-none focus:border-[#7A1E34]"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-[#2C2224] mb-1 flex items-center gap-1.5">
-                        <KeyRound className="w-3.5 h-3.5 text-[#7A1E34]" />
-                        Password Administrator
-                      </label>
-                      <div className="relative">
-                        <input
-                          type={showAdminPassword ? 'text' : 'password'}
-                          value={adminPassword}
-                          onChange={(e) => {
-                            setAdminPassword(e.target.value);
-                            setAdminError(null);
-                          }}
-                          placeholder="Masukkan password Administrator..."
-                          required
-                          className="w-full px-3.5 py-2.5 pr-10 rounded-xl bg-white border border-[#E8DFD1] text-xs font-mono text-[#2C2224] focus:outline-none focus:border-[#7A1E34]"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowAdminPassword(!showAdminPassword)}
-                          className="absolute right-3 top-2.5 text-[#6E6265] hover:text-[#2C2224]"
-                        >
-                          {showAdminPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-[#FAF7F2] border border-[#E8DFD1] text-[11px] text-[#6E6265] flex items-start gap-2">
-                      <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                      <span>
-                        <strong className="text-[#2C2224]">Privasi & Keamanan Ketat:</strong> Halaman dashboard dan audit Administrator tidak dapat diakses atau dilihat oleh akun Customer maupun Runner.
-                      </span>
-                    </div>
-
-                    {adminError && (
-                      <div className="p-3 rounded-xl bg-[#FBF0F2] border border-[#F1CCD3] text-[#7A1E34] text-xs flex items-center gap-2 font-medium">
-                        <AlertCircle className="w-4 h-4 shrink-0" />
-                        <span>{adminError}</span>
-                      </div>
-                    )}
-
-                    {adminSuccess && (
-                      <div className="p-3 rounded-xl bg-[#E8F6F3] border border-[#A5DDD3] text-[#1F6F67] text-xs flex items-center gap-2 font-medium">
-                        <CheckCircle className="w-4 h-4 shrink-0" />
-                        <span>{adminSuccess}</span>
-                      </div>
-                    )}
-
-                    <button
-                      type="submit"
-                      className="w-full py-2.5 rounded-xl bg-[#2C2224] hover:bg-[#1A1415] text-white font-bold text-xs transition-all shadow-md shadow-black/25 flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <ShieldCheck className="w-4 h-4 text-amber-400" /> Masuk Sebagai Admin →
-                    </button>
-                  </form>
-                </div>
-              )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('register');
+                    stopCamera();
+                    soundFX.pop();
+                  }}
+                  className={`flex items-center justify-center gap-1.5 py-2 sm:py-2.5 rounded-xl transition-all cursor-pointer text-xs ${
+                    activeTab === 'register'
+                      ? 'bg-[#7A1E34] text-white shadow-md shadow-[#7A1E34]/25'
+                      : 'text-[#6E6265] hover:text-[#2C2224]'
+                  }`}
+                >
+                  <Camera className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Daftar (Pindai KTM Wajib)</span>
+                </button>
+              </div>
 
               {/* TAB 1: FORM MASUK (LOGIN) */}
-              {activeTab === 'login' && loginSection !== 'admin' && (
+              {activeTab === 'login' && (
                 <form onSubmit={handleLoginSubmit} className="space-y-4 animate-in fade-in">
                   <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-[#E8DFD1] text-xs text-[#2C2224] flex items-start gap-2.5 shadow-sm">
                     <KeyRound className="w-4 h-4 text-[#7A1E34] shrink-0 mt-0.5" />
@@ -773,7 +618,7 @@ export default function KtmLoginScreen() {
               )}
 
               {/* TAB 2: FORM DAFTAR AKUN BARU (PINDAI KTM WAJIB) */}
-              {activeTab === 'register' && loginSection !== 'admin' && (
+              {activeTab === 'register' && (
                 <div className="space-y-4 animate-in fade-in">
                   <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-[#E8DFD1] text-xs text-[#2C2224] flex items-start gap-2.5 shadow-sm">
                     <ShieldCheck className="w-4 h-4 text-[#7A1E34] shrink-0 mt-0.5" />
@@ -1205,9 +1050,19 @@ export default function KtmLoginScreen() {
       <footer className="relative z-10 border-t border-[#E8DFD1] bg-white/80 py-4 text-center text-xs text-[#6E6265]">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>CampusQuest UPI © 2026 • Ekosistem Peer-to-Peer Resmi Mahasiswa UPI</span>
-          <span className="text-[#6E6265] flex items-center gap-1.5">
-            <Lock className="w-3 h-3 text-[#2D8D84]" /> Terenkripsi &amp; Terproteksi Canvas Watermark UPI
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-[#6E6265] flex items-center gap-1.5">
+              <Lock className="w-3 h-3 text-[#2D8D84]" /> Terenkripsi &amp; Terproteksi Canvas Watermark UPI
+            </span>
+            <button
+              type="button"
+              onClick={openAdminAuthModal}
+              className="text-[10px] text-[#A89F91] hover:text-[#7A1E34] transition-colors cursor-pointer"
+              title="Akses Terbatas Administrator"
+            >
+              Portal Admin
+            </button>
+          </div>
         </div>
       </footer>
     </div>

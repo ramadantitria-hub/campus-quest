@@ -182,7 +182,15 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
         const savedReviews = localStorage.getItem(STORAGE_KEYS.REVIEWS);
         const savedAccounts = localStorage.getItem(STORAGE_KEYS.REGISTERED_ACCOUNTS);
 
-        if (savedProfile) setProfile(JSON.parse(savedProfile));
+        if (savedProfile) {
+          try {
+            const parsed = JSON.parse(savedProfile);
+            if (parsed.active_mode === 'admin' && !isAuthorizedAdminNim(parsed.nim)) {
+              parsed.active_mode = 'customer';
+            }
+            setProfile(parsed);
+          } catch {}
+        }
         if (savedQuests) setQuests(JSON.parse(savedQuests));
         if (savedChats) setChats(JSON.parse(savedChats));
         if (savedReviews) setReviews(JSON.parse(savedReviews));
@@ -1014,15 +1022,17 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
       return { success: false, message: 'Nomor Induk Mahasiswa (NIM) wajib diisi.' };
     }
 
+    // If NIM belongs to an authorized admin, automatically route to loginAsAdmin:
+    if (isAuthorizedAdminNim(cleanNim)) {
+      return loginAsAdmin(cleanNim, cleanPassword);
+    }
+
     // Role Admin validation: Admin view is private to authorized admins only
     if (targetRole === 'admin') {
-      if (!isAuthorizedAdminNim(cleanNim)) {
-        return {
-          success: false,
-          message: 'NIM ini bukan salah satu Administrator resmi (Airis, Tria, Abdu, Randi).'
-        };
-      }
-      return loginAsAdmin(cleanNim, cleanPassword);
+      return {
+        success: false,
+        message: 'NIM ini tidak terdaftar sebagai Administrator resmi.'
+      };
     }
 
     // 1. Check registered accounts list
