@@ -276,14 +276,6 @@ export default function KtmLoginScreen() {
     }
   };
 
-  const handleQuickLogin = (nim: string, role: 'customer' | 'runner') => {
-    setLoginNim(nim);
-    setLoginPassword('upi123');
-    setLoginError(null);
-    soundFX.pop();
-    loginWithCredentials(nim, 'upi123', role);
-  };
-
   const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setRegError(null);
@@ -503,18 +495,6 @@ export default function KtmLoginScreen() {
               {/* TAB 1: FORM MASUK (LOGIN) */}
               {activeTab === 'login' && (
                 <form onSubmit={handleLoginSubmit} className="space-y-4 animate-in fade-in">
-                  <div className="p-3 rounded-2xl bg-[#FAF7F2] border border-[#E8DFD1] text-xs text-[#2C2224] flex items-start gap-2.5 shadow-sm">
-                    <KeyRound className="w-4 h-4 text-[#7A1E34] shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-bold text-[#2C2224]">
-                        Masuk Akun {loginSection === 'runner' ? 'Runner' : 'Customer'} Mahasiswa UPI
-                      </p>
-                      <p className="text-[11px] text-[#6E6265] mt-0.5">
-                        Gunakan NIM dan kata sandi akun Anda yang telah terverifikasi KTM.
-                      </p>
-                    </div>
-                  </div>
-
                   {/* Input NIM UPI */}
                   <div>
                     <label className="block text-xs font-bold text-[#2C2224] mb-1 flex items-center justify-between">
@@ -582,30 +562,7 @@ export default function KtmLoginScreen() {
                     <span>Masuk Sebagai {loginSection === 'runner' ? 'Runner' : 'Customer'} UPI →</span>
                   </button>
 
-                  {/* Fast Demo Logins */}
-                  <div className="pt-2 border-t border-[#E8DFD1] text-center">
-                    <span className="text-[10px] text-[#7E7074] block mb-1.5 font-bold">
-                      Akun Uji Coba Cepat (1-Klik):
-                    </span>
-                    <div className="flex items-center justify-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleQuickLogin('2201945', loginSection === 'runner' ? 'runner' : 'customer')}
-                        className="px-2.5 py-1 rounded-xl bg-[#FAF7F2] hover:bg-white text-[11px] text-[#4A3D41] border border-[#E8DFD1] cursor-pointer transition-colors shadow-2xs font-medium"
-                      >
-                        👤 Farhan (2201945)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleQuickLogin('2108765', loginSection === 'runner' ? 'runner' : 'customer')}
-                        className="px-2.5 py-1 rounded-xl bg-[#FAF7F2] hover:bg-white text-[11px] text-[#4A3D41] border border-[#E8DFD1] cursor-pointer transition-colors shadow-2xs font-medium"
-                      >
-                        👤 Sarah (2108765)
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="text-center pt-1">
+                  <div className="text-center pt-2">
                     <button
                       type="button"
                       onClick={() => setActiveTab('register')}
