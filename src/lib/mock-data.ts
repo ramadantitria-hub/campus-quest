@@ -200,6 +200,9 @@ export const DEMO_STUDENTS: Profile[] = [
     rating: 4.96,
     total_completed_orders: 28,
     wallet_balance: 145000,
+    customer_balance: 145000,
+    runner_balance: 65000,
+    admin_balance: 0,
     points: 145,
     created_at: new Date(Date.now() - 30 * 86400000).toISOString()
   },
@@ -219,6 +222,9 @@ export const DEMO_STUDENTS: Profile[] = [
     rating: 4.98,
     total_completed_orders: 54,
     wallet_balance: 320000,
+    customer_balance: 75000,
+    runner_balance: 320000,
+    admin_balance: 0,
     points: 320,
     created_at: new Date(Date.now() - 60 * 86400000).toISOString()
   },
@@ -238,6 +244,9 @@ export const DEMO_STUDENTS: Profile[] = [
     rating: 4.92,
     total_completed_orders: 14,
     wallet_balance: 95000,
+    customer_balance: 95000,
+    runner_balance: 30000,
+    admin_balance: 0,
     points: 95,
     created_at: new Date(Date.now() - 20 * 86400000).toISOString()
   },
@@ -257,6 +266,9 @@ export const DEMO_STUDENTS: Profile[] = [
     rating: 4.88,
     total_completed_orders: 19,
     wallet_balance: 62000,
+    customer_balance: 62000,
+    runner_balance: 25000,
+    admin_balance: 0,
     points: 62,
     created_at: new Date(Date.now() - 40 * 86400000).toISOString()
   },
@@ -276,6 +288,9 @@ export const DEMO_STUDENTS: Profile[] = [
     rating: 5.0,
     total_completed_orders: 31,
     wallet_balance: 210000,
+    customer_balance: 210000,
+    runner_balance: 85000,
+    admin_balance: 0,
     points: 210,
     created_at: new Date(Date.now() - 50 * 86400000).toISOString()
   }
@@ -348,7 +363,10 @@ export const ADMIN_PROFILE: Profile = {
   runner_specialty: ['JASTAP', 'JARVIS'],
   rating: 5.0,
   total_completed_orders: 120,
-  wallet_balance: 1540000,
+  wallet_balance: 2500000,
+  customer_balance: 500000,
+  runner_balance: 250000,
+  admin_balance: 2500000,
   points: 1540,
   created_at: new Date(Date.now() - 90 * 86400000).toISOString()
 };

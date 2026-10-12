@@ -426,7 +426,7 @@ export default function KtmLoginScreen() {
                   >
                     <ShoppingBag className="w-4 h-4 shrink-0" />
                     <div className="text-center sm:text-left leading-tight">
-                      <div className="text-xs font-black">1. Customer</div>
+                      <div className="text-xs font-black">Customer</div>
                       <div className="text-[10px] opacity-85 hidden sm:block">Titip Beli & Jasa</div>
                     </div>
                   </button>
@@ -448,7 +448,7 @@ export default function KtmLoginScreen() {
                   >
                     <Zap className="w-4 h-4 shrink-0" />
                     <div className="text-center sm:text-left leading-tight">
-                      <div className="text-xs font-black">2. Runner</div>
+                      <div className="text-xs font-black">Runner</div>
                       <div className="text-[10px] opacity-85 hidden sm:block">Mitra Eksekutor</div>
                     </div>
                   </button>

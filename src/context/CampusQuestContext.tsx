@@ -107,6 +107,7 @@ interface CampusQuestContextType {
   increaseBounty: (questId: string, addedAmount: number) => { success: boolean; message: string };
   updateProfile: (updated: Partial<Profile>) => void;
   withdrawWallet: (amount: number, method: string) => boolean;
+  topUpWallet: (amount: number, method: string, targetRole?: UserRole) => Promise<{ success: boolean; message: string; newBalance?: number }>;
   resetToDefaultData: () => void;
   // Admin Methods & State
   adminForceCompleteQuest: (questId: string) => { success: boolean; message: string };
@@ -188,6 +189,19 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
             if (parsed.active_mode === 'admin' && !isAuthorizedAdminNim(parsed.nim)) {
               parsed.active_mode = 'customer';
             }
+            const isAdm = isAuthorizedAdminNim(parsed.nim);
+            const custBal = parsed.customer_balance ?? (parsed.active_mode === 'customer' ? parsed.wallet_balance : 50000);
+            const runBal = parsed.runner_balance ?? (parsed.active_mode === 'runner' ? parsed.wallet_balance : 25000);
+            const admBal = parsed.admin_balance ?? (isAdm ? 2500000 : 0);
+            parsed.customer_balance = custBal;
+            parsed.runner_balance = runBal;
+            parsed.admin_balance = admBal;
+            parsed.wallet_balance =
+              parsed.active_mode === 'runner'
+                ? runBal
+                : parsed.active_mode === 'admin' && isAdm
+                ? admBal
+                : custBal;
             setProfile(parsed);
           } catch {}
         }
@@ -302,6 +316,26 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
   const syncProfileToSupabase = async (p: Profile) => {
     if (!supabase) return;
     try {
+      const isAdm = isAuthorizedAdminNim(p.nim);
+      const custBal = p.customer_balance ?? (p.active_mode === 'customer' ? p.wallet_balance : 50000);
+      const runBal = p.runner_balance ?? (p.active_mode === 'runner' ? p.wallet_balance : 25000);
+      const admBal = p.admin_balance ?? (isAdm ? 2500000 : 0);
+      const activeBal =
+        p.active_mode === 'runner'
+          ? runBal
+          : p.active_mode === 'admin' && isAdm
+          ? admBal
+          : custBal;
+
+      const baseSpecialties = (p.runner_specialty || []).filter((s) => !s.startsWith('BAL_'));
+      if (baseSpecialties.length === 0) baseSpecialties.push('JASTAP', 'JARVIS');
+      const encodedSpecialties = [
+        ...baseSpecialties,
+        `BAL_CUST:${Math.round(custBal)}`,
+        `BAL_RUN:${Math.round(runBal)}`,
+        `BAL_ADM:${Math.round(admBal)}`
+      ];
+
       const fullPayload = {
         id: p.id,
         full_name: p.full_name,
@@ -314,11 +348,11 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
         major: p.major,
         student_status: p.student_status,
         is_verified: p.is_verified,
-        active_mode: p.active_mode,
-        runner_specialty: p.runner_specialty,
+        active_mode: p.active_mode === 'admin' ? 'customer' : p.active_mode,
+        runner_specialty: encodedSpecialties,
         rating: p.rating,
         total_completed_orders: p.total_completed_orders,
-        wallet_balance: p.wallet_balance
+        wallet_balance: activeBal
       };
 
       const { error } = await supabase.from('profiles').upsert(fullPayload, { onConflict: 'id' });
@@ -332,11 +366,11 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
           avatar_url: p.avatar_url,
           ktm_url: p.ktm_url,
           is_verified: p.is_verified,
-          active_mode: p.active_mode,
-          runner_specialty: p.runner_specialty,
+          active_mode: p.active_mode === 'admin' ? 'customer' : p.active_mode,
+          runner_specialty: encodedSpecialties,
           rating: p.rating,
           total_completed_orders: p.total_completed_orders,
-          wallet_balance: p.wallet_balance
+          wallet_balance: activeBal
         };
         await supabase.from('profiles').upsert(corePayload, { onConflict: 'id' });
       }
@@ -354,9 +388,18 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
       }
     }
     setProfile((prev) => {
+      const isAdm = isAuthorizedAdminNim(prev.nim);
+      const activeBal =
+        role === 'runner'
+          ? (prev.runner_balance ?? 25000)
+          : role === 'admin' && isAdm
+          ? (prev.admin_balance ?? 2500000)
+          : (prev.customer_balance ?? 50000);
+
       const updated = {
         ...prev,
-        active_mode: role
+        active_mode: role,
+        wallet_balance: activeBal
       };
       syncProfileToSupabase(updated);
       return updated;
@@ -610,12 +653,14 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
     // Update profil: jika runner yang login atau eksekutor misi, tambahkan penghasilan & poin
     setProfile((prev) => {
       const isRunner = prev.active_mode === 'runner' || prev.id === quest.runner_id;
-      const updatedBalance = isRunner ? prev.wallet_balance + runnerEarnings : prev.wallet_balance;
+      const newRunnerBal = isRunner ? (prev.runner_balance ?? 25000) + runnerEarnings : (prev.runner_balance ?? 25000);
+      const activeBal = prev.active_mode === 'runner' ? newRunnerBal : (prev.customer_balance ?? prev.wallet_balance);
       const updatedPoints = (prev.points || 0) + pointsEarned;
       const updated = {
         ...prev,
         total_completed_orders: prev.total_completed_orders + 1,
-        wallet_balance: updatedBalance,
+        runner_balance: newRunnerBal,
+        wallet_balance: activeBal,
         points: updatedPoints
       };
       syncProfileToSupabase(updated);
@@ -888,13 +933,143 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
   };
 
   const withdrawWallet = (amount: number, method: string): boolean => {
-    if (amount > profile.wallet_balance || amount <= 0) return false;
+    const isRunner = profile.active_mode === 'runner';
+    const currentBal = isRunner
+      ? (profile.runner_balance ?? profile.wallet_balance)
+      : (profile.customer_balance ?? profile.wallet_balance);
+
+    if (amount > currentBal || amount <= 0) return false;
     soundFX.notification();
-    setProfile((prev) => ({
-      ...prev,
-      wallet_balance: prev.wallet_balance - amount
-    }));
+
+    // Call backend API in background
+    fetch('/api/wallet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'withdraw',
+        nim: profile.nim,
+        role: profile.active_mode,
+        amount,
+        method
+      })
+    }).catch((err) => console.warn('Withdraw backend warn:', err));
+
+    setProfile((prev) => {
+      const isR = prev.active_mode === 'runner';
+      const newCust = isR
+        ? prev.customer_balance
+        : (prev.customer_balance ?? prev.wallet_balance) - amount;
+      const newRun = isR
+        ? (prev.runner_balance ?? prev.wallet_balance) - amount
+        : prev.runner_balance;
+      const newActive = isR ? newRun : newCust;
+      const updated = {
+        ...prev,
+        customer_balance: newCust,
+        runner_balance: newRun,
+        wallet_balance: newActive ?? 0
+      };
+      syncProfileToSupabase(updated);
+      return updated;
+    });
     return true;
+  };
+
+  const topUpWallet = async (
+    amount: number,
+    method: string,
+    targetRole?: UserRole
+  ): Promise<{ success: boolean; message: string; newBalance?: number }> => {
+    const roleToUse = targetRole || profile.active_mode;
+    try {
+      const res = await fetch('/api/wallet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'topup',
+          nim: profile.nim,
+          role: roleToUse,
+          amount,
+          method
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        soundFX.success();
+        fireCelebrationConfetti();
+        setProfile((prev) => {
+          const newCust =
+            data.customer_balance ??
+            (roleToUse === 'customer'
+              ? (prev.customer_balance ?? 50000) + amount
+              : prev.customer_balance ?? 50000);
+          const newRun =
+            data.runner_balance ??
+            (roleToUse === 'runner'
+              ? (prev.runner_balance ?? 25000) + amount
+              : prev.runner_balance ?? 25000);
+          const newAdm =
+            data.admin_balance ??
+            (roleToUse === 'admin'
+              ? (prev.admin_balance ?? 2500000) + amount
+              : prev.admin_balance ?? 2500000);
+          const newActive =
+            prev.active_mode === 'runner'
+              ? newRun
+              : prev.active_mode === 'admin'
+              ? newAdm
+              : newCust;
+          const updated: Profile = {
+            ...prev,
+            customer_balance: newCust,
+            runner_balance: newRun,
+            admin_balance: newAdm,
+            wallet_balance: newActive
+          };
+          syncProfileToSupabase(updated);
+          return updated;
+        });
+        return { success: true, message: data.message, newBalance: data.newBalance };
+      } else {
+        return { success: false, message: data.message || 'Gagal melakukan top up saldo.' };
+      }
+    } catch {
+      // Offline fallback
+      soundFX.success();
+      setProfile((prev) => {
+        const newCust =
+          roleToUse === 'customer'
+            ? (prev.customer_balance ?? 50000) + amount
+            : prev.customer_balance ?? 50000;
+        const newRun =
+          roleToUse === 'runner'
+            ? (prev.runner_balance ?? 25000) + amount
+            : prev.runner_balance ?? 25000;
+        const newAdm =
+          roleToUse === 'admin'
+            ? (prev.admin_balance ?? 2500000) + amount
+            : prev.admin_balance ?? 2500000;
+        const newActive =
+          prev.active_mode === 'runner'
+            ? newRun
+            : prev.active_mode === 'admin'
+            ? newAdm
+            : newCust;
+        const updated: Profile = {
+          ...prev,
+          customer_balance: newCust,
+          runner_balance: newRun,
+          admin_balance: newAdm,
+          wallet_balance: newActive
+        };
+        syncProfileToSupabase(updated);
+        return updated;
+      });
+      return {
+        success: true,
+        message: `Top up Rp ${amount.toLocaleString('id-ID')} via ${method} berhasil!`
+      };
+    }
   };
 
   const openLoginModal = () => {
@@ -967,6 +1142,9 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
       rating: 5.0,
       total_completed_orders: 0,
       wallet_balance: cleanRole === 'runner' ? 25000 : 50000,
+      customer_balance: 50000,
+      runner_balance: 25000,
+      admin_balance: 0,
       created_at: new Date().toISOString()
     };
 
@@ -1078,6 +1256,10 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
       soundFX.success();
       fireCelebrationConfetti();
       const roleToUse = targetRole || matched.role;
+      const custBal = (matched as unknown as { customer_balance?: number }).customer_balance ?? 50000;
+      const runBal = (matched as unknown as { runner_balance?: number }).runner_balance ?? 25000;
+      const admBal = (matched as unknown as { admin_balance?: number }).admin_balance ?? 0;
+      const activeBal = roleToUse === 'runner' ? runBal : custBal;
       const loggedProfile: Profile = {
         id: matched.id,
         full_name: matched.full_name,
@@ -1094,7 +1276,10 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
         runner_specialty: ['JASTAP', 'JARVIS'],
         rating: 5.0,
         total_completed_orders: 0,
-        wallet_balance: roleToUse === 'runner' ? 25000 : 50000,
+        wallet_balance: activeBal,
+        customer_balance: custBal,
+        runner_balance: runBal,
+        admin_balance: admBal,
         created_at: matched.created_at
       };
       setProfile(loggedProfile);
@@ -1273,6 +1458,9 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
         rating: 5.0,
         total_completed_orders: 150,
         wallet_balance: 2500000,
+        customer_balance: 500000,
+        runner_balance: 250000,
+        admin_balance: 2500000,
         points: 2500,
         created_at: new Date(Date.now() - 90 * 86400000).toISOString()
       };
@@ -1524,6 +1712,7 @@ export function CampusQuestProvider({ children }: { children: React.ReactNode })
         increaseBounty,
         updateProfile,
         withdrawWallet,
+        topUpWallet,
         resetToDefaultData,
         // Admin
         adminForceCompleteQuest,

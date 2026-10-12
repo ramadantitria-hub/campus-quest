@@ -32,6 +32,9 @@ export interface Profile {
   rating: number;
   total_completed_orders: number;
   wallet_balance: number;
+  customer_balance?: number; // Saldo mandiri akun customer
+  runner_balance?: number;   // Saldo mandiri akun runner
+  admin_balance?: number;    // Saldo mandiri akun admin
   points?: number; // Poin Loyalitas Mahasiswa (dihitung dari nilai ongkir)
   created_at: string;
 }
